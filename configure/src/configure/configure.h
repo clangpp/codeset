@@ -20,7 +20,9 @@ public:
 	// read configuration variables from file
 	void read(const std::string& cfg_file);
 
-    // read configuration variables from command line options
+    // filter key-value pair in command line options that meets any of formats:
+    //    1. --key=value
+    //    2. --key value1 value2 value3 ...
     void read(int argc, char* argv[]);
 
 	// clear configuration variables

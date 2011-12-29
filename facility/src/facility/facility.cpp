@@ -1,6 +1,9 @@
 // facility.cpp
 #include "facility.h"
+
+#include <algorithm>
 #include <cctype>
+#include <iterator>
 
 namespace facility {
 
@@ -16,10 +19,6 @@ std::string& trim_right(std::string& str) {
 	for (; riter!=str.rend() && std::isspace(*riter); ++riter) {}
 	str.erase(riter.base(), str.rbegin().base());
 	return str;
-}
-
-std::string& trim(std::string& str) {
-	return trim_left(trim_right(str));
 }
 
 }  // namespace facility

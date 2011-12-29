@@ -11,6 +11,8 @@ using namespace std;
 
 void test_case(const string& case_name);
 
+void test_read_command_line_options();
+
 int main(int argc, char* argv[]) {
 
 	try {
@@ -53,6 +55,8 @@ int main(int argc, char* argv[]) {
     for (size_t i=0; i<cases.size(); ++i)
         test_case(cases[i]);
 
+	test_read_command_line_options();
+
 	} catch (const exception& e) {
 		cerr << e.what() << endl;
 		return 1;
@@ -71,4 +75,14 @@ void test_case(const string& case_name) {
     cout << "    tt_server: " << host << ":" << port << endl;
     cout << "    record_amount: " << amount << endl;
     cout << endl;
+}
+
+void test_read_command_line_options() {
+	char* options[] = {"cmd","sub-cmd", "--port", "1024", "--server", "127.0.0.1", "192.168.0.1", "--port", "1025", "1027"};
+	configure::Configure cfg;
+	cfg.read(sizeof(options)/sizeof(char*), options);
+	vector<int> ports = cfg.get<vector<int> >("port");
+	int ports_expected[] = {1025, 1027};
+	bool passed = ports == vector<int>(ports_expected, ports_expected+sizeof(ports_expected)/sizeof(int));
+	cout << "passed? " << passed << endl;
 }

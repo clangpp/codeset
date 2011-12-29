@@ -3,11 +3,12 @@
 // mainly simulate std::map's design concept
 // Author: Yongtian Zhang (yongtianzhang@gmail.com)
 // Created At: 2011.11.03
-// Last Modified At: 2011.11.11
+// Last Modified At: 2011.12.07
+
 #ifndef AC_H_
 #define AC_H_
 
-// configuration
+// configuration macro
 // =============================================================================
 // #define AC_USING_CPP11
 #define AC_USING_BOOST
@@ -20,54 +21,71 @@
 #include <utility>
 #include <stdexcept>
 
+// configuration specific types
+// =============================================================================
+
 #if defined(AC_USING_CPP11)  // using c++11
-	#include <unordered_map>
+
+#include <unordered_map>
+namespace ac {
+	template <typename Key, typename T>
+	class Map: public std::unordered_map<Key, T> {};
+}  // namespace ac
+
 #elif defined(AC_USING_BOOST)  // using boost
-	#include <boost/unordered_map.hpp>
+
+#include <boost/unordered_map.hpp>
+namespace ac {
+	template <typename Key, typename T>
+	class Map: public boost::unordered_map<Key, T> {};
+}  // namespace ac
+
 #else  // using c++98
-	#include <map>
+
+#include <map>
+namespace ac {
+	template <typename Key, typename T>
+	class Map: public std::map<Key, T> {};
+}  // namespace ac
+
 #endif  // AC_USING_*
+
 
 namespace ac {
 
 // node to form trie
 // =============================================================================
-template <typename Character, typename Mapped>
+template <typename Character, typename T>
 struct TrieNode {
 public:
-	typedef Character character;
-	typedef Mapped mapped_type;
+	typedef Character character_type;
+	typedef T value_type;
 	typedef TrieNode self;
-
-#if defined(AC_USING_CPP11)  // using c++11
-	typedef std::unordered_map<character, self> child_table;
-#elif defined(AC_USING_BOOST)  // using boost
-	typedef boost::unordered_map<character, self> child_table;
-#else  // using c++98
-	typedef std::map<character, self> child_table;
-#endif  // AC_USING_*
-
-	typedef typename child_table::iterator child_iterator;
+	typedef Map<character_type, self*> child_table;
 
 public:
 	self* parent;
 	child_table children;
-	character route;
+	character_type route;
 	std::ptrdiff_t height;
 	self* fail_pointer;
 
 public:
-	TrieNode(): parent(NULL), route(character()), height(0), mapped_(NULL) {}
-	~TrieNode() { erase_mapped(); }
-	void set_mapped(const mapped_type& mapped);
-	bool has_mapped() const { return mapped_!=NULL; }
-	mapped_type& mapped();
-	const mapped_type& mapped() const;
-	void erase_mapped();
-	bool eos() const { return has_mapped(); }
+	TrieNode(): parent(NULL), route(character_type()), height(0), pvalue_(NULL) {}
+	~TrieNode();
+
+	void set_value(const value_type& value);
+	bool has_value() const { return pvalue_!=NULL; }
+	value_type& value();
+	const value_type& value() const;
+	void erase_value();
+
+	bool eos() const { return has_value(); }
+
+	void clear_children();
 
 private:
-	mapped_type* mapped_;
+	value_type* pvalue_;
 };
 
 // node pointer traits
@@ -83,47 +101,41 @@ struct node_pointer_traits<const TrieNodeT*> {
 
 // AC automation
 // =============================================================================
-template <typename Character, typename Mapped=bool>
+template <typename Character, typename T>
 class Automation{
 public:
-	typedef TrieNode<Character, Mapped> node;
+	typedef TrieNode<Character, T> node;
+	// typedef Character character_type;
+	typedef T mapped_type;
 	typedef node* node_pointer;
 	typedef const node* const_node_pointer;
-	typedef typename node::character character;
-	typedef typename node::mapped_type mapped_type;
+	typedef std::size_t size_type;
 
 public:
-	Automation(): fail_pointers_updated_(false) {}
+	Automation(): fail_pointers_updated_(false), counter_(0) {}
 
 	// insert a subsequence into automation
 	// return whether operation taken place
-	template <typename ForwardIterator>
-	bool insert(ForwardIterator first, ForwardIterator last,
-			const mapped_type& mapped=mapped_type());
-	template <typename ForwardIterator>
-	bool insert(const std::pair<ForwardIterator, ForwardIterator>& range,
-			const mapped_type& mapped=mapped_type()) {
-		return insert(range.first, range.second, mapped);
-	}
-	template <typename Container>
-	bool insert(const Container& c, const mapped_type& mapped=mapped_type()) {
-		return insert(c.begin(), c.end(), mapped);
-	}
+	template <typename InputIterator>
+	bool insert(InputIterator first, InputIterator last,
+			const mapped_type& value, node_pointer& eos_node);
 
 	// remove a subsequence from automation
 	// return whether operation taken place
-	template <typename ForwardIterator>
-	bool erase(ForwardIterator first, ForwardIterator last);
-	template <typename Container>
-	bool erase(Container& c) { return erase(c.begin(), c.end()); }
-	template <typename ForwardIterator>
-	bool erase(const std::pair<ForwardIterator, ForwardIterator>& range) {
-		return erase(range.first, range.second);
-	}
+	template <typename InputIterator>
+	bool erase(InputIterator first, InputIterator last);
 
-	// empty the whole automation
+	// // find a subsequence in automation
+	// // return whether found or not
+	// // post-condition: if returned true, eos_node denotes the result.
+	// template <typename InputIterator, typename NodePointer>
+	// bool find(InputIterator first, InputIterator last,
+	// 		NodePointer& eos_node) const;
+
+	// empty automation
 	void clear();
 	bool empty() const;
+	size_type size() const { return counter_; }
 
 	// find first mismatch position between [first, last) and *this
 	// with returned pair /r/:
@@ -142,34 +154,38 @@ public:
 	//		fail_node.second is pointer to the mismatch code
 	// pre-condition: /cursor/ must be in Automation
 	// post-condition: cursor == fail_node.first
-	template <typename BidirectionalIterator, typename NodePointer>
+	template <typename ForwardIterator, typename NodePointer>
 	bool match_first(
-			BidirectionalIterator first, BidirectionalIterator last,
-			NodePointer& cursor,
-			std::pair<BidirectionalIterator, BidirectionalIterator>& fail,
+			ForwardIterator first, ForwardIterator last, NodePointer& cursor,
+			std::pair<ForwardIterator, ForwardIterator>& fail,
 			std::pair<NodePointer, NodePointer>& fail_node);
 
-	// node_pointer root_pointer() { return &root_; }
+	node_pointer root_pointer() { return &root_; }
 	const_node_pointer root_pointer() const { return &root_; }
 
-protected:
-	template <typename ForwardIterator>
-	bool insert(ForwardIterator first, ForwardIterator last,
-			const mapped_type& mapped, node_pointer& eos_node);
-
+private:
 	void update_fail_pointers();
 
-protected:
+private:
 	node root_;
 	bool fail_pointers_updated_;
+	size_type counter_;
 };
 
 // namespace free functions
 // =============================================================================
-template <typename ForwardIterator, typename NodePointer>
-void match(ForwardIterator first, ForwardIterator last, NodePointer& cursor,
-		std::pair<ForwardIterator, ForwardIterator>& mismatch,
+namespace internal {
+// look for subsequence [first, last) in trie tree denoted by /cursor/
+// return whether found or not. if found, /cursor/ denotes the position
+template <typename InputIterator, typename NodePointer>
+bool find(InputIterator first, InputIterator last, NodePointer& cursor);
+
+// try to find match in trie tree, cursor denotes the begin searching position.
+template <typename InputIterator, typename NodePointer>
+void match(InputIterator first, InputIterator last, NodePointer& cursor,
+		std::pair<InputIterator, InputIterator>& mismatch,
 		std::pair<NodePointer, NodePointer>& mismatch_node);
+}  // namespace internal
 
 // find first subsequence in /subset/ in [first, last)
 // return subsequence range in [first, last) if found, [last, last) otherwise
@@ -184,18 +200,160 @@ bool search(BidirectionalIterator first, BidirectionalIterator last,
 		Automation<Character, Mapped>& subset);
 
 // how many subsequence in /subset/ can be found in [first, last)
-template <typename BidirectionalIterator, typename Character, typename Mapped>
-std::size_t count(BidirectionalIterator first, BidirectionalIterator last,
+template <typename ForwardIterator, typename Character, typename Mapped>
+std::size_t count(ForwardIterator first, ForwardIterator last,
 		Automation<Character, Mapped>& subset);
+
+// trie map
+// perform std::map interface or like
+// =============================================================================
+template <typename Character, typename T>
+class TrieMap: public Automation<Character, T> {
+public:
+	typedef Automation<Character, T> base;
+	// typedef typename base::character_type character_type;
+	typedef typename base::mapped_type mapped_type;
+	typedef typename base::node node;
+	typedef typename base::node_pointer node_pointer;
+	typedef typename base::const_node_pointer const_node_pointer;
+	typedef std::size_t size_type;
+
+	// TBD: to be implemented.
+	template <typename NodePointer>
+	class basic_iterator {
+	public:
+		typedef NodePointer node_pointer;
+		typedef typename
+			node_pointer_traits<node_pointer>::child_iterator child_iterator;
+	public:
+		basic_iterator(node_pointer p, child_iterator pos):
+			parent_(p), position_(pos) {}
+		basic_iterator(): parent_(NULL), position_() {}
+		bool operator == (const basic_iterator& rhs) const {
+			return parent_==rhs.parent_ && position_==rhs.position_;
+		}
+		bool operator != (const basic_iterator& rhs) const {
+			return !(*this == rhs);
+		}
+	private:
+		bool next();  // move to next node
+		bool next_eos();  // move to next eos node
+	private:
+		node_pointer parent_;
+		child_iterator position_;
+	};
+	typedef basic_iterator<node_pointer> iterator;
+	typedef basic_iterator<const_node_pointer> const_iterator;
+
+public:  // iterator observers
+	iterator begin() {
+		return iterator(base::root_pointer(),
+				base::root_pointer()->children.begin());
+	}
+	iterator end() {
+		return iterator(base::root_pointer(),
+				base::root_pointer()->children.end());
+	}
+	const_iterator begin() const {
+		return const_iterator(base::root_pointer(),
+				base::root_pointer()->children.begin());
+	}
+	const_iterator end() const {
+		return const_iterator(base::root_pointer(),
+				base::root_pointer()->children.end());
+	}
+
+public:
+	TrieMap() {}
+	
+	// insert
+	template <typename InputIterator>
+	std::pair<iterator, bool> insert(
+			InputIterator first, InputIterator last, const mapped_type& value);
+	template <typename InputIterator>
+	std::pair<iterator, bool> insert(
+			const std::pair<InputIterator, InputIterator>& range,
+			const mapped_type& value) {
+		return insert(range.first, range.second, value);
+	}
+	template <typename Container>
+	std::pair<iterator, bool> insert(
+			const Container& sequence, const mapped_type& value) {
+		return insert(sequence.begin(), sequence.end(), value);
+	}
+
+	// erase
+	template <typename InputIterator>
+	bool erase(const std::pair<InputIterator, InputIterator>& range) {
+		return base::erase(range.first, range.second);
+	}
+	template <typename Container>
+	bool erase(const Container& sequence) {
+		return base::erase(sequence.begin(), sequence.end());
+	}
+
+	// find
+	template <typename InputIterator>
+	iterator find(InputIterator first, InputIterator last);
+	template <typename InputIterator>
+	iterator find(const std::pair<InputIterator, InputIterator>& range) {
+		return find(range.begin(), range.end());
+	}
+	template <typename Container>
+	iterator find(const Container& sequence) {
+		return find(sequence.begin(), sequence.end());
+	}
+	template <typename InputIterator>
+	const_iterator find(InputIterator first, InputIterator last) const;
+	template <typename InputIterator>
+	const_iterator find(
+			const std::pair<InputIterator, InputIterator>& range) const {
+		return find(range.begin(), range.end());
+	}
+	template <typename Container>
+	const_iterator find(const Container& sequence) const {
+		return find(sequence.begin(), sequence.end());
+	}
+
+	// operator []
+	template <typename InputIterator>
+	mapped_type& operator [] (const std::pair<InputIterator, InputIterator>& range);
+	template <typename Container>
+	mapped_type& operator [] (const Container& c) {
+		return (*this)[std::make_pair(c.begin(), c.end())];
+	}
+
+	// observers
+	template <typename InputIterator>
+	size_type count(InputIterator first, InputIterator last) const {
+		return find(first, last)!=end() ? 1 : 0;
+	}
+	template <typename InputIterator>
+	size_type count(const std::pair<InputIterator, InputIterator>& range) const {
+		return count(range.first, range.second);
+	}
+	template <typename Container>
+	size_type count(const Container& sequence) const {
+		return count(sequence.begin(), sequence.end());
+	}
+	
+public:
+	using base::insert;
+	using base::erase;
+	using base::mismatch;
+	using base::match_first;
+};
 
 // subsequence set
 // =============================================================================
 template <typename Character, typename Mapped = bool>
-class SubsequenceSet: public Automation<Character, Mapped> {
+class SubsequenceSet: public TrieMap<Character, Mapped> {
 public:
-	typedef Automation<Character, Mapped> base;
+	typedef TrieMap<Character, Mapped> base;
 	typedef typename base::mapped_type mapped_type;
 	typedef typename base::node_pointer node_pointer;
+	typedef typename base::iterator iterator;
+	typedef typename base::const_iterator const_iterator;
 
 	template <typename BidirectionalIterator>
 	struct match_result:
@@ -205,7 +363,7 @@ public:
 		match_result(BidirectionalIterator first, BidirectionalIterator last,
 				node_pointer pnode=NULL): base(first, last),  pnode_(pnode){}
 		match_result(): base(), pnode_(NULL) {}
-		mapped_type& mapped() { return pnode_->mapped(); }
+		mapped_type& mapped() { return pnode_->value(); }
 	private:
 		node_pointer pnode_;
 	};
@@ -215,11 +373,19 @@ public:
 	friend class SubsequenceIterator;
 
 public:
-	template <typename ForwardIterator>
-	mapped_type& operator [] (const std::pair<ForwardIterator, ForwardIterator>& range);
+	using base::insert;
+	template <typename InputIterator>
+	std::pair<iterator, bool> insert(InputIterator first, InputIterator last) {
+		return base::insert(first, last, mapped_type());
+	}
+	template <typename InputIterator>
+	std::pair<iterator, bool> insert(
+			const std::pair<InputIterator, InputIterator>& range) {
+		return base::insert(range, mapped_type());
+	}
 	template <typename Container>
-	mapped_type& operator [] (const Container& c) {
-		return (*this)[std::make_pair(c.begin(), c.end())];
+	std::pair<iterator, bool> insert(const Container& sequence) {
+		return base::insert(sequence, mapped_type());
 	}
 };
 
@@ -241,8 +407,11 @@ public:
 	typedef std::forward_iterator_tag iterator_category;
 
 public:
+	// construct iterator with sequence [first, last) and subsequence set
+	// /subset/. /overlap/ denotes whether matched words can overlap with
+	// each other or not.
 	SubsequenceIterator(sequence_iterator first, sequence_iterator last,
-			subsequence_set& subset);
+			subsequence_set& subset, bool overlap=true);
 
 	// end-of-sequence iterator
 	SubsequenceIterator();
@@ -274,6 +443,7 @@ private:
 	sequence_iterator begin_;
 	sequence_iterator end_;
 	subsequence_set* psubset_;
+	bool overlap_;
 
 	std::pair<sequence_iterator, sequence_iterator> fail_;
 	std::pair<node_pointer, node_pointer> fail_node_;

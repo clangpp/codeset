@@ -58,23 +58,29 @@ void Configure::read(const std::string& cfg_file) {
 }
 
 void Configure::read(int argc, char* argv[]) {
-    const std::string prefix("--");
-    for (int i=1; i<argc; ++i) {
-        std::string text(argv[i]);
+    std::string curr_key;
+    for (int i=0; i<argc; ++i) {
+        std::string arg(argv[i]);
 
-        // filter option format like '--key=value'
-        if (text.substr(0,prefix.size()) != prefix)
-            continue;
-        std::string::size_type equal_pos=text.find('=');
-        if (std::string::npos==equal_pos)
-            continue;
+        if (arg.find("--")==0) { // meet a key
+            std::string::size_type equal_pos = arg.find('=');
+            if (equal_pos!=std::string::npos) { // key-value pair
+                std::string key = arg.substr(2,equal_pos-2);
+                std::string value = arg.substr(equal_pos+1);
+                table_[facility::trim(key)] = facility::trim(value);
+                curr_key.clear(); // clear hanging key
+            } else { // hanging key
+                std::string key = arg.substr(2);
+                curr_key = facility::trim(key);
+                table_.erase(curr_key); // clear old value of hanging key
+            }
 
-        // form key-value pair, insert into table
-        std::string key=text.substr(prefix.size(),equal_pos-prefix.size());
-        std::string value=text.substr(equal_pos+1);
-        facility::trim(key);
-        facility::trim(value);
-        table_[key] = value;
+        } else if (!curr_key.empty()) { // there is a hanging key
+            std::string& curr_value = table_[curr_key];
+            if (!curr_value.empty())
+                curr_value.append(" ");
+            curr_value.append(arg);
+        }
     }
 }
 
