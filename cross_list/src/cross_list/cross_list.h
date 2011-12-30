@@ -15,7 +15,7 @@ special:
 		right side and down side nodes in cross list.
 author: Yongtian Zhang, yongtianzhang@gmail.com
 finish-time: 2011.03.27
-last-modified: 2011.05.01
+last-modified: 2011.12.29
 
 license:
 	This code is not under any license, anyone can get it, use it, modified it, redistribute it without notice me. 
@@ -38,6 +38,8 @@ license:
 #include <iostream>
 #include <string>
 #include <cstring>
+
+#include "../serialization/serialization.h"
 
 namespace cross_list_internal {
 	//node that contains cross list values
@@ -721,20 +723,19 @@ void accumulate_to(
 template <typename T>
 std::ostream& operator << (std::ostream& os, const cross_list<T>& mat)
 {
-	os << "row_size=" << mat.row_size() << " col_size=" << mat.col_size()
-		<< " size=" << mat.size() << std::endl;
-	os << "<row_index> -> [<node_amount>] (<col_index>:<node_value> )+" << std::endl;
+    typedef serialization::sparse_matrix::Cell<T> cell_type;
+    typedef serialization::sparse_matrix::Dimension dimension_type;
 	for (typename cross_list<T>::size_type r=0; r<mat.row_size(); ++r)
 	{
 		if (mat.size_of_row(r)==0)
 			continue;
-		os << r << " -> [" << mat.size_of_row(r) << "] ";//output row information
 		typename cross_list<T>::const_row_iterator row_iter=mat.cbegin_of_row(r);
 		typename cross_list<T>::const_row_iterator row_end=mat.cend_of_row(r);
-		for (; row_iter!=row_end; ++row_iter)	//output every node
-			os << "(" << row_iter.col_index() << ":" << *row_iter << " )";//os << T
+		for (; row_iter!=row_end; ++row_iter)	// write every node
+            os << cell_type(row_iter.row_index(), row_iter.col_index(), *row_iter);
 		os << std::endl;
 	}
+	os << dimension_type(mat.row_size(), mat.col_size()) << std::endl;
 	return os;
 }
 
@@ -745,36 +746,32 @@ std::istream& operator >> (std::istream& is, cross_list<T>& mat)
 {
 	typedef typename cross_list<T>::size_type size_type;
 	typedef typename cross_list<T>::value_type value_type;
+    typedef serialization::sparse_matrix::Cell<T> cell_type;
+    typedef serialization::sparse_matrix::Dimension dimension_type;
 	mat.clear();
-	std::string text;
-	size_type row_size=0,col_size=0,size=0;
-	getline(is,text,'='); is >> row_size;	//get row dimension
-	getline(is,text,'='); is >> col_size;	//get column dimension
-	getline(is,text,'='); is >> size;		//get total node amount
-	getline(is,text);						//skip '\n'
-	mat.resize(row_size,col_size);
-	getline(is,text);						//skip description line
-	while (size>0)							//while have node to get
-	{
-		size_type row_index=0, node_amount=0;//get row information
-		is >> row_index;
-		getline(is,text,'[');
-		is >> node_amount;
-		getline(is,text,']');
-		size -= node_amount;
-		while (node_amount--)				//get every node
-		{
-			getline(is,text,'(');
-			size_type col_index=0;
-			is >> col_index;
-			getline(is,text,':');
-			value_type node_value=value_type();
-			is >> node_value;				//get node value, is >> T
-			getline(is,text,')');
-			mat.rinsert(row_index,col_index,node_value);
-		}
-		getline(is,text);					//skip '\n'
-	}
+    cell_type cell;
+    dimension_type dimension;
+    char beg_ch=0;
+    while (is >> beg_ch)  // for each line
+    {
+        is.putback(beg_ch);
+        switch (beg_ch) {
+        case '(':  // cell unit
+            is >> cell;
+            if (cell.row >= mat.row_size())
+                mat.row_resize(cell.row + 1);
+            if (cell.column >= mat.col_size())
+                mat.col_resize(cell.column + 1);
+            mat.rinsert(cell.row, cell.column, cell.value);
+            break;
+        case '[':  // dimension
+            is >> dimension;
+            mat.resize(dimension.row, dimension.column);
+            break;
+        default:
+            break;
+        }
+    }
 	return is;
 }
 

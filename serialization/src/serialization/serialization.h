@@ -75,6 +75,7 @@ struct Dimension {
 	size_type row;
 	size_type column;
 	Dimension(): row(0), column(0) {}
+	Dimension(size_type r, size_type c): row(r), column(c) {}
 };
 
 template <typename CharT, typename Traits>

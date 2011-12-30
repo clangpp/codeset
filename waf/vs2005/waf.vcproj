@@ -84,6 +84,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\src\configure\configure.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\facility\facility.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\main.cpp"
 				>
 			</File>
@@ -94,11 +102,31 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\src\configure\configure.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\cross_list\cross_list.h"
 				>
 			</File>
 			<File
+				RelativePath="..\src\facility\facility-inl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\facility\facility.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\logging\logging.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\serialization\serialization-inl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\serialization\serialization.h"
 				>
 			</File>
 			<File
