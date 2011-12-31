@@ -755,6 +755,7 @@ std::istream& operator >> (std::istream& is, cross_list<T>& mat)
     while (is >> beg_ch)  // for each line
     {
         is.putback(beg_ch);
+        bool unknown_pattern = false;
         switch (beg_ch) {
         case '(':  // cell unit
             is >> cell;
@@ -769,8 +770,10 @@ std::istream& operator >> (std::istream& is, cross_list<T>& mat)
             mat.resize(dimension.row, dimension.column);
             break;
         default:
+            unknown_pattern = true;
             break;
         }
+        if (unknown_pattern) break;  // unknown pattern, break loop
     }
 	return is;
 }

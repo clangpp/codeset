@@ -134,11 +134,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\waf\waf.h"
+				RelativePath="..\src\waf_core\waf_core-inl.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\waf\waf_text.h"
+				RelativePath="..\src\waf_core\waf_core.h"
 				>
 			</File>
 		</Filter>

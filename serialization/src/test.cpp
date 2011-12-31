@@ -14,12 +14,14 @@ void test_pair_serialization();
 void test_triad_serialization();
 void test_cell_serialization();
 void test_dimension_serialization();
+void test_pair_cell_serialization();
 
 int main(int argc, char* argv[]) {
 	test_pair_serialization();
 	test_triad_serialization();
 	test_cell_serialization();
 	test_dimension_serialization();
+	test_pair_cell_serialization();
 	return 0;
 }
 
@@ -104,4 +106,26 @@ void test_dimension_serialization() {
 	assert(6 == val.column);
 
 	cout << "pass Dimension: " << val << endl;
+}
+
+void test_pair_cell_serialization() {
+	namespace sm = serialization::sparse_matrix;
+	sm::Cell<pair<int, int> > val;
+	stringstream ss, so;
+	ss << " ( 2 5 ( 7 8) ) ";
+	ss >> val;
+	assert(2 == val.row);
+	assert(5 == val.column);
+	assert(make_pair(7,8) == val.value);
+
+	ss << val;
+	istream_iterator<sm::Cell<pair<int, int> > > is_iter(ss), is_end;
+	ostream_iterator<sm::Cell<pair<int, int> > > os_iter(so, "\n");
+	copy(is_iter, is_end, os_iter);
+	so >> val;
+	assert(2 == val.row);
+	assert(5 == val.column);
+	assert(make_pair(7,8) == val.value);
+
+	cout << "pass Cell<int>: " << val << endl;
 }

@@ -478,6 +478,31 @@ std::pair<affinity_type,size_type> affinity_count(
 			++first1;
 		else //termid_of(first1)>termid_of(first2)
 			++first2;
+
+		// // boundary conditions
+		// while (first1!=last1 && !pred(iter_termid(first1))) ++first1;  // skip unconcerned node
+		// if (first1==last1) {  // count concerned node when one iter reach end
+		// 	for (; first2!=last2; ++first2)
+		// 		if (pred(iter_termid(first2))) ++or_count;
+		// 	break;
+		// }
+		// while (first2!=last2 && !pred(iter_termid(first2))) ++first2;
+		// if (first2==last2) {
+		// 	for (; first1!=last1; ++first1)
+		// 		if (pred(iter_termid(first1))) ++or_count;
+		// 	break;
+		// }
+
+		// // deal with a pair of activation
+		// ++or_count;
+		// if (iter_termid(first1) == iter_termid(first2)) {
+		// 	force_type waf1 = *first1++, waf2 = *first2++;
+		// 	or_sum += std::min(waf1,waf2) / std::max(waf1,waf2);
+		// } else if (iter_termid(first1) < iter_termid(first2)) {
+		// 	++first1;
+		// } else {  // iter_termid(first1) > iter_termid(first2)
+		// 	++first2;
+        // }
 	}
 	return cnt;
 }

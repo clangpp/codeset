@@ -24,8 +24,8 @@ inline std::basic_ostream<CharT, Traits>& operator << (
 template <typename T1, typename T2, typename T3>
 struct Triad: public std::pair<T1, T2> {
 	typedef typename std::pair<T1, T2> pair_type;
-	using typename pair_type::first_type;
-	using typename pair_type::second_type;
+	typedef typename pair_type::first_type first_type;
+	typedef typename pair_type::second_type second_type;
 	typedef T3 third_type;
 
 	third_type third;
