@@ -90,3 +90,4 @@ std::basic_ostream<CharT, Traits>& operator << (
 }  // namespace serialization
 
 #endif  // SERIALIZATION_INL_H_
+

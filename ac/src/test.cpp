@@ -75,7 +75,23 @@ void test_TrieMap() {
 		cout << "sub: " << s1 << " " << s2 << " " << s3 << " " << s4 << endl;
 
 		ac::TrieMap<char, int> mp;
-		mp.insert(s1.begin(), s1.end(), 1);
+		ac::TrieMap<char, int>::const_iterator citer(mp.end());
+		cout << (citer==mp.end() ? "equal pass": "equal not pass") << endl;
+		cout << (!(citer!=mp.end()) ? "not-equal pass": "not-equal not pass") << endl;
+		cout << (mp.end()==citer ? "equal pass": "equal not pass") << endl;
+		cout << (!(mp.end()!=citer) ? "not-equal pass": "not-equal not pass") << endl;
+
+		pair<ac::TrieMap<char,int>::iterator, bool> ret =
+			mp.insert(s1.begin(), s1.end(), 1);
+		string iter_key(ret.first.key().begin(), ret.first.key().end());
+		cout << (iter_key == s1 ? "key pass" : "key not pass") << endl;
+		cout << (ret.first.value() == 1 ? "value pass" : "value not pass") << endl;
+		
+		const ac::TrieMap<char,int>::const_iterator cciter = ret.first;
+		iter_key.assign(cciter.key().begin(), cciter.key().end());
+		cout << (iter_key == s1 ? "const key pass" : "const key not pass") << endl;
+		cout << (cciter.value() == 1 ? "const value pass" : "const value not pass") << endl;
+
 		mp.insert(make_pair(s2.begin(), s2.end()), 2);
 		mp.insert(s3, 3);
 		mp[s4] = 4;

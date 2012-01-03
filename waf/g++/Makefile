@@ -1,7 +1,10 @@
-TARGET=../bin/waf
+BIN_DIR = ../bin
+SRC_DIR = ../src
 
-HEADERS = $(wildcard ../src/*/*.h)
-SOURCES = $(wildcard ../src/*/*.cpp ../src/*.cpp)
+TARGET = $(BIN_DIR)/waf
+
+HEADERS = $(wildcard $(SRC_DIR)/*/*.h)
+SOURCES = $(wildcard $(SRC_DIR)/*/*.cpp $(SRC_DIR)/*.cpp)
 
 CXX = g++
 CXXFLAGS = -Wall -O3
@@ -10,7 +13,7 @@ $(TARGET): $(HEADERS) $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET)
 
 clean:
-	rm $(TARGET)
+	rm -f $(TARGET)
 
 run:
 	./$(TARGET)

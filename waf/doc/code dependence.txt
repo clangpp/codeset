@@ -1,0 +1,26 @@
+Word Activation Force toolset code dependence
+
+If you need to develop waf related programs that not depend on the executable file, the following content is just for you.
+If you need to know the architecture of the tool's source code, the following content is just for you.
+
+note: ":" means depend on
+
+[main.cpp]: program command line entry and interface
+    [waf_core]: waf core library, implement waf related algorithm
+    [logging]: process logging and error reporting
+    [configure]: read command line option and configuration file
+    [timing]: calculate and report time duration costs
+
+[waf_core]: waf core library, implement waf related algorithm
+    [cross_list]: waf matrix and affinity matrix data structure
+    [sparse_matrix]: co-occurrence matrix data structure
+    [serialization]: stream based/related waf algorithm
+
+[cross_list]: cross list data structure, an implemention of sparse matrix
+    [serialization]: cross list to/from stream
+
+[sparse_matrix]: a simple indexed cross list to optimize random accessing of cross list
+    [cross_list]: base data structure of [sparse_matrix]
+
+[configure]: a simple configuration library, read configuration file and command line options
+    [facility]: provide some simple tool for [configure]

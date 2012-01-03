@@ -11,15 +11,17 @@
 // configuration macro
 // =============================================================================
 // #define AC_USING_CPP11
-#define AC_USING_BOOST
-// #define AC_USING_CPP98
+// #define AC_USING_BOOST
+#define AC_USING_CPP98
 
 // include header files
 // =============================================================================
+#include <algorithm>
 #include <cstddef>
 #include <iterator>
-#include <utility>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 // configuration specific types
 // =============================================================================
@@ -105,7 +107,7 @@ template <typename Character, typename T>
 class Automation{
 public:
 	typedef TrieNode<Character, T> node;
-	// typedef Character character_type;
+	typedef Character character_type;
 	typedef T mapped_type;
 	typedef node* node_pointer;
 	typedef const node* const_node_pointer;
@@ -211,12 +213,16 @@ template <typename Character, typename T>
 class TrieMap: public Automation<Character, T> {
 public:
 	typedef Automation<Character, T> base;
-	// typedef typename base::character_type character_type;
+	typedef typename base::character_type character_type;
 	typedef typename base::mapped_type mapped_type;
 	typedef typename base::node node;
 	typedef typename base::node_pointer node_pointer;
 	typedef typename base::const_node_pointer const_node_pointer;
 	typedef std::size_t size_type;
+
+    template <typename NodePointer> class basic_iterator;
+	typedef basic_iterator<node_pointer> iterator;
+	typedef basic_iterator<const_node_pointer> const_iterator;
 
 	// TBD: to be implemented.
 	template <typename NodePointer>
@@ -225,25 +231,61 @@ public:
 		typedef NodePointer node_pointer;
 		typedef typename
 			node_pointer_traits<node_pointer>::child_iterator child_iterator;
+        typedef std::vector<typename TrieMap::character_type> key_type;
+        typedef typename TrieMap::mapped_type value_type;
+		friend class basic_iterator<const_node_pointer>;
 	public:
 		basic_iterator(node_pointer p, child_iterator pos):
 			parent_(p), position_(pos) {}
 		basic_iterator(): parent_(NULL), position_() {}
-		bool operator == (const basic_iterator& rhs) const {
-			return parent_==rhs.parent_ && position_==rhs.position_;
-		}
-		bool operator != (const basic_iterator& rhs) const {
-			return !(*this == rhs);
-		}
+        basic_iterator(const iterator& other): parent_(other.parent_),
+                position_(other.position_), path_(other.path_) {}
+        value_type& value() { return position_->second->value(); }
+        const value_type& value() const { return position_->second->value(); }
+        const key_type& key() const {
+            if (path_.empty()) {  // calculate once
+                node_pointer p = parent_;
+                child_iterator pos = position_;
+                path_.push_back(pos->first);  // nearest route
+                while (p->parent != NULL) {  // back search
+                    path_.push_back(p->route);  // record route
+                    pos = p->parent->children.find(p->route);
+                    p = p->parent;
+                }
+                std::reverse(path_.begin(), path_.end());  // natural order
+            }
+            return path_;
+        }
+		template <typename NodePointer1, typename NodePointer2>
+		friend bool operator == (
+			const basic_iterator<NodePointer1>& lhs,
+			const basic_iterator<NodePointer2>& rhs);
+		template <typename NodePointer1, typename NodePointer2>
+		friend bool operator != (
+			const basic_iterator<NodePointer1>& lhs,
+			const basic_iterator<NodePointer2>& rhs);
 	private:
-		bool next();  // move to next node
-		bool next_eos();  // move to next eos node
+		bool next();  // move to next node  // TBD.
+		bool next_eos();  // move to next eos node  // TBD.
 	private:
 		node_pointer parent_;
 		child_iterator position_;
+        mutable key_type path_;  // it is const_iterator who push me to use 'mutable'!
 	};
-	typedef basic_iterator<node_pointer> iterator;
-	typedef basic_iterator<const_node_pointer> const_iterator;
+
+	// iterator compare
+	template <typename NodePointer1, typename NodePointer2>
+	friend bool operator == (
+		const basic_iterator<NodePointer1>& lhs,
+		const basic_iterator<NodePointer2>& rhs) {
+		return lhs.parent_==rhs.parent_ && lhs.position_==rhs.position_;
+	}
+	template <typename NodePointer1, typename NodePointer2>
+	friend bool operator != (
+		const basic_iterator<NodePointer1>& lhs,
+		const basic_iterator<NodePointer2>& rhs) {
+		return !(lhs==rhs);
+	}
 
 public:  // iterator observers
 	iterator begin() {

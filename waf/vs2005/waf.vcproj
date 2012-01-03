@@ -95,6 +95,10 @@
 				RelativePath="..\src\main.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\src\waf_facility\waf_facility.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -139,6 +143,10 @@
 			</File>
 			<File
 				RelativePath="..\src\waf_core\waf_core.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\waf_facility\waf_facility.h"
 				>
 			</File>
 		</Filter>
