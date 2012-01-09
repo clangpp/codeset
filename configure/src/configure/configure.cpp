@@ -15,7 +15,7 @@ void Configure::read(const std::string& cfg_file) {
 		ss << "Configure::read(string): "
 			<< "configuration file '" << cfg_file << "' "
 			<< "open failed";
-		throw std::invalid_argument(ss.str());
+		throw std::runtime_error(ss.str());
 	}
 
 	std::string text;
@@ -44,7 +44,7 @@ void Configure::read(const std::string& cfg_file) {
 				<< "    line " << line_num << ":\n"
 				<< "    text '" << text << "'\n"
 				<< "    error line format!";
-			throw std::invalid_argument(ss.str());
+			throw std::runtime_error(ss.str());
 		}
 
 		std::string key=text.substr(0,equal_pos);  // form key-value pair
@@ -72,7 +72,7 @@ void Configure::read(int argc, char* argv[]) {
             } else { // hanging key
                 std::string key = arg.substr(2);
                 curr_key = facility::trim(key);
-                table_.erase(curr_key); // clear old value of hanging key
+                table_[curr_key] = ""; // clear old value of hanging key
             }
 
         } else if (!curr_key.empty()) { // there is a hanging key
@@ -91,7 +91,7 @@ const std::string& Configure::get_string(const std::string& key) const {
 		ss << "Configure::get_string(string) const: "
 			<< "key '" << key << "' "
 			<< "is not in configuration variable table";
-		throw std::invalid_argument(ss.str());
+		throw std::runtime_error(ss.str());
 	}
 	return iter->second;
 }

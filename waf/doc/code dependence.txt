@@ -6,10 +6,17 @@ If you need to know the architecture of the tool's source code, the following co
 note: ":" means depend on
 
 [main.cpp]: program command line entry and interface
-    [waf_core]: waf core library, implement waf related algorithm
+    [waf_shell]: waf executer interface
     [logging]: process logging and error reporting
     [configure]: read command line option and configuration file
     [timing]: calculate and report time duration costs
+
+[waf_shell]: waf executer interface, resolve command program options and call waf core algorithm
+    [waf_core]: waf core algorithm, type definations
+    [waf_facility]: waf program interface facility library
+
+[waf_facility]: waf facility library, provide data structure and function (objects) to assist waf core library, help to provide a convenient program interface for waf algorithm
+    [waf_core]: waf core algorithm type definations
 
 [waf_core]: waf core library, implement waf related algorithm
     [cross_list]: waf matrix and affinity matrix data structure

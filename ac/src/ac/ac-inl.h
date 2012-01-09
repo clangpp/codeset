@@ -318,9 +318,9 @@ template <typename InputIterator>
 typename TrieMap<Character, T>::iterator TrieMap<Character, T>::find(
 		InputIterator first, InputIterator last) {
 	node_pointer pnode = base::root_pointer();
-	if (internal::find(first, last, pnode)) {
-		return iterator(pnode->parent,
-				pnode->parent->children.find(pnode->route));
+	if (internal::find(first, last, pnode) && pnode->has_value()) {
+            return iterator(pnode->parent,
+                    pnode->parent->children.find(pnode->route));
 	} else {
 		return end();
 	}
@@ -331,7 +331,7 @@ template <typename InputIterator>
 typename TrieMap<Character, T>::const_iterator TrieMap<Character, T>::find(
 		InputIterator first, InputIterator last) const {
 	const_node_pointer pnode = base::root_pointer();
-	if (internal::find(first, last, pnode)) {
+	if (internal::find(first, last, pnode) && pnode->has_value()) {
 		return const_iterator(pnode->parent,
 				pnode->parent->children.find(pnode->route));
 	} else {

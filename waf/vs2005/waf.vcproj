@@ -99,6 +99,10 @@
 				RelativePath="..\src\waf_facility\waf_facility.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\src\waf_shell\waf_shell.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -146,7 +150,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\waf_facility\waf_facility-inl.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\waf_facility\waf_facility.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\waf_shell\waf_shell-inl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\waf_shell\waf_shell.h"
 				>
 			</File>
 		</Filter>

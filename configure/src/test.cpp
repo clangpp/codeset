@@ -13,6 +13,8 @@ void test_case(const string& case_name);
 
 void test_read_command_line_options();
 
+void test_iterator();
+
 int main(int argc, char* argv[]) {
 
 	try {
@@ -39,7 +41,7 @@ int main(int argc, char* argv[]) {
     // =========================================================================
 	string log_file = configure::default_get<string>("log_file", "log.txt");
 
-	if (!configure::verify("cases")) {
+	if (!configure::search("cases")) {
 		throw runtime_error("no 'cases' configuration");
 	}
     vector<string> cases = configure::get<vector<string> >("cases");
@@ -56,6 +58,7 @@ int main(int argc, char* argv[]) {
         test_case(cases[i]);
 
 	test_read_command_line_options();
+	test_iterator();
 
 	} catch (const exception& e) {
 		cerr << e.what() << endl;
@@ -66,7 +69,7 @@ int main(int argc, char* argv[]) {
 }
 
 void test_case(const string& case_name) {
-	assert(configure::verify(case_name, "server_port"));
+	assert(configure::search(case_name, "server_port"));
     string host = configure::get<string>("tt_server_host");
     int port = configure::get<int>(case_name, "server_port");
     size_t amount = configure::get<int>(case_name, "record_amount");
@@ -85,4 +88,12 @@ void test_read_command_line_options() {
 	int ports_expected[] = {1025, 1027};
 	bool passed = ports == vector<int>(ports_expected, ports_expected+sizeof(ports_expected)/sizeof(int));
 	cout << "passed? " << passed << endl;
+}
+
+void test_iterator() {
+	cout << "test_iterator()" << endl;
+	for (configure::Configure::iterator
+			iter=configure::begin(); iter!=configure::end(); ++iter) {
+		cout << iter->first << "=" << iter->second << endl;
+	}
 }

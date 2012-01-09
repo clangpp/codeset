@@ -4,9 +4,9 @@
 
 // please config here
 #define TIMING_USING_CPP11 0  // 0 or 1
-#define TIMING_USING_BOOST 1  // 0 or 1
+#define TIMING_USING_BOOST 0  // 0 or 1
 #define TIMING_USING_LINUX 0  // 0 or 1
-#define TIMING_USING_CPP98 0  // 0 or 1
+#define TIMING_USING_CPP98 1  // 0 or 1
 
 // class Clock
 // clock facility, to perform time representation and arithmetric

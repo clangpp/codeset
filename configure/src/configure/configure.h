@@ -17,6 +17,11 @@ namespace configure {
 // =============================================================================
 class Configure {
 public:
+	typedef std::map<std::string, std::string>::const_iterator iterator;
+    iterator begin() const { return table_.begin(); }
+    iterator end() const { return table_.end(); }
+
+public:
 	// read configuration variables from file
 	void read(const std::string& cfg_file);
 
@@ -41,13 +46,13 @@ public:
 	T default_get(const std::string& key, const T& default_value) const {
         try {
             return facility::to<T>(get_string(key));
-        } catch (const std::invalid_argument&) {
+        } catch (const std::runtime_error&) {
             return default_value;
         }
     }
 
     // verify whether a key exists
-    bool verify(const std::string& key) const { return table_.count(key)>0; }
+    bool search(const std::string& key) const { return table_.count(key)>0; }
 
 	// get configuration by section string, key string and value type
     // if operation failed, throw exception
@@ -65,13 +70,14 @@ public:
 	}
 
     // verify whether a key of a section exists
-    bool verify(const std::string& section, const std::string& key) const {
-        return verify(make_key(section, key));
+    bool search(const std::string& section, const std::string& key) const {
+        return search(make_key(section, key));
     }
 
 private:
 	const std::string& get_string(const std::string& key) const;
-	static std::string make_key(const std::string& section, const std::string& key) {
+	static std::string make_key(
+            const std::string& section, const std::string& key) {
         return section.empty() ? key : section + "." + key;
     }
 
@@ -108,8 +114,8 @@ inline T default_get(const std::string& key, const T& default_value) {
     return standard_configure().default_get<T>(key, default_value);
 }
 
-inline bool verify(const std::string& key) {
-    return standard_configure().verify(key);
+inline bool search(const std::string& key) {
+    return standard_configure().search(key);
 }
 
 template <typename T>
@@ -123,9 +129,12 @@ inline T default_get(const std::string& section, const std::string& key,
    	return standard_configure().default_get<T>(section, key, default_value);
 }
 
-inline bool verify(const std::string& section, const std::string& key) {
-    return standard_configure().verify(section, key);
+inline bool search(const std::string& section, const std::string& key) {
+    return standard_configure().search(section, key);
 }
+
+inline Configure::iterator begin() { return standard_configure().begin(); }
+inline Configure::iterator end() { return standard_configure().end(); }
 
 }  // namespace configure
 

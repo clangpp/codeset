@@ -17,7 +17,7 @@ using namespace logging;
 void test_TermSet();
 void test_FreqVector();
 void test_CellComp();
-void test_Always();
+void test_care_all();
 void test_care_in();
 void test_freq_dict();
 
@@ -25,7 +25,7 @@ int main() {
     test_TermSet();
     test_FreqVector();
     test_CellComp();
-    test_Always();
+    test_care_all();
     test_care_in();
     test_freq_dict();
     return 0;
@@ -155,16 +155,14 @@ void test_CellComp() {
     log(INFO_) << "pass" << endl;
 }
 
-void test_Always() {
-    Trace trace(INFO_, "test_Always()");
+void test_care_all() {
+    Trace trace(INFO_, "test_care_all()");
 
-    waf::Always<bool> pred1 = waf::Always<bool>(true);
-    waf::Always<bool> pred2 = waf::always(true);
-    waf::Always<bool> pred3 = waf::care_all();
+    waf::Care care = waf::care_all();
 
-    assert(pred1(1025) == true);
-    assert(pred2(1025) == true);
-    assert(pred3(1025) == true);
+    assert(care(1000) == true);
+    assert(care(1) == true);
+    assert(care(0) == true);
 
     log(INFO_) << "pass" << endl;
 }
@@ -176,6 +174,13 @@ void test_care_in() {
     termset.insert(0, "0");
     termset.insert(1, "1");
     termset.insert(3, "3");
+
+    waf::Care care = waf::care_in(termset);
+    assert(care(0) == true);
+    assert(care(1) == true);
+    assert(care(2) == false);
+    assert(care(3) == true);
+    assert(care(4) == false);
 
     int a[5] = {0, 1, 2, 3, 4};
     remove_if(a, a+5, waf::care_in(termset));
