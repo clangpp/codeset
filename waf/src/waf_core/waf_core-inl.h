@@ -157,22 +157,22 @@ affinity_type affinity_or_mean(
 
 template <typename Predicate1, typename Predicate2>
 affinity_type affinity_measure(
-		const cross_list<force_type>& waf_mat1, termid_type i1, Predicate1 care1, 
-		const cross_list<force_type>& waf_mat2, termid_type i2, Predicate2 care2,
+		const cross_list<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
+		const cross_list<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
         affinity_type affinity_nolink) {
 
 	// calculate k_mean (scan col_i and col_j)
     affinity_type k_mean = affinity_or_mean(
-            waf_mat1.cbegin_of_col(i1),waf_mat1.cend_of_col(i1), care1,
-            waf_mat2.cbegin_of_col(i2),waf_mat2.cend_of_col(i2), care2,
+            waf_mat1.cbegin_of_col(i1),waf_mat1.cend_of_col(i1), back1,
+            waf_mat2.cbegin_of_col(i2),waf_mat2.cend_of_col(i2), back2,
             std::mem_fun_ref(
                 &cross_list<force_type>::const_col_iterator::row_index), -1);
     if (k_mean<=0 && k_mean>-0.01) return 0;  // k_mean == 0
 
 	// calculate l_mean (scan row_i and row_j)
     affinity_type l_mean = affinity_or_mean(
-            waf_mat1.cbegin_of_row(i1),waf_mat1.cend_of_row(i1), care1,
-            waf_mat2.cbegin_of_row(i2),waf_mat2.cend_of_row(i2), care2,
+            waf_mat1.cbegin_of_row(i1),waf_mat1.cend_of_row(i1), back1,
+            waf_mat2.cbegin_of_row(i2),waf_mat2.cend_of_row(i2), back2,
             std::mem_fun_ref(
                 &cross_list<force_type>::const_row_iterator::col_index), -1);
     if (l_mean<=0 && l_mean>-0.01) return 0;  // l_mean == 0
@@ -226,7 +226,6 @@ void word_activation_force(
     while (co_mat_is >> beg_ch) {
         co_mat_is.putback(beg_ch);
 
-        force_type waf = 0;
         bool unknown_pattern = false;
         switch (beg_ch) {
         case '(':  // cell
@@ -239,7 +238,7 @@ void word_activation_force(
                 if (waf < prec) break;
 
                 // perform line separating
-                if (-1 == curr_line) {
+                if (static_cast<size_type>(-1) == curr_line) {
                     curr_line = co_cell.row;
                 } else if (co_cell.row != curr_line) {
                     curr_line = co_cell.row;
@@ -247,8 +246,7 @@ void word_activation_force(
                 }
 
                 // write waf cell to ostream
-                waf_mat_os << waf_cell_type(
-                        co_cell.row, co_cell.column, co_cell.value);
+                waf_mat_os << waf_cell_type(co_cell.row, co_cell.column, waf);
             }
             break;
         case '[':  // dimension
@@ -265,16 +263,16 @@ void word_activation_force(
     }
 }
 
-template <typename Predicate>
+template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat, Predicate care,
+        const cross_list<force_type>& waf_mat, Predicate1 care, Predicate2 back,
         affinity_type prec, affinity_type affinity_nolink,
         cross_list<affinity_type>& a_mat) {
 
     // argument checking
     if (waf_mat.row_size()!=waf_mat.col_size()) {
         std::stringstream ss;
-        ss << "waf::affinity_measure(waf_mat, care, prec, a_nolink, a_mat):\n";
+        ss << "waf::affinity_measure(waf_mat, care, back, prec, a_nolink, a_mat):\n";
         ss << "waf_mat row size must be exactly the same as column size, but\n";
         ss << "\twaf_mat: row=" << waf_mat.row_size() << ", column=" << waf_mat.col_size() << "\n";
         throw std::invalid_argument(ss.str());
@@ -290,7 +288,7 @@ void affinity_measure(
         for (size_type j=i; j<term_size; ++j) {
             if (!care(j)) continue;
             affinity_type a = affinity_measure(
-                    waf_mat, i, care, waf_mat, j, care, affinity_nolink);
+                    waf_mat, i, back, waf_mat, j, back, affinity_nolink);
             if (0<=a && a<prec) continue;
             a_mat.rset(i, j, a);
             a_mat.rset(j, i, a);
@@ -298,14 +296,15 @@ void affinity_measure(
     }
 }
 
-template <typename Predicate>
-void affinity_measure(const cross_list<force_type>& waf_mat, Predicate care,
-        affinity_type prec, affinity_type affinity_nolink, std::ostream& a_mat_os) {
+template <typename Predicate1, typename Predicate2>
+void affinity_measure(const cross_list<force_type>& waf_mat,
+        Predicate1 care, Predicate2 back, affinity_type prec,
+        affinity_type affinity_nolink, std::ostream& a_mat_os) {
 
     // argument checking
     if (waf_mat.row_size()!=waf_mat.col_size()) {
         std::stringstream ss;
-        ss << "waf::affinity_measure(waf_mat, care, prec, a_nolink, a_mat_os):\n";
+        ss << "waf::affinity_measure(waf_mat, care, back, prec, a_nolink, a_mat_os):\n";
         ss << "waf_mat row size must be exactly the same as column size, but\n";
         ss << "\twaf_mat: row=" << waf_mat.row_size() << ", column=" << waf_mat.col_size() << "\n";
         throw std::invalid_argument(ss.str());
@@ -325,7 +324,7 @@ void affinity_measure(const cross_list<force_type>& waf_mat, Predicate care,
         for (size_type j=i; j<term_size; ++j) {
             if (!care(j)) continue;
             affinity_type a = affinity_measure(
-                    waf_mat, i, care, waf_mat, j, care, affinity_nolink);
+                    waf_mat, i, back, waf_mat, j, back, affinity_nolink);
             if (0<=a && a<prec) continue;
             a_mat.rset(i, j, a);
             a_mat.rset(j, i, a);
@@ -349,8 +348,8 @@ void affinity_measure(const cross_list<force_type>& waf_mat, Predicate care,
 
 template <typename Predicate1, typename Predicate2, typename OutputIterator>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 care1,
-        const cross_list<force_type>& waf_mat2, Predicate2 care2,
+        const cross_list<force_type>& waf_mat1, Predicate1 back1,
+        const cross_list<force_type>& waf_mat2, Predicate2 back2,
         affinity_type affinity_nolink, OutputIterator term_a_iter) {
 
     // argument checking
@@ -358,7 +357,7 @@ void affinity_measure(
             waf_mat2.row_size()!=waf_mat2.col_size() ||
             waf_mat1.row_size()!=waf_mat2.row_size()) {
         std::stringstream ss;
-        ss << "waf::affinity_measure(waf_mat1, care1, waf_mat2, care2, a_nolink, term_a_iter):\n";
+        ss << "waf::affinity_measure(waf_mat1, back1, waf_mat2, back2, a_nolink, term_a_iter):\n";
         ss << "all dimensions of waf matrices must be exactly the same, but\n";
         ss << "\twaf_mat1: row=" << waf_mat1.row_size() << ", column=" << waf_mat1.col_size() << "\n";
         ss << "\twaf_mat2: row=" << waf_mat2.row_size() << ", column=" << waf_mat2.col_size() << "\n";
@@ -368,7 +367,7 @@ void affinity_measure(
     size_type term_size = waf_mat1.row_size();
     for (termid_type i=0; i<term_size; ++i, ++term_a_iter) {
         *term_a_iter = affinity_measure(
-                waf_mat1, i, care1, waf_mat2, i, care2, affinity_nolink);
+                waf_mat1, i, back1, waf_mat2, i, back2, affinity_nolink);
     }
 }
 

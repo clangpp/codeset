@@ -104,6 +104,23 @@ private:
     };
 
 public:
+    class const_iterator: public basic_iterator<const FreqVector*> {
+    public:
+        typedef basic_iterator<const FreqVector*> base;
+        const_iterator(const FreqVector* pfreq_vec, size_type pos):
+            base(pfreq_vec, pos) {}
+        const_iterator(): base() {}
+        const_iterator(const base& iter): base(iter.pfreq_vec_, iter.pos_) {}
+    public:
+        size_type operator * () const { return (*pfreq_vec_)[pos_]; }
+        const_iterator operator + (difference_type n) const {
+            return base::operator + (n);
+        }
+        size_type operator [] (difference_type n) const {
+            return * const_iterator(*this + n);
+        }
+    };
+
     class iterator: public basic_iterator<FreqVector*> {
     public:
         typedef basic_iterator<FreqVector*> base;
@@ -120,25 +137,9 @@ public:
         size_type& operator [] (difference_type n) {
             return * iterator(*this + n);
         }
-    };
-
-    class const_iterator: public basic_iterator<const FreqVector*> {
-    public:
-        typedef basic_iterator<const FreqVector*> base;
-        const_iterator(const FreqVector* pfreq_vec, size_type pos):
-            base(pfreq_vec, pos) {}
-        const_iterator(): base() {}
-        const_iterator(const base& iter): base(iter.pfreq_vec_, iter.pos_) {}
-        const_iterator(const iterator& other):
-            base(other.pfreq_vec_, other.pos_) {}
-    public:
-        size_type operator * () const { return (*pfreq_vec_)[pos_]; }
-        const_iterator operator + (difference_type n) const {
-            return base::operator + (n);
-        }
-        size_type operator [] (difference_type n) const {
-            return * const_iterator(*this + n);
-        }
+		operator const_iterator() const {
+			return const_iterator(base::pfreq_vec_, base::pos_);
+		}
     };
 
 public:  // iterator observers
@@ -170,54 +171,25 @@ private:
 template <typename T>
 bool cell_value_greater(
         const serialization::sparse_matrix::Cell<T>& lhs,
-        const serialization::sparse_matrix::Cell<T>& rhs) {
-
-    if (lhs.value>rhs.value || rhs.value>lhs.value) {  // value (greater)
-        return lhs.value > rhs.value;
-    } else if (lhs.row != rhs.row) {  // row (less)
-        return lhs.row < rhs.row;
-    } else {  // column (less)
-        return lhs.column < rhs.column;
-    }
-}
+        const serialization::sparse_matrix::Cell<T>& rhs);
 
 // predicate facility
 // =============================================================================
-// class Always, to implement always true facility
-template <typename R>
-class Always {
+// class Care, to predicate whether a termid is cared or not
+class Care {
 public:
-    typedef R return_type;
-    Always(const R& value = R()): value_(value) {}
-    template <typename T>
-    const R& operator () (const T&) const { return value_; }
-private:
-    R value_;
-};
-
-// factory method: create Always<R> instance
-template <typename R>
-Always<R> always(const R& value) { return Always<R>(value); }
-
-// global instance, Always<bool>(true)
-inline Always<bool> care_all() { return always(true); }
-
-
-// class TermSetObserver, to check whether a termid is in TermSet or not
-class TermSetObserver {
-public:
-    TermSetObserver(const TermSet& termset): pterm_set_(&termset) {}
+    Care(const TermSet& termset): pterm_set_(&termset) {}
+    Care(): pterm_set_(NULL) {}  // always return true
     bool operator () (termid_type termid) const {
-        return pterm_set_->search(termid);
+        return pterm_set_ ? pterm_set_->search(termid) : true;
     }
 private:
     const TermSet* pterm_set_;
 };
 
 // factory method: create a Predicate function boject
-inline TermSetObserver care_in(const TermSet& termset) {
-    return TermSetObserver(termset);
-}
+inline Care care_in(const TermSet& termset) { return Care(termset); }
+inline Care care_all() { return Care(); }
 
 
 // class FreqVecObserver, to query frequency of a termid
@@ -237,5 +209,7 @@ inline FreqVecObserver freq_dict(const FreqVector& freqvec) {
 }
 
 }  // namespace waf
+
+#include "waf_facility-inl.h"
 
 #endif  // WAF_FACILITY_H_

@@ -69,8 +69,8 @@ affinity_type affinity_or_mean(
 // pre-condition: i1<waf_mat1.row_size() && i2<waf_mat2.row_size()
 template <typename Predicate1, typename Predicate2>
 affinity_type affinity_measure(
-		const cross_list<force_type>& waf_mat1, termid_type i1, Predicate1 care1, 
-		const cross_list<force_type>& waf_mat2, termid_type i2, Predicate2 care2,
+		const cross_list<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
+		const cross_list<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
         affinity_type affinity_nolink = null_affinity);
 
 
@@ -87,20 +87,21 @@ void word_activation_force(
         std::istream& co_mat_is, Predicate1 care_left, Predicate2 care_right,
         UnaryFunction term_freq, force_type prec, std::ostream& waf_mat_os);
 
-template <typename Predicate>
+template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat, Predicate care,
+        const cross_list<force_type>& waf_mat, Predicate1 care, Predicate2 back,
         affinity_type prec, affinity_type affinity_nolink,
         cross_list<affinity_type>& a_mat);
 
-template <typename Predicate>
-void affinity_measure(const cross_list<force_type>& waf_mat, Predicate care,
-        affinity_type prec, affinity_type affinity_nolink, std::ostream& a_mat_os);
+template <typename Predicate1, typename Predicate2>
+void affinity_measure(const cross_list<force_type>& waf_mat,
+        Predicate1 care, Predicate2 back, affinity_type prec,
+        affinity_type affinity_nolink, std::ostream& a_mat_os);
 
 template <typename Predicate1, typename Predicate2, typename OutputIterator>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 care1,
-        const cross_list<force_type>& waf_mat2, Predicate2 care2,
+        const cross_list<force_type>& waf_mat1, Predicate1 back1,
+        const cross_list<force_type>& waf_mat2, Predicate2 back2,
         affinity_type affinity_nolink, OutputIterator term_a_iter);
 
 // TBD.
