@@ -675,7 +675,7 @@ int run_affinity_measure(int argc, char* argv[]) {
                 log(INFO_) << "calculating affinity vector" << endl;
                 waf::affinity_measure(
                         waf_mat1, back, waf_mat2, back, waf::null_affinity,
-                        ostream_iterator<waf::affinity_type>(fout, "\n"));
+                        ostream_iterator<waf::affinity_type>(fout, " "));
             }
             break;
         default:

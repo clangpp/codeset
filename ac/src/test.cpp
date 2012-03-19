@@ -1,6 +1,7 @@
 // test.cpp
 #include "ac/ac.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -22,6 +23,17 @@ int main(int argc, char* argv[]) {
 	test_TrieMap();
 	test_Iterator();
 	test_Chinese();
+
+	//ac::Automation<char, int> automation;
+	//string sub1("abcde"), sub2("bcd"), sub3("cd"), sub4("de");
+	//ac::Automation<char, int>::node_pointer pnode;
+	//automation.insert(sub1.begin(), sub1.end(), true, pnode);
+	//automation.insert(sub2.begin(), sub2.end(), true, pnode);
+	//automation.insert(sub3.begin(), sub3.end(), true, pnode);
+	//automation.insert(sub4.begin(), sub4.end(), true, pnode);
+	//automation.update_fail_pointers();
+
+	system("pause");
 	return 0;
 }
 

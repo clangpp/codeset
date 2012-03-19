@@ -167,6 +167,8 @@ public:
 
 private:
 	void update_fail_pointers();
+    node_pointer find_fail_pointer(
+        node_pointer parent_fail_pointer, const character_type& route);
 
 private:
 	node root_;
@@ -233,7 +235,7 @@ public:
 			node_pointer_traits<node_pointer>::child_iterator child_iterator;
         typedef std::vector<typename TrieMap::character_type> key_type;
         typedef typename TrieMap::mapped_type value_type;
-		friend class basic_iterator<const_node_pointer>;
+		template <typename NodePointer2> friend class basic_iterator;
 	public:
 		basic_iterator(node_pointer p, child_iterator pos):
 			parent_(p), position_(pos) {}
@@ -256,14 +258,14 @@ public:
             }
             return path_;
         }
-		template <typename NodePointer1, typename NodePointer2>
-		friend bool operator == (
-			const basic_iterator<NodePointer1>& lhs,
-			const basic_iterator<NodePointer2>& rhs);
-		template <typename NodePointer1, typename NodePointer2>
-		friend bool operator != (
-			const basic_iterator<NodePointer1>& lhs,
-			const basic_iterator<NodePointer2>& rhs);
+		template <typename NodePointer2>
+		bool operator == (const basic_iterator<NodePointer2>& other) const {
+			return parent_==other.parent_ && position_==other.position_;
+		}
+		template <typename NodePointer2>
+		bool operator != (const basic_iterator<NodePointer2>& other) const {
+			return !(*this == other);
+		}
 	private:
 		bool next();  // move to next node  // TBD.
 		bool next_eos();  // move to next eos node  // TBD.
@@ -272,20 +274,6 @@ public:
 		child_iterator position_;
         mutable key_type path_;  // it is const_iterator who push me to use 'mutable'!
 	};
-
-	// iterator compare
-	template <typename NodePointer1, typename NodePointer2>
-	friend bool operator == (
-		const basic_iterator<NodePointer1>& lhs,
-		const basic_iterator<NodePointer2>& rhs) {
-		return lhs.parent_==rhs.parent_ && lhs.position_==rhs.position_;
-	}
-	template <typename NodePointer1, typename NodePointer2>
-	friend bool operator != (
-		const basic_iterator<NodePointer1>& lhs,
-		const basic_iterator<NodePointer2>& rhs) {
-		return !(lhs==rhs);
-	}
 
 public:  // iterator observers
 	iterator begin() {

@@ -104,19 +104,17 @@ void affinity_measure(
         const cross_list<force_type>& waf_mat2, Predicate2 back2,
         affinity_type affinity_nolink, OutputIterator term_a_iter);
 
-// TBD.
-// template <typename Predicate1, typename Predicate2>
-// void affinity_measure(
-//         const cross_list<force_type>& waf_mat1, Predicate1 care1,
-//         const cross_list<force_type>& waf_mat2, Predicate2 care2,
-//         affinity_type affinity_nolink, cross_list<affinity_type>& a_mat);
+template <typename Predicate1, typename Predicate2>
+void affinity_measure(
+        const cross_list<force_type>& waf_mat1, Predicate1 back1,
+        const cross_list<force_type>& waf_mat2, Predicate2 back2,
+        affinity_type affinity_nolink, cross_list<affinity_type>& a_mat);
 
-// TBD.
-// template <typename Predicate1, typename Predicate2>
-// void affinity_measure(
-//         const cross_list<force_type>& waf_mat1, Predicate1 care1,
-//         const cross_list<force_type>& waf_mat2, Predicate2 care2,
-//         affinity_type affinity_nolink, std::ostream& a_mat_os);
+template <typename Predicate1, typename Predicate2>
+void affinity_measure(
+        const cross_list<force_type>& waf_mat1, Predicate1 back1,
+        const cross_list<force_type>& waf_mat2, Predicate2 back2,
+        affinity_type affinity_nolink, std::ostream& a_mat_os);
 
 }  // namespace waf
 

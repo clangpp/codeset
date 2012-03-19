@@ -6,6 +6,9 @@
 
 #include <queue>
 
+// debug
+#include <iostream>
+
 namespace ac {
 
 // agreement
@@ -189,23 +192,38 @@ void Automation<Character, T>::update_fail_pointers() {
 	// BFS, to calculate fail pointers
 	for (; !node_queue.empty(); node_queue.pop()) {
 		node_pointer p = node_queue.front();
-		node_pointer pfail = p->fail_pointer;
 
 		// for each child of the current node
 		for (child_iterator child = p->children.begin();
 				child!=p->children.end(); ++child) {
+            const character_type& route = child->first;
 			node_pointer pchild = child->second;
 			node_queue.push(pchild);  // push the child into queue
 
 			// look for the same key to fail pointer's children
-			child_iterator fail_child = pfail->children.find(child->first);
-			pchild->fail_pointer = fail_child!=pfail->children.end() ?
-				fail_child->second : &root_;
+			pchild->fail_pointer = find_fail_pointer(p->fail_pointer, route);
 		}
 	}
 
 	// set updated flag
 	fail_pointers_updated_ = true;
+}
+
+template <typename Character, typename T>
+typename Automation<Character, T>::node_pointer
+Automation<Character, T>::find_fail_pointer(
+        node_pointer parent_fail_pointer, const character_type& route) {
+	typedef typename
+		node_pointer_traits<node_pointer>::child_iterator child_iterator;
+
+    child_iterator fail_child = parent_fail_pointer->children.find(route);
+    if (fail_child != parent_fail_pointer->children.end())
+        return fail_child->second;
+    else if (parent_fail_pointer == &root_)
+        return &root_;
+    else {
+        return find_fail_pointer(parent_fail_pointer->fail_pointer, route);
+    }
 }
 
 // namespace free functions
@@ -224,7 +242,7 @@ bool find(InputIterator first, InputIterator last, NodePointer& cursor) {
 			return false;
 		cursor = child->second;
 	}
-	return true;
+	return cursor->has_value();
 }
 
 template <typename InputIterator, typename NodePointer>
@@ -318,7 +336,7 @@ template <typename InputIterator>
 typename TrieMap<Character, T>::iterator TrieMap<Character, T>::find(
 		InputIterator first, InputIterator last) {
 	node_pointer pnode = base::root_pointer();
-	if (internal::find(first, last, pnode) && pnode->has_value()) {
+	if (internal::find(first, last, pnode)) {
             return iterator(pnode->parent,
                     pnode->parent->children.find(pnode->route));
 	} else {
@@ -331,7 +349,7 @@ template <typename InputIterator>
 typename TrieMap<Character, T>::const_iterator TrieMap<Character, T>::find(
 		InputIterator first, InputIterator last) const {
 	const_node_pointer pnode = base::root_pointer();
-	if (internal::find(first, last, pnode) && pnode->has_value()) {
+	if (internal::find(first, last, pnode)) {
 		return const_iterator(pnode->parent,
 				pnode->parent->children.find(pnode->route));
 	} else {
