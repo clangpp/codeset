@@ -6,9 +6,6 @@
 
 #include <queue>
 
-// debug
-#include <iostream>
-
 namespace ac {
 
 // agreement
