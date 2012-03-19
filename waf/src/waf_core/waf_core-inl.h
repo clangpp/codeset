@@ -432,6 +432,82 @@ void affinity_measure(
     a_mat_os << dimension_type(term_size, term_size) << std::endl;
 }
 
+template <typename Predicate1, typename Predicate2,
+         typename Predicate3, typename Predicate4>
+void affinity_measure(
+        const cross_list<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
+        const cross_list<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
+        affinity_type prec, affinity_type affinity_nolink, cross_list<affinity_type>& a_mat) {
+
+    // argument checking
+    if (waf_mat1.row_size()!=waf_mat1.col_size() ||
+            waf_mat2.row_size()!=waf_mat2.col_size() ||
+            waf_mat1.row_size()!=waf_mat2.row_size()) {
+        std::stringstream ss;
+        ss << "waf::affinity_measure(waf_mat1, care1, back1"
+            << ", waf_mat2, care2, back2, prec, a_nolink, a_mat):\n";
+        ss << "all dimensions of waf matrices must be exactly the same, but\n";
+        ss << "\twaf_mat1: row=" << waf_mat1.row_size()
+            << ", column=" << waf_mat1.col_size() << "\n";
+        ss << "\twaf_mat2: row=" << waf_mat2.row_size()
+            << ", column=" << waf_mat2.col_size() << "\n";
+        throw std::invalid_argument(ss.str());
+    }
+
+    a_mat.clear();
+    size_type term_size = waf_mat1.row_size();
+    a_mat.resize(term_size, term_size);
+    for (termid_type i=0; i<term_size; ++i) {
+        if (!care1(i)) continue;
+        for (termid_type j=0; j<term_size; ++j) {
+            if (!care2(j)) continue;
+            affinity_type a_value = affinity_measure(
+                    waf_mat1, i, back1, waf_mat2, j, back2, affinity_nolink);
+            if (0<=a_value && a_value<prec) continue;
+            a_mat.rset(i, j, a_value);
+        }
+    }
+}
+
+template <typename Predicate1, typename Predicate2,
+         typename Predicate3, typename Predicate4>
+void affinity_measure(
+        const cross_list<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
+        const cross_list<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
+        affinity_type prec, affinity_type affinity_nolink, std::ostream& a_mat_os) {
+
+    // argument checking
+    if (waf_mat1.row_size()!=waf_mat1.col_size() ||
+            waf_mat2.row_size()!=waf_mat2.col_size() ||
+            waf_mat1.row_size()!=waf_mat2.row_size()) {
+        std::stringstream ss;
+        ss << "waf::affinity_measure(waf_mat1, care1, back1,"
+            << " waf_mat2, care2, back2, prec, a_nolink, a_mat_os):\n";
+        ss << "all dimensions of waf matrices must be exactly the same, but\n";
+        ss << "\twaf_mat1: row=" << waf_mat1.row_size()
+            << ", column=" << waf_mat1.col_size() << "\n";
+        ss << "\twaf_mat2: row=" << waf_mat2.row_size()
+            << ", column=" << waf_mat2.col_size() << "\n";
+        throw std::invalid_argument(ss.str());
+    }
+
+    typedef serialization::sparse_matrix::Cell<affinity_type> a_cell_type;
+    typedef serialization::sparse_matrix::Dimension dimension_type;
+    size_type term_size = waf_mat1.row_size();
+    for (termid_type i=0; i<term_size; ++i) {
+        if (!care1(i)) continue;
+        for (termid_type j=0; j<term_size; ++j) {
+            if (!care2(j)) continue;
+            affinity_type a_value = affinity_measure(
+                    waf_mat1, i, back1, waf_mat2, j, back2, affinity_nolink);
+            if (0<=a_value && a_value<prec) continue;
+            a_mat_os << a_cell_type(i, j, a_value);
+        }
+        a_mat_os << std::endl;
+    }
+    a_mat_os << dimension_type(term_size, term_size) << std::endl;
+}
+
 }  // namespace waf
 
 #endif  // WAF_CORE_INL_H_
