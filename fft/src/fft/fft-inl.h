@@ -56,11 +56,11 @@ Filter<FloatT>::filter(RandomAccessContainer<value_type>& seq) const {
         for (size_type group_index=0; group_index<group_count; ++group_index) {  // for each group
             size_type base_index = group_index * group_dist;
             for (size_type i=0; i<half_dist; ++i)  // right half sequence multiplied by omega
-                work[base_index+half_dist+i] *= omega_[group_index*i];
+                work[base_index+half_dist+i] *= omega_[group_count*i];
             for (size_type i=0; i<half_dist; ++i)  // left half result: seq[k]=work[k]+work[k+len/2]
                 seq[base_index+i] = work[base_index+i] + work[base_index+half_dist+i];
             for (size_type i=half_dist; i<group_dist; ++i)  // right half result: seq[k+len/2]=work[k]-work[k+len/2]
-                seq[base_index+i] = work[base_index-half_dist+i] - work[base_index];
+                seq[base_index+i] = work[base_index-half_dist+i] - work[base_index+i];
         }
         if (group_dist < len) work.swap(seq);  // refill work vector for next circle
     }

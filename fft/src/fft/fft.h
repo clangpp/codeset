@@ -26,6 +26,13 @@ public:
     RandomAccessContainer<value_type>& filter(
             RandomAccessContainer<value_type>& seq) const;
 
+    template <template <class T,
+             class A=std::allocator<T> > class RandomAccessContainer>
+    RandomAccessContainer<value_type>& operator () (
+            RandomAccessContainer<value_type>& seq) const {
+        return filter(seq);
+    }
+
 private:
     std::vector<value_type> omega_;
     std::vector<size_type> index_;
