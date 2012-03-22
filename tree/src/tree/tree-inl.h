@@ -23,9 +23,24 @@ void set_right(NodeT* root, NodeT* new_right) {
 }
 
 template <typename NodeT>
-void print(const NodeT* root, std::ostream& os) {
+void print(const NodeT* root, std::ostream& os) { inorder_print(root, os); }
+
+template <typename NodeT>
+void preorder_print(const NodeT* root, std::ostream& os) {
 	std::vector<int> path;
-	internal::print(os, root, path);
+	internal::preorder_print(os, root, path);
+}
+
+template <typename NodeT>
+void inorder_print(const NodeT* root, std::ostream& os) {
+	std::vector<int> path;
+	internal::inorder_print(os, root, path);
+}
+
+template <typename NodeT>
+void postorder_print(const NodeT* root, std::ostream& os) {
+	std::vector<int> path;
+	internal::postorder_print(os, root, path);
 }
 
 namespace internal {
@@ -33,7 +48,8 @@ namespace internal {
 enum PathBitMask { BM_LEFT=0x01, BM_RIGHT=0x02, BM_BROTHER=0x04 };
 
 template <typename NodeT>
-void print(std::ostream& os, const NodeT* root, std::vector<int>& path) {
+void preorder_print(std::ostream& os,
+		const NodeT* root, std::vector<int>& path) {
 	if (NULL==root) return;
 
 	// print root value
@@ -50,12 +66,65 @@ void print(std::ostream& os, const NodeT* root, std::vector<int>& path) {
 	int brother_mask = (root->left && root->right) ? BM_BROTHER : 0;
 
 	path.push_back(BM_LEFT|brother_mask);
-	print(os, root->left, path);
+	preorder_print(os, root->left, path);
 	path.pop_back();
 
 	path.push_back(BM_RIGHT|brother_mask);
-	print(os, root->right, path);
+	preorder_print(os, root->right, path);
 	path.pop_back();
+}
+
+template <typename NodeT>
+void inorder_print(std::ostream& os,
+		const NodeT* root, std::vector<int>& path) {
+	if (NULL==root) return;
+
+	// print left child
+	path.push_back(-1);
+	inorder_print(os, root->left, path);
+	path.pop_back();
+
+	// print root value
+	if (!path.empty()) {
+		for (size_t i=0; i<path.size()-1; ++i) {
+			bool more = path[i]*path[i+1] < 0;
+			os << (more ? "|   " : "    ");
+		}
+		os << (path.back()<0 ? "|---" : "|===");
+	}
+	os << root->value << endl;
+
+	// print right child
+	path.push_back(1);
+	inorder_print(os, root->right, path);
+	path.pop_back();
+}
+
+template <typename NodeT>
+void postorder_print(std::ostream& os,
+		const NodeT* root, std::vector<int>& path) {
+	if (NULL==root) return;
+
+	// print children
+	int brother_mask = (root->left && root->right) ? BM_BROTHER : 0;
+
+	path.push_back(BM_LEFT|brother_mask);
+	postorder_print(os, root->left, path);
+	path.pop_back();
+
+	path.push_back(BM_RIGHT|brother_mask);
+	postorder_print(os, root->right, path);
+	path.pop_back();
+
+	// print root value
+	if (!path.empty()) {
+		for (size_t i=0; i<path.size()-1; ++i) {
+			bool more = (path[i] & BM_BROTHER) && (path[i] & BM_RIGHT);
+			os << (more ? "|   " : "    ");
+		}
+		os << ((path.back() & BM_LEFT) ? "|---" : "|===");
+	}
+	os << root->value << endl;
 }
 
 }  // namespace internal
@@ -115,6 +184,14 @@ NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root) {
 }  // namespace internal
 
 template <typename NodePtrT, typename UnaryFunction>
+void preorder_traversal(NodePtrT root, UnaryFunction op) {
+	if (NULL==root) return;
+	op(root->value);
+	preorder_traversal(root->left, op);
+	preorder_traversal(root->right, op);
+}
+
+template <typename NodePtrT, typename UnaryFunction>
 void inorder_traversal(NodePtrT root, UnaryFunction op) {
 	if (NULL==root) return;
 	inorder_traversal(root->left, op);
@@ -128,14 +205,6 @@ void postorder_traversal(NodePtrT root, UnaryFunction op) {
 	postorder_traversal(root->left, op);
 	postorder_traversal(root->right, op);
 	op(root->value);
-}
-
-template <typename NodePtrT, typename UnaryFunction>
-void preorder_traversal(NodePtrT root, UnaryFunction op) {
-	if (NULL==root) return;
-	op(root->value);
-	preorder_traversal(root->left, op);
-	preorder_traversal(root->right, op);
 }
 
 template <typename NodePtrT, typename UnaryFunction>

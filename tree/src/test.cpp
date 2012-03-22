@@ -68,6 +68,15 @@ void test_utility() {
 
 	log(INFO_) << "print: " << endl;
 	tree::print(&nodes[0]);
+
+	log(INFO_) << "preorder_print: " << endl;
+	tree::preorder_print(&nodes[0]);
+
+	log(INFO_) << "inorder_print: " << endl;
+	tree::inorder_print(&nodes[0]);
+
+	log(INFO_) << "postorder_print: " << endl;
+	tree::postorder_print(&nodes[0]);
 }
 
 void test_rotation() {
