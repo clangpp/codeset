@@ -17,24 +17,34 @@ namespace tree {
 // ********** </note> ***********
 
 template <typename NodeT>
+inline void set_left(NodeT* root, NodeT* new_left);
+
+template <typename NodeT>
+inline void set_right(NodeT* root, NodeT* new_right);
+
+template <typename NodeT>
+inline void print(const NodeT* root, std::ostream& os = std::cout);
+
+namespace internal {
+
+template <typename NodeT>
+void print(std::ostream& os, const NodeT* root, std::vector<int>& path);
+
+}  // namespace internal
+
+template <typename NodeT>
 NodeT* single_rotation_left(NodeT* root);  // left-left
 
 template <typename NodeT>
 NodeT* single_rotation_right(NodeT* root);  // right-right
 
 template <typename NodeT>
-NodeT* double_rotation_left(NodeT* root);  // left-right
+inline NodeT* double_rotation_left(NodeT* root);  // left-right
 
 template <typename NodeT>
-NodeT* double_rotation_right(NodeT* root);  // right-left
+inline NodeT* double_rotation_right(NodeT* root);  // right-left
 
 namespace internal {
-
-template <typename NodeT>
-inline void set_left(NodeT* root, NodeT* new_left);
-
-template <typename NodeT>
-inline void set_right(NodeT* root, NodeT* new_right);
 
 template <typename NodeT>
 NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root);
@@ -62,14 +72,7 @@ template <typename NodePtrT, typename UnaryFunction>
 void level_order_traversal(NodePtrT root, UnaryFunction op);
 
 template <typename NodeT>
-void print_tree(const NodeT* root, std::ostream& os = std::cout);
-
-namespace internal {
-
-template <typename NodeT>
-void print_tree(std::ostream& os, const NodeT* root, std::vector<int>& path);
-
-}  // namespace internal
+long height(const NodeT* root);
 
 }  // namespace tree
 

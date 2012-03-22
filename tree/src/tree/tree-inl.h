@@ -4,10 +4,61 @@
 
 #include "tree.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <queue>
 
 namespace tree {
+
+template <typename NodeT>
+void set_left(NodeT* root, NodeT* new_left) {
+	root->left = new_left;
+	if (new_left) new_left->parent = root;
+}
+
+template <typename NodeT>
+void set_right(NodeT* root, NodeT* new_right) {
+	root->right = new_right;
+	if (new_right) new_right->parent = root;
+}
+
+template <typename NodeT>
+void print(const NodeT* root, std::ostream& os) {
+	std::vector<int> path;
+	internal::print(os, root, path);
+}
+
+namespace internal {
+
+enum PathBitMask { BM_LEFT=0x01, BM_RIGHT=0x02, BM_BROTHER=0x04 };
+
+template <typename NodeT>
+void print(std::ostream& os, const NodeT* root, std::vector<int>& path) {
+	if (NULL==root) return;
+
+	// print root value
+	if (!path.empty()) {
+		for (size_t i=0; i<path.size()-1; ++i) {
+			bool more = (path[i] & BM_BROTHER) && (path[i] & BM_LEFT);
+			os << (more ? "|   " : "    ");
+		}
+		os << ((path.back() & BM_LEFT) ? "|---" : "|===");
+	}
+	os << root->value << endl;
+
+	// print children
+	int brother_mask = (root->left && root->right) ? BM_BROTHER : 0;
+
+	path.push_back(BM_LEFT|brother_mask);
+	print(os, root->left, path);
+	path.pop_back();
+
+	path.push_back(BM_RIGHT|brother_mask);
+	print(os, root->right, path);
+	path.pop_back();
+}
+
+}  // namespace internal
 
 template <typename NodeT>
 NodeT* single_rotation_left(NodeT* root) {
@@ -44,18 +95,6 @@ NodeT* double_rotation_right(NodeT* root) {
 }
 
 namespace internal {
-
-template <typename NodeT>
-void set_left(NodeT* root, NodeT* new_left) {
-	root->left = new_left;
-	if (new_left) new_left->parent = root;
-}
-
-template <typename NodeT>
-void set_right(NodeT* root, NodeT* new_right) {
-	root->right = new_right;
-	if (new_right) new_right->parent = root;
-}
 
 // note: return new_root is necessary,
 //	because left/right children of original root are changed
@@ -109,7 +148,7 @@ void level_order_traversal(NodePtrT root, UnaryFunction op) {
 
 	// access iterations
 	while (!node_q.empty()) {
-		NodePtrT curr = node_q.top();
+		NodePtrT curr = node_q.front();
 		op(curr->value);  // access node value
 
 		// maintain node queue
@@ -120,42 +159,10 @@ void level_order_traversal(NodePtrT root, UnaryFunction op) {
 }
 
 template <typename NodeT>
-void print_tree(const NodeT* root, std::ostream& os) {
-	std::vector<int> path;
-	internal::print_tree(os, root, path);
+long height(const NodeT* root) {
+	if (NULL==root) return -1;
+	return 1 + std::max(height(root->left), height(root->right));
 }
-
-namespace internal {
-
-enum PathBitMask { BM_LEFT=0x01, BM_RIGHT=0x02, BM_BROTHER=0x04 };
-
-template <typename NodeT>
-void print_tree(std::ostream& os, const NodeT* root, std::vector<int>& path) {
-	if (NULL==root) return;
-
-	// print root value
-	if (!path.empty()) {
-		for (size_t i=0; i<path.size()-1; ++i) {
-			bool more = (path[i] & BM_BROTHER) && (path[i] & BM_LEFT);
-			os << (more ? "|   " : "    ");
-		}
-		os << ((path.back() & BM_LEFT) ? "|---" : "|===");
-	}
-	os << root->value << endl;
-
-	// print children
-	int brother_mask = (root->left && root->right) ? BM_BROTHER : 0;
-
-	path.push_back(BM_LEFT|brother_mask);
-	print_tree(os, root->left, path);
-	path.pop_back();
-
-	path.push_back(BM_RIGHT|brother_mask);
-	print_tree(os, root->right, path);
-	path.pop_back();
-}
-
-}  // namespace internal
 
 }  // namespace tree
 

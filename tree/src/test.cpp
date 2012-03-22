@@ -1,6 +1,7 @@
 // test.cpp
 #include "tree/tree.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 
@@ -26,42 +27,205 @@ struct BSNode {
 template <typename T>
 void print(const T& value) { cout << value << " "; }
 
-void test_print_tree();
+void test_utility();
 void test_rotation();
 void test_traversal();
+void test_observer();
 
 int main(int argc, char* argv[]) {
-	test_print_tree();
+	test_utility();
 	test_rotation();
 	test_traversal();
+	test_observer();
 	system("pause");
     return 0;
 }
 
-void test_print_tree() {
-	Trace trace(INFO_, "test_print_tree()");
+void test_utility() {
+	Trace trace(INFO_, "test_utility()");
+
+	// make tree
 	vector<BSNode<int> > nodes;
 	nodes.resize(6);
 	for (size_t i=0; i<nodes.size(); ++i)
 		nodes[i] = BSNode<int>(i);
-	using tree::internal::set_left;
-	using tree::internal::set_right;
-	set_left(&nodes[0], &nodes[1]);
-	set_right(&nodes[0], &nodes[2]);
-	set_left(&nodes[1], &nodes[3]);
-	set_right(&nodes[3], &nodes[4]);
-	set_right(&nodes[2], &nodes[5]);
-	tree::print_tree(&nodes[0]);
+	tree::set_left(&nodes[0], &nodes[1]);
+	tree::set_right(&nodes[0], &nodes[2]);
+	tree::set_left(&nodes[1], &nodes[3]);
+	tree::set_right(&nodes[3], &nodes[4]);
+	tree::set_right(&nodes[2], &nodes[5]);
+	tree::set_left(&nodes[5], (BSNode<int>*)NULL);
+	tree::set_right(&nodes[5], (BSNode<int>*)NULL);
+
+	bool pass = true;
+	pass = (nodes[0].left==&nodes[1]) && (nodes[1].parent==&nodes[0])
+		&& (nodes[5].left==NULL);
+	log(INFO_) << "test set_left: " << (pass ? "pass" : "FAILED") << endl;
+
+	pass = (nodes[0].right==&nodes[2]) && (nodes[2].parent==&nodes[0])
+		&& (nodes[5].right==NULL);
+	log(INFO_) << "test set_right: " << (pass ? "pass" : "FAILED") << endl;
+
+	log(INFO_) << "print: " << endl;
+	tree::print(&nodes[0]);
 }
 
 void test_rotation() {
 	Trace trace(INFO_, "test_rotation()");
-	const int N = 6;
-	BSNode<int> nodes[N];
-	for (int i=0; i<N; ++i)
+	bool pass = true;
+	vector<BSNode<int> > nodes;
+	BSNode<int>* p = NULL;
+
+	nodes.resize(4);
+	for (size_t i=0; i<nodes.size(); ++i)
 		nodes[i] = BSNode<int>(i);
+	p = &nodes[3];
+	tree::set_left(&nodes[3], &nodes[1]);
+	tree::set_left(&nodes[1], &nodes[0]);
+	tree::set_right(&nodes[1], &nodes[2]);
+	log(INFO_) << "before rotation: " << endl;
+	tree::print(p);
+	p = tree::single_rotation_left(p);
+	log(INFO_) << "after rotation: " << endl;
+	tree::print(p);
+	pass = (p==&nodes[1]) && (p->right==&nodes[3]) && (nodes[3].left==&nodes[2]);
+	log(INFO_) << "test single_rotation_left: " << (pass ? "pass" : "FAILED") << endl;
+
+	nodes.resize(4);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = BSNode<int>(i);
+	p = &nodes[0];
+	tree::set_right(&nodes[0], &nodes[2]);
+	tree::set_right(&nodes[2], &nodes[3]);
+	tree::set_left(&nodes[2], &nodes[1]);
+	log(INFO_) << "before rotation: " << endl;
+	tree::print(p);
+	p = tree::single_rotation_right(p);
+	log(INFO_) << "after rotation: " << endl;
+	tree::print(p);
+	pass = (p==&nodes[2]) && (p->left==&nodes[0]) && (nodes[0].right==&nodes[1]);
+	log(INFO_) << "test single_rotation_right: " << (pass ? "pass" : "FAILED") << endl;
+
+	nodes.resize(6);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = BSNode<int>(i);
+	p = &nodes[4];
+	tree::set_left(&nodes[4], &nodes[1]);
+	tree::set_right(&nodes[4], &nodes[5]);
+	tree::set_left(&nodes[1], &nodes[0]);
+	tree::set_right(&nodes[1], &nodes[3]);
+	tree::set_left(&nodes[3], &nodes[2]);
+	log(INFO_) << "before rotation: " << endl;
+	tree::print(p);
+	p = tree::double_rotation_left(p);
+	log(INFO_) << "after rotation: " << endl;
+	tree::print(p);
+	pass = (p==&nodes[3]) && (nodes[1].right==&nodes[2]) && (nodes[4].left==NULL)
+		&& (nodes[3].left==&nodes[1]) && (nodes[3].right==&nodes[4]);
+	log(INFO_) << "test double_rotation_left: " << (pass ? "pass" : "FAILED") << endl;
+
+	nodes.resize(6);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = BSNode<int>(i);
+	p = &nodes[1];
+	tree::set_left(&nodes[1], &nodes[0]);
+	tree::set_right(&nodes[1], &nodes[4]);
+	tree::set_left(&nodes[4], &nodes[3]);
+	tree::set_right(&nodes[4], &nodes[5]);
+	tree::set_left(&nodes[3], &nodes[2]);
+	log(INFO_) << "before rotation: " << endl;
+	tree::print(p);
+	p = tree::double_rotation_right(p);
+	log(INFO_) << "after rotation: " << endl;
+	tree::print(p);
+	pass = (p==&nodes[3]) && (nodes[1].right==&nodes[2]) && (nodes[4].left==NULL)
+		&& (nodes[3].left==&nodes[1]) && (nodes[3].right==&nodes[4]);
+	log(INFO_) << "test double_rotation_right: " << (pass ? "pass" : "FAILED") << endl;
 }
 
 void test_traversal() {
 	Trace trace(INFO_, "test_traversal()");
+	bool pass = true;
+	vector<BSNode<int> > nodes;
+	BSNode<int>* p = NULL;
+
+	struct Collector {
+		vector<int> values;
+		void collect(int value) { values.push_back(value); }
+	};
+
+	nodes.resize(7);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = BSNode<int>(i);
+	p = &nodes[0];
+	tree::set_left(&nodes[0], &nodes[1]);
+	tree::set_right(&nodes[0], &nodes[2]);
+	tree::set_left(&nodes[1], &nodes[3]);
+	tree::set_right(&nodes[1], &nodes[4]);
+	tree::set_left(&nodes[2], &nodes[5]);
+	tree::set_left(&nodes[4], &nodes[6]);
+	log(INFO_) << "tree: " << endl;
+	tree::print(p);
+
+	Collector co;
+	co.values.clear();
+	tree::inorder_traversal(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "inorder traversal: ";
+	for (size_t i=0; i<co.values.size(); ++i)
+		standard_logger() << co.values[i] << " ";
+	standard_logger() << endl;
+	int inorder[] = {3,1,6,4,0,5,2};
+	pass = equal(co.values.begin(), co.values.end(), inorder);
+	log(INFO_) << "test inorder_traversal: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::postorder_traversal(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "postorder traversal: ";
+	for (size_t i=0; i<co.values.size(); ++i)
+		standard_logger() << co.values[i] << " ";
+	standard_logger() << endl;
+	int postorder[] = {3,6,4,1,5,2,0};
+	pass = equal(co.values.begin(), co.values.end(), postorder);
+	log(INFO_) << "test postorder_traversal: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::preorder_traversal(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "preorder traversal: ";
+	for (size_t i=0; i<co.values.size(); ++i)
+		standard_logger() << co.values[i] << " ";
+	standard_logger() << endl;
+	int preorder[] = {0,1,3,4,6,2,5};
+	pass = equal(co.values.begin(), co.values.end(), preorder);
+	log(INFO_) << "test preorder_traversal: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::level_order_traversal(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "level_order traversal: ";
+	for (size_t i=0; i<co.values.size(); ++i)
+		standard_logger() << co.values[i] << " ";
+	standard_logger() << endl;
+	int level_order[] = {0,1,2,3,4,5,6};
+	pass = equal(co.values.begin(), co.values.end(), level_order);
+	log(INFO_) << "test level_order_traversal: " << (pass ? "pass" : "FAILED") << endl;
+}
+
+void test_observer() {
+	Trace trace(INFO_, "test_observer()");
+	bool pass = true;
+	vector<BSNode<int> > nodes;
+	BSNode<int>* p = NULL;
+
+	nodes.resize(7);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = BSNode<int>(i);
+	tree::set_left(&nodes[0], &nodes[1]);
+	tree::set_right(&nodes[0], &nodes[2]);
+	tree::set_left(&nodes[1], &nodes[3]);
+	tree::set_right(&nodes[1], &nodes[4]);
+	tree::set_left(&nodes[2], &nodes[5]);
+	tree::set_left(&nodes[4], &nodes[6]);
+	pass = (tree::height((BSNode<int>*)NULL)==-1) && (tree::height(&nodes[0])==3) 
+		&& (tree::height(&nodes[1])==2) && (tree::height(&nodes[2])==1) 
+		&& (tree::height(&nodes[6])==0);
+	log(INFO_) << "test height: " << (pass ? "pass" : "FAILED") << endl;
 }
