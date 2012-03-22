@@ -2,16 +2,19 @@
 #ifndef TREE_H_
 #define TREE_H_
 
+#include <iostream>
+#include <vector>
+
 namespace tree {
 
-// ********** concept ***********
+// ********** <note> ************
 // concept NodeT {
 //	value_type value;
 // 	NodeT* left;
 // 	NodeT* right
 // 	NodeT* parent;
 // };
-// ********** concept ***********
+// ********** </note> ***********
 
 template <typename NodeT>
 NodeT* single_rotation_left(NodeT* root);  // left-left
@@ -28,21 +31,45 @@ NodeT* double_rotation_right(NodeT* root);  // right-left
 namespace internal {
 
 template <typename NodeT>
+inline void set_left(NodeT* root, NodeT* new_left);
+
+template <typename NodeT>
+inline void set_right(NodeT* root, NodeT* new_right);
+
+template <typename NodeT>
 NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root);
 
 }  // namespace internal
 
-template <typename NodeT, typename UnaryFunction>
-void inorder_traversal(NodeT* root, UnaryFunction op);
+// ********** <note> ************
+// concept UnaryFunction {
+// 	UnaryFunction op;
+// 	NodePtrT p;  // NodeT* or const NodeT*
+// 	requires op(p->value);
+// };
+// ********** </note> ***********
 
-template <typename NodeT, typename UnaryFunction>
-void postorder_traversal(NodeT* root, UnaryFunction op);
+template <typename NodePtrT, typename UnaryFunction>
+void inorder_traversal(NodePtrT root, UnaryFunction op);
 
-template <typename NodeT, typename UnaryFunction>
-void preorder_traversal(NodeT* root, UnaryFunction op);
+template <typename NodePtrT, typename UnaryFunction>
+void postorder_traversal(NodePtrT root, UnaryFunction op);
 
-template <typename NodeT, typename UnaryFunction>
-void level_order_traversal(NodeT* root, UnaryFunction op);
+template <typename NodePtrT, typename UnaryFunction>
+void preorder_traversal(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void level_order_traversal(NodePtrT root, UnaryFunction op);
+
+template <typename NodeT>
+void print_tree(const NodeT* root, std::ostream& os = std::cout);
+
+namespace internal {
+
+template <typename NodeT>
+void print_tree(std::ostream& os, const NodeT* root, std::vector<int>& path);
+
+}  // namespace internal
 
 }  // namespace tree
 
