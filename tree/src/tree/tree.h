@@ -23,29 +23,29 @@ template <typename NodeT>
 inline void set_right(NodeT* root, NodeT* new_right);
 
 template <typename NodeT>
-inline void print(const NodeT* root, std::ostream& os = std::cout);
+inline void print(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
-inline void preorder_print(const NodeT* root, std::ostream& os = std::cout);
+inline void preorder_print(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
-inline void inorder_print(const NodeT* root, std::ostream& os = std::cout);
+inline void inorder_print(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
-inline void postorder_print(const NodeT* root, std::ostream& os = std::cout);
+inline void postorder_print(const NodeT* root, std::ostream& out = std::cout);
 
 namespace internal {
 
 template <typename NodeT>
-void preorder_print(std::ostream& os,
+void preorder_print(std::ostream& out,
 		const NodeT* root, std::vector<int>& path);
 
 template <typename NodeT>
-void inorder_print(std::ostream& os,
+void inorder_print(std::ostream& out,
 		const NodeT* root, std::vector<int>& path);
 
 template <typename NodeT>
-void postorder_print(std::ostream& os,
+void postorder_print(std::ostream& out,
 		const NodeT* root, std::vector<int>& path);
 
 }  // namespace internal
