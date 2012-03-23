@@ -23,24 +23,24 @@ void set_right(NodeT* root, NodeT* new_right) {
 }
 
 template <typename NodeT>
-void print(const NodeT* root, std::ostream& out) { inorder_print(root, out); }
+void print(const NodeT* root, std::ostream& out) { print_inorder(root, out); }
 
 template <typename NodeT>
-void preorder_print(const NodeT* root, std::ostream& out) {
+void print_preorder(const NodeT* root, std::ostream& out) {
 	std::vector<int> path;
-	internal::preorder_print(out, root, path);
+	internal::print_preorder(out, root, path);
 }
 
 template <typename NodeT>
-void inorder_print(const NodeT* root, std::ostream& out) {
+void print_inorder(const NodeT* root, std::ostream& out) {
 	std::vector<int> path;
-	internal::inorder_print(out, root, path);
+	internal::print_inorder(out, root, path);
 }
 
 template <typename NodeT>
-void postorder_print(const NodeT* root, std::ostream& out) {
+void print_postorder(const NodeT* root, std::ostream& out) {
 	std::vector<int> path;
-	internal::postorder_print(out, root, path);
+	internal::print_postorder(out, root, path);
 }
 
 namespace internal {
@@ -48,7 +48,7 @@ namespace internal {
 enum PathBitMask { BM_LEFT=0x01, BM_RIGHT=0x02, BM_BROTHER=0x04 };
 
 template <typename NodeT>
-void preorder_print(std::ostream& out,
+void print_preorder(std::ostream& out,
 		const NodeT* root, std::vector<int>& path) {
 	if (NULL==root) return;
 
@@ -66,22 +66,22 @@ void preorder_print(std::ostream& out,
 	int brother_mask = (root->left && root->right) ? BM_BROTHER : 0;
 
 	path.push_back(BM_LEFT|brother_mask);
-	preorder_print(out, root->left, path);
+	print_preorder(out, root->left, path);
 	path.pop_back();
 
 	path.push_back(BM_RIGHT|brother_mask);
-	preorder_print(out, root->right, path);
+	print_preorder(out, root->right, path);
 	path.pop_back();
 }
 
 template <typename NodeT>
-void inorder_print(std::ostream& out,
+void print_inorder(std::ostream& out,
 		const NodeT* root, std::vector<int>& path) {
 	if (NULL==root) return;
 
 	// print left child
 	path.push_back(-1);
-	inorder_print(out, root->left, path);
+	print_inorder(out, root->left, path);
 	path.pop_back();
 
 	// print root value
@@ -96,12 +96,12 @@ void inorder_print(std::ostream& out,
 
 	// print right child
 	path.push_back(1);
-	inorder_print(out, root->right, path);
+	print_inorder(out, root->right, path);
 	path.pop_back();
 }
 
 template <typename NodeT>
-void postorder_print(std::ostream& out,
+void print_postorder(std::ostream& out,
 		const NodeT* root, std::vector<int>& path) {
 	if (NULL==root) return;
 
@@ -109,11 +109,11 @@ void postorder_print(std::ostream& out,
 	int brother_mask = (root->left && root->right) ? BM_BROTHER : 0;
 
 	path.push_back(BM_LEFT|brother_mask);
-	postorder_print(out, root->left, path);
+	print_postorder(out, root->left, path);
 	path.pop_back();
 
 	path.push_back(BM_RIGHT|brother_mask);
-	postorder_print(out, root->right, path);
+	print_postorder(out, root->right, path);
 	path.pop_back();
 
 	// print root value
@@ -130,7 +130,7 @@ void postorder_print(std::ostream& out,
 }  // namespace internal
 
 template <typename NodeT>
-NodeT* single_rotation_left(NodeT* root) {
+NodeT* rotate_left_left(NodeT* root) {
 	NodeT* new_root = root->left;
 	
 	// re-root new_root->right
@@ -142,7 +142,7 @@ NodeT* single_rotation_left(NodeT* root) {
 }
 
 template <typename NodeT>
-NodeT* single_rotation_right(NodeT* root) {
+NodeT* rotate_right_right(NodeT* root) {
 	NodeT* new_root = root->right;
 	
 	// re-root new_root->left
@@ -154,12 +154,12 @@ NodeT* single_rotation_right(NodeT* root) {
 }
 
 template <typename NodeT>
-NodeT* double_rotation_left(NodeT* root) {
+NodeT* rotate_left_right(NodeT* root) {
 	return internal::double_rotation(root->left, root, root->left->right);
 }
 
 template <typename NodeT>
-NodeT* double_rotation_right(NodeT* root) {
+NodeT* rotate_right_left(NodeT* root) {
 	return internal::double_rotation(root, root->right, root->right->left);
 }
 
@@ -184,31 +184,31 @@ NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root) {
 }  // namespace internal
 
 template <typename NodePtrT, typename UnaryFunction>
-void preorder_traversal(NodePtrT root, UnaryFunction op) {
+void traverse_preorder(NodePtrT root, UnaryFunction op) {
 	if (NULL==root) return;
 	op(root->value);
-	preorder_traversal(root->left, op);
-	preorder_traversal(root->right, op);
+	traverse_preorder(root->left, op);
+	traverse_preorder(root->right, op);
 }
 
 template <typename NodePtrT, typename UnaryFunction>
-void inorder_traversal(NodePtrT root, UnaryFunction op) {
+void traverse_inorder(NodePtrT root, UnaryFunction op) {
 	if (NULL==root) return;
-	inorder_traversal(root->left, op);
+	traverse_inorder(root->left, op);
 	op(root->value);
-	inorder_traversal(root->right, op);
+	traverse_inorder(root->right, op);
 }
 
 template <typename NodePtrT, typename UnaryFunction>
-void postorder_traversal(NodePtrT root, UnaryFunction op) {
+void traverse_postorder(NodePtrT root, UnaryFunction op) {
 	if (NULL==root) return;
-	postorder_traversal(root->left, op);
-	postorder_traversal(root->right, op);
+	traverse_postorder(root->left, op);
+	traverse_postorder(root->right, op);
 	op(root->value);
 }
 
 template <typename NodePtrT, typename UnaryFunction>
-void level_order_traversal(NodePtrT root, UnaryFunction op) {
+void traverse_level_order(NodePtrT root, UnaryFunction op) {
 	if (NULL==root) return;
 
 	// initalize node queue

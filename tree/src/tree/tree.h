@@ -26,41 +26,41 @@ template <typename NodeT>
 inline void print(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
-inline void preorder_print(const NodeT* root, std::ostream& out = std::cout);
+inline void print_preorder(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
-inline void inorder_print(const NodeT* root, std::ostream& out = std::cout);
+inline void print_inorder(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
-inline void postorder_print(const NodeT* root, std::ostream& out = std::cout);
+inline void print_postorder(const NodeT* root, std::ostream& out = std::cout);
 
 namespace internal {
 
 template <typename NodeT>
-void preorder_print(std::ostream& out,
+void print_preorder(std::ostream& out,
 		const NodeT* root, std::vector<int>& path);
 
 template <typename NodeT>
-void inorder_print(std::ostream& out,
+void print_inorder(std::ostream& out,
 		const NodeT* root, std::vector<int>& path);
 
 template <typename NodeT>
-void postorder_print(std::ostream& out,
+void print_postorder(std::ostream& out,
 		const NodeT* root, std::vector<int>& path);
 
 }  // namespace internal
 
 template <typename NodeT>
-NodeT* single_rotation_left(NodeT* root);  // left-left
+NodeT* rotate_left_left(NodeT* root);  // left-left single rotation
 
 template <typename NodeT>
-NodeT* single_rotation_right(NodeT* root);  // right-right
+NodeT* rotate_right_right(NodeT* root);  // right-right single rotation
 
 template <typename NodeT>
-inline NodeT* double_rotation_left(NodeT* root);  // left-right
+inline NodeT* rotate_left_right(NodeT* root);  // left-right double rotation
 
 template <typename NodeT>
-inline NodeT* double_rotation_right(NodeT* root);  // right-left
+inline NodeT* rotate_right_left(NodeT* root);  // right-left double rotation
 
 namespace internal {
 
@@ -78,16 +78,16 @@ NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root);
 // ********** </note> ***********
 
 template <typename NodePtrT, typename UnaryFunction>
-void preorder_traversal(NodePtrT root, UnaryFunction op);
+void traverse_preorder(NodePtrT root, UnaryFunction op);
 
 template <typename NodePtrT, typename UnaryFunction>
-void inorder_traversal(NodePtrT root, UnaryFunction op);
+void traverse_inorder(NodePtrT root, UnaryFunction op);
 
 template <typename NodePtrT, typename UnaryFunction>
-void postorder_traversal(NodePtrT root, UnaryFunction op);
+void traverse_postorder(NodePtrT root, UnaryFunction op);
 
 template <typename NodePtrT, typename UnaryFunction>
-void level_order_traversal(NodePtrT root, UnaryFunction op);
+void traverse_level_order(NodePtrT root, UnaryFunction op);
 
 template <typename NodeT>
 long height(const NodeT* root);
