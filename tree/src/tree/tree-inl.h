@@ -54,13 +54,15 @@ void print_preorder(std::ostream& out,
 
 	// print root value
 	if (!path.empty()) {
-		for (size_t i=0; i<path.size()-1; ++i) {
-			bool more = (path[i] & BM_BROTHER) && (path[i] & BM_LEFT);
+		bool more = true; size_t i = 0;
+		for (i=0; i<path.size()-1; ++i) {
+			more = (path[i] & BM_BROTHER) && (path[i] & BM_LEFT);
 			out << (more ? "|   " : "    ");
 		}
-		out << ((path.back() & BM_LEFT) ? "|---" : "|===");
+		more = (path[i] & BM_BROTHER) && (path[i] & BM_LEFT);
+		out << (more ? "|" : "`") << ((path[i] & BM_LEFT) ? "---" : "===");
 	}
-	out << root->value << endl;
+	out << root->value << std::endl;
 
 	// print children
 	int brother_mask = (root->left && root->right) ? BM_BROTHER : 0;
@@ -86,13 +88,14 @@ void print_inorder(std::ostream& out,
 
 	// print root value
 	if (!path.empty()) {
-		for (size_t i=0; i<path.size()-1; ++i) {
-			bool more = path[i]*path[i+1] < 0;
+		bool more = true; size_t i = 0;
+		for (i=0; i<path.size()-1; ++i) {
+			more = path[i]*path[i+1] < 0;  // opposite direction
 			out << (more ? "|   " : "    ");
 		}
-		out << (path.back()<0 ? "|---" : "|===");
+		out << (path[i]<0 ? ",---" : "`===");
 	}
-	out << root->value << endl;
+	out << root->value << std::endl;
 
 	// print right child
 	path.push_back(1);
@@ -118,13 +121,15 @@ void print_postorder(std::ostream& out,
 
 	// print root value
 	if (!path.empty()) {
-		for (size_t i=0; i<path.size()-1; ++i) {
-			bool more = (path[i] & BM_BROTHER) && (path[i] & BM_RIGHT);
+		bool more = true; size_t i = 0;
+		for (i=0; i<path.size()-1; ++i) {
+			more = (path[i] & BM_BROTHER) && (path[i] & BM_RIGHT);
 			out << (more ? "|   " : "    ");
 		}
-		out << ((path.back() & BM_LEFT) ? "|---" : "|===");
+		more = (path[i] & BM_BROTHER) && (path[i] & BM_RIGHT);
+		out << (more ? "|" : ",") << ((path[i] & BM_LEFT) ? "---" : "===");
 	}
-	out << root->value << endl;
+	out << root->value << std::endl;
 }
 
 }  // namespace internal
@@ -212,7 +217,7 @@ void traverse_level_order(NodePtrT root, UnaryFunction op) {
 	if (NULL==root) return;
 
 	// initalize node queue
-	queue<NodePtrT> node_q;
+	std::queue<NodePtrT> node_q;
 	node_q.push(root);
 
 	// access iterations

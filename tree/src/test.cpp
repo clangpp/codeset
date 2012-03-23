@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 
 #include "logging/logging.h"
@@ -21,6 +22,11 @@ struct BSNode {
 	BSNode(const value_type& val=value_type(),
 			BSNode* l=NULL, BSNode* r=NULL, BSNode* p=NULL)
 		: value(val), left(l), right(r), parent(p) {}
+};
+
+struct Collector {
+	vector<int> values;
+	void collect(int value) { values.push_back(value); }
 };
 
 // unary function to print node value
@@ -157,11 +163,6 @@ void test_traversal() {
 	bool pass = true;
 	vector<BSNode<int> > nodes;
 	BSNode<int>* p = NULL;
-
-	struct Collector {
-		vector<int> values;
-		void collect(int value) { values.push_back(value); }
-	};
 
 	nodes.resize(7);
 	for (size_t i=0; i<nodes.size(); ++i)
