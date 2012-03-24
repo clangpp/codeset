@@ -233,10 +233,31 @@ void traverse_level_order(NodePtrT root, UnaryFunction op) {
 }
 
 template <typename NodeT>
-long height(const NodeT* root) {
+ssize_type height(const NodeT* root) {
 	if (NULL==root) return -1;
 	return 1 + std::max(height(root->left), height(root->right));
 }
+
+template <typename NodePtrT, typename T>
+NodePtrT find(NodePtrT root, const T& value) {
+	while (root) {
+		if (value < root->value) {
+			root = root->left;
+		} else if (value > root->value) {
+			root = root->right;
+		} else {
+			return root;
+		}
+	}
+	return root;
+}
+
+namespace avl {  // AVL tree algorithm
+
+template <typename AVLNodeT>
+ssize_type height(const AVLNodeT* root) { return root ? root->height : -1; }
+
+}  // namespace avl
 
 }  // namespace tree
 

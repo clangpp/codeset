@@ -29,10 +29,6 @@ struct Collector {
 	void collect(int value) { values.push_back(value); }
 };
 
-// unary function to print node value
-template <typename T>
-void print(const T& value) { cout << value << " "; }
-
 void test_utility();
 void test_rotation();
 void test_traversal();
@@ -228,14 +224,19 @@ void test_observer() {
 	nodes.resize(7);
 	for (size_t i=0; i<nodes.size(); ++i)
 		nodes[i] = BSNode<int>(i);
-	tree::set_left(&nodes[0], &nodes[1]);
-	tree::set_right(&nodes[0], &nodes[2]);
-	tree::set_left(&nodes[1], &nodes[3]);
-	tree::set_right(&nodes[1], &nodes[4]);
-	tree::set_left(&nodes[2], &nodes[5]);
-	tree::set_left(&nodes[4], &nodes[6]);
-	pass = (tree::height((BSNode<int>*)NULL)==-1) && (tree::height(&nodes[0])==3) 
-		&& (tree::height(&nodes[1])==2) && (tree::height(&nodes[2])==1) 
-		&& (tree::height(&nodes[6])==0);
+	p = &nodes[3];
+	tree::set_left(&nodes[3], &nodes[1]);
+	tree::set_right(&nodes[3], &nodes[4]);
+	tree::set_left(&nodes[1], &nodes[0]);
+	tree::set_right(&nodes[1], &nodes[2]);
+	tree::set_right(&nodes[4], &nodes[6]);
+	tree::set_left(&nodes[6], &nodes[5]);
+	pass = (tree::height((BSNode<int>*)NULL)==-1) && (tree::height(&nodes[3])==3) 
+		&& (tree::height(&nodes[4])==2) && (tree::height(&nodes[1])==1) 
+		&& (tree::height(&nodes[5])==0);
 	log(INFO_) << "test height: " << (pass ? "pass" : "FAILED") << endl;
+
+	pass = (tree::find(p, 6)==&nodes[6])
+		&& (tree::find(p, 7)==NULL) && (tree::find(p, -1)==NULL);
+	log(INFO_) << "test find: " << (pass ? "pass" : "FAILED") << endl;
 }

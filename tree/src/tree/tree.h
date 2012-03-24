@@ -7,6 +7,8 @@
 
 namespace tree {
 
+typedef long ssize_type;  // signed size type
+
 // ********** <note> ************
 // concept NodeT {
 //	value_type value;
@@ -70,9 +72,15 @@ NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root);
 }  // namespace internal
 
 // ********** <note> ************
+// concept NodePtrT {
+//	NodeT* or const NodeT*
+// };
+// ********** </note> ***********
+
+// ********** <note> ************
 // concept UnaryFunction {
 // 	UnaryFunction op;
-// 	NodePtrT p;  // NodeT* or const NodeT*
+// 	NodePtrT p;
 // 	requires op(p->value);
 // };
 // ********** </note> ***********
@@ -90,7 +98,25 @@ template <typename NodePtrT, typename UnaryFunction>
 void traverse_level_order(NodePtrT root, UnaryFunction op);
 
 template <typename NodeT>
-long height(const NodeT* root);
+ssize_type height(const NodeT* root);  // NULL tree's height is -1
+
+// search value in binary-search tree
+// return node pointer that contains value; if not found, return NULL
+template <typename NodePtrT, typename T>
+NodePtrT find(NodePtrT root, const T& value);
+
+namespace avl {  // AVL tree algorithm
+
+// ********** <note> ************
+// concept AVLNodeT : public NodeT{
+//	ssize_type height;
+// };
+// ********** </note> ***********
+
+template <typename AVLNodeT>
+inline ssize_type height(const AVLNodeT* root);
+
+}  // namespace avl
 
 }  // namespace tree
 
