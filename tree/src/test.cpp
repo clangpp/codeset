@@ -47,6 +47,7 @@ void test_rotation();
 void test_traversal();
 void test_observer();
 void test_avl_tree();
+void test_splay_tree();
 
 int main(int argc, char* argv[]) {
 	test_utility();
@@ -54,6 +55,7 @@ int main(int argc, char* argv[]) {
 	test_traversal();
 	test_observer();
 	test_avl_tree();
+    test_splay_tree();
 	system("pause");
     return 0;
 }
@@ -403,4 +405,30 @@ void test_avl_tree() {
     tree::print(root);
     pass = (p==&nodes[60]) && (p!=&node60);
 	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+}
+
+void test_splay_tree() {
+    Trace trace(INFO_, "test_splay_tree()");
+	bool pass = true;
+	vector<BSNode<int> > nodes, neg_nodes;
+	BSNode<int>* root = NULL;
+	BSNode<int>* p = NULL;
+    BSNode<int>* curr = NULL;
+
+	nodes.resize(100);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = BSNode<int>(i);
+    for (int i=7; i>=1; --i)
+        tree::insert(root, &nodes[i]);
+    log(INFO_) << "original tree: " << endl;
+    tree::print(root);
+
+    for (int i=1; i<=7; ++i) {
+        curr = &nodes[i];
+        root = tree::splay::adjust(curr);
+        log(INFO_) << "after adjust " << curr->value << endl;
+        tree::print(root);
+        pass = (root==curr) && (NULL==root->parent);
+        log(INFO_) << "test adjust: " << (pass ? "pass" : "FAILED") << endl;
+    }
 }

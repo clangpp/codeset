@@ -340,13 +340,13 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
 
     // rebalance AVL tree
     for (AVLNodeT* p=new_node; p!=NULL; root=p, p=p->parent) {
-        if (avl::height(p->left) >= avl::height(p->right)+2) {  // inserted on left subtree
+        if (avl::height(p->left) >= avl::height(p->right)+2) {
             if (new_node->value < p->left->value) {  // left-left
                 avl::rotate_left_left(p);
             } else {  // left-right
                 avl::rotate_left_right(p);
             }
-        } else if (avl::height(p->right) >= avl::height(p->left)+2) {  // inserted on right subtree
+        } else if (avl::height(p->right) >= avl::height(p->left)+2) {
             if (p->right->value < new_node->value) {  // right-right
                 avl::rotate_right_right(p);
             } else {  // right-left
@@ -360,6 +360,51 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
 }
 
 }  // namespace avl
+
+namespace splay {
+
+template <typename NodeT>
+NodeT* adjust(NodeT* target) {
+    while (target->parent) {  // do until target become root
+
+        // self's parent is root, rotate self and parent
+        NodeT* p = target->parent;
+        if (NULL==p->parent) {
+            replace_child(p, target);
+            if (target == p->left) {
+                set_left(p, target->right);
+                set_right(target, p);
+            } else {
+                set_right(p, target->left);
+                set_left(target, p);
+            }
+            continue;
+        }
+
+        // self has grandparent, 4 kinds of rotation
+        NodeT* g = p->parent;
+        if (p==g->left && target==p->left) {  // left-left
+            replace_child(g, target);
+            set_left(g, p->right);
+            set_left(p, target->right);
+            set_right(p, g);
+            set_right(target, p);
+        } else if (p==g->right && target==p->right) {  // right-right
+            replace_child(g, target);
+            set_right(g, p->left);
+            set_right(p, target->left);
+            set_left(p, g);
+            set_left(target, p);
+        } else if (p==g->left && target==p->right) {  // left-right
+            rotate_left_right(g);  // double rotation
+        } else if (p==g->right && target==p->left) {  // right-left
+            rotate_right_left(g);  // double rotation
+        }
+    }
+    return target;
+}
+
+}  // namespace splay
 
 }  // namespace tree
 

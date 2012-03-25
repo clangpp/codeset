@@ -149,9 +149,9 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node);
 
 namespace splay {
 
-// return new root of spalying tree, i.e. target
+// return new root of splaying tree, i.e. target
 template <typename NodeT>
-NodeT* adjust(NodeT* root, NodeT* target);
+NodeT* adjust(NodeT* target);
 
 }  // namespace splay
 
