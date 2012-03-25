@@ -114,7 +114,8 @@ void test_rotation() {
 	p = tree::rotate_left_left(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
-	pass = (p==&nodes[1]) && (p->right==&nodes[3]) && (nodes[3].left==&nodes[2]);
+	pass = (NULL==p->parent) && (p==&nodes[1])
+        && (p->right==&nodes[3]) && (nodes[3].left==&nodes[2]);
 	log(INFO_) << "test rotate_left_left: " << (pass ? "pass" : "FAILED") << endl;
 
 	nodes.resize(4);
@@ -129,7 +130,8 @@ void test_rotation() {
 	p = tree::rotate_right_right(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
-	pass = (p==&nodes[2]) && (p->left==&nodes[0]) && (nodes[0].right==&nodes[1]);
+	pass = (NULL==p->parent) && (p==&nodes[2])
+        && (p->left==&nodes[0]) && (nodes[0].right==&nodes[1]);
 	log(INFO_) << "test rotate_right_right: " << (pass ? "pass" : "FAILED") << endl;
 
 	nodes.resize(6);
@@ -146,7 +148,8 @@ void test_rotation() {
 	p = tree::rotate_left_right(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
-	pass = (p==&nodes[3]) && (nodes[1].right==&nodes[2]) && (nodes[4].left==NULL)
+	pass = (NULL==p->parent) && (p==&nodes[3])
+        && (nodes[1].right==&nodes[2]) && (NULL==nodes[4].left)
 		&& (nodes[3].left==&nodes[1]) && (nodes[3].right==&nodes[4]);
 	log(INFO_) << "test rotate_left_right: " << (pass ? "pass" : "FAILED") << endl;
 
@@ -164,7 +167,8 @@ void test_rotation() {
 	p = tree::rotate_right_left(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
-	pass = (p==&nodes[3]) && (nodes[1].right==&nodes[2]) && (nodes[4].left==NULL)
+	pass = (NULL==p->parent) && (p==&nodes[3])
+        && (nodes[1].right==&nodes[2]) && (NULL==nodes[4].left)
 		&& (nodes[3].left==&nodes[1]) && (nodes[3].right==&nodes[4]);
 	log(INFO_) << "test rotate_right_left: " << (pass ? "pass" : "FAILED") << endl;
 }

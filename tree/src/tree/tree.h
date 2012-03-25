@@ -67,7 +67,8 @@ inline NodeT* rotate_right_left(NodeT* root);  // right-left double rotation
 namespace internal {
 
 template <typename NodeT>
-NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root);
+NodeT* double_rotation(
+        NodeT* old_root, NodeT* new_left, NodeT* new_right, NodeT* new_root);
 
 }  // namespace internal
 
@@ -137,6 +138,14 @@ template <typename AVLNodeT>
 AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node);
 
 }  // namespace avl
+
+namespace splay {
+
+// return new root of spalying tree, i.e. target
+template <typename NodeT>
+NodeT* adjust(NodeT* root, NodeT* target);
+
+}  // namespace spaly
 
 }  // namespace tree
 

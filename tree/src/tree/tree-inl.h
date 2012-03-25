@@ -137,6 +137,7 @@ void print_postorder(std::ostream& out,
 template <typename NodeT>
 NodeT* rotate_left_left(NodeT* root) {
 	NodeT* new_root = root->left;
+    new_root->parent = root->parent;
 	
 	// re-root new_root->right
 	set_left(root, new_root->right);
@@ -149,6 +150,7 @@ NodeT* rotate_left_left(NodeT* root) {
 template <typename NodeT>
 NodeT* rotate_right_right(NodeT* root) {
 	NodeT* new_root = root->right;
+    new_root->parent = root->parent;
 	
 	// re-root new_root->left
 	set_right(root, new_root->left);
@@ -160,12 +162,14 @@ NodeT* rotate_right_right(NodeT* root) {
 
 template <typename NodeT>
 NodeT* rotate_left_right(NodeT* root) {
-	return internal::double_rotation(root->left, root, root->left->right);
+	return internal::double_rotation(
+            root, root->left, root, root->left->right);
 }
 
 template <typename NodeT>
 NodeT* rotate_right_left(NodeT* root) {
-	return internal::double_rotation(root, root->right, root->right->left);
+	return internal::double_rotation(
+            root, root, root->right, root->right->left);
 }
 
 namespace internal {
@@ -173,11 +177,13 @@ namespace internal {
 // note: return new_root is necessary,
 //	because left/right children of original root are changed
 template <typename NodeT>
-NodeT* double_rotation(NodeT* new_left, NodeT* new_right, NodeT* new_root) {
-	// re-root new_root->left
-	set_right(new_left, new_root->left);
+NodeT* double_rotation(
+        NodeT* old_root, NodeT* new_left, NodeT* new_right, NodeT* new_root) {
+    // re-parent new_root
+    new_root->parent = old_root->parent;
 
-	// re-root new_root->right
+	// re-root new_root->left and new_root->right
+	set_right(new_left, new_root->left);
 	set_left(new_right, new_root->right);
 
 	// reform new_root, new_left, new_right
@@ -335,6 +341,16 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
 }
 
 }  // namespace avl
+
+namespace splay {
+
+template <typename NodeT>
+NodeT* adjust(NodeT* root, NodeT* target) {
+    while (target->parent!=NULL) {
+    }
+}
+
+}  // namespace spaly
 
 }  // namespace tree
 
