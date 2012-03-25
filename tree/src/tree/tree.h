@@ -25,6 +25,9 @@ template <typename NodeT>
 inline void set_right(NodeT* root, NodeT* new_right);
 
 template <typename NodeT>
+inline void replace_child(NodeT* old_child, NodeT* new_child);
+
+template <typename NodeT>
 inline void print(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
@@ -53,16 +56,16 @@ void print_postorder(std::ostream& out,
 }  // namespace internal
 
 template <typename NodeT>
-NodeT* rotate_left_left(NodeT* root);  // left-left single rotation
+void rotate_left_left(NodeT*& root);  // left-left single rotation
 
 template <typename NodeT>
-NodeT* rotate_right_right(NodeT* root);  // right-right single rotation
+void rotate_right_right(NodeT*& root);  // right-right single rotation
 
 template <typename NodeT>
-inline NodeT* rotate_left_right(NodeT* root);  // left-right double rotation
+inline void rotate_left_right(NodeT*& root);  // left-right double rotation
 
 template <typename NodeT>
-inline NodeT* rotate_right_left(NodeT* root);  // right-left double rotation
+inline void rotate_right_left(NodeT*& root);  // right-left double rotation
 
 namespace internal {
 
@@ -126,16 +129,16 @@ template <typename AVLNodeT>
 inline void update_height(AVLNodeT* root);
 
 template <typename AVLNodeT>
-inline AVLNodeT* rotate_left_left(AVLNodeT* root);  // left-left single rotation
+inline void rotate_left_left(AVLNodeT*& root);  // left-left single rotation
 
 template <typename AVLNodeT>
-inline AVLNodeT* rotate_right_right(AVLNodeT* root);  // right-right single rotation
+inline void rotate_right_right(AVLNodeT*& root);  // right-right single rotation
 
 template <typename AVLNodeT>
-inline AVLNodeT* rotate_left_right(AVLNodeT* root);  // left-right double rotation
+inline void rotate_left_right(AVLNodeT*& root);  // left-right double rotation
 
 template <typename AVLNodeT>
-inline AVLNodeT* rotate_right_left(AVLNodeT* root);  // right-left double rotation
+inline void rotate_right_left(AVLNodeT*& root);  // right-left double rotation
 
 // insert new_node into AVL tree root
 // return node that contains new_node->value

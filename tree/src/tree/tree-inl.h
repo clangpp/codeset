@@ -23,6 +23,17 @@ void set_right(NodeT* root, NodeT* new_right) {
 }
 
 template <typename NodeT>
+void replace_child(NodeT* old_child, NodeT* new_child) {
+    new_child->parent = old_child->parent;
+    if (NULL==old_child->parent) return;
+    if (old_child==old_child->parent->left) {
+        old_child->parent->left = new_child;
+    } else {
+        old_child->parent->right = new_child;
+    }
+}
+
+template <typename NodeT>
 void print(const NodeT* root, std::ostream& out) { print_inorder(root, out); }
 
 template <typename NodeT>
@@ -135,40 +146,32 @@ void print_postorder(std::ostream& out,
 }  // namespace internal
 
 template <typename NodeT>
-NodeT* rotate_left_left(NodeT* root) {
+void rotate_left_left(NodeT*& root) {
 	NodeT* new_root = root->left;
-    new_root->parent = root->parent;
-	
-	// re-root new_root->right
-	set_left(root, new_root->right);
-
-	// reform root, new_root
-	set_right(new_root, root);
-	return new_root;
+    replace_child(root, new_root);
+	set_left(root, new_root->right);  // re-root new_root->right
+	set_right(new_root, root);  // reform root, new_root
+	root = new_root;
 }
 
 template <typename NodeT>
-NodeT* rotate_right_right(NodeT* root) {
+void rotate_right_right(NodeT*& root) {
 	NodeT* new_root = root->right;
-    new_root->parent = root->parent;
-	
-	// re-root new_root->left
-	set_right(root, new_root->left);
-
-	// reform root, new_root
-	set_left(new_root, root);
-	return new_root;
+    replace_child(root, new_root);
+	set_right(root, new_root->left);  // re-root new_root->left
+	set_left(new_root, root);  // reform root, new_root
+	root = new_root;
 }
 
 template <typename NodeT>
-NodeT* rotate_left_right(NodeT* root) {
-	return internal::double_rotation(
+void rotate_left_right(NodeT*& root) {
+	root = internal::double_rotation(
             root, root->left, root, root->left->right);
 }
 
 template <typename NodeT>
-NodeT* rotate_right_left(NodeT* root) {
-	return internal::double_rotation(
+void rotate_right_left(NodeT*& root) {
+	root = internal::double_rotation(
             root, root, root->right, root->right->left);
 }
 
@@ -180,7 +183,7 @@ template <typename NodeT>
 NodeT* double_rotation(
         NodeT* old_root, NodeT* new_left, NodeT* new_right, NodeT* new_root) {
     // re-parent new_root
-    new_root->parent = old_root->parent;
+    replace_child(old_root, new_root);
 
 	// re-root new_root->left and new_root->right
 	set_right(new_left, new_root->left);
@@ -301,73 +304,59 @@ void update_height(AVLNodeT* root) {
 }
 
 template <typename AVLNodeT>
-AVLNodeT* rotate_left_left(AVLNodeT* root) {
-    root = tree::rotate_left_left(root);
+void rotate_left_left(AVLNodeT*& root) {
+    tree::rotate_left_left(root);
     avl::update_height(root->right);
     avl::update_height(root);
-    return root;
 }
 
 template <typename AVLNodeT>
-AVLNodeT* rotate_right_right(AVLNodeT* root) {
-    root = tree::rotate_right_right(root);
+void rotate_right_right(AVLNodeT*& root) {
+    tree::rotate_right_right(root);
     avl::update_height(root->left);
     avl::update_height(root);
-    return root;
 }
 
 template <typename AVLNodeT>
-AVLNodeT* rotate_left_right(AVLNodeT* root) {
-    root = tree::rotate_left_right(root);
+void rotate_left_right(AVLNodeT*& root) {
+    tree::rotate_left_right(root);
     avl::update_height(root->left);
     avl::update_height(root->right);
     avl::update_height(root);
-    return root;
 }
 
 template <typename AVLNodeT>
-AVLNodeT* rotate_right_left(AVLNodeT* root) {
-    root = tree::rotate_right_left(root);
+void rotate_right_left(AVLNodeT*& root) {
+    tree::rotate_right_left(root);
     avl::update_height(root->left);
     avl::update_height(root->right);
     avl::update_height(root);
-    return root;
 }
 
 template <typename AVLNodeT>
 AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
-	if (NULL==root) {  // new_node become root of tree
-		new_node->parent = new_node->left = new_node->right = NULL;
-		new_node->height = 0;
-		root = new_node;
-		return new_node;
-	}
+    AVLNodeT* position = tree::insert(root, new_node);  // bs-tree insertion
+    if (position != new_node) return position;  // already exists
 
-	AVLNodeT* position = NULL;
-	if (new_node->value < root->value) {  // insert on left subtree
-		position = avl::insert(root->left, new_node);
-		if (avl::height(root->left) >= avl::height(root->right)+2) {
-			if (new_node->value < root->left->value) {  // left-left
-				root = avl::rotate_left_left(root);
-			} else {  // left-right
-				root = avl::rotate_left_right(root);
-			}
-		}
-	} else if (root->value < new_node->value) {  // insert on right subtree
-		position = avl::insert(root->right, new_node);
-		if (avl::height(root->right) >= avl::height(root->left)+2) {
-			if (root->right->value < new_node->value) {  // right-right
-				root = avl::rotate_right_right(root);
-			} else {  // right-left
-				root = avl::rotate_right_left(root);
-			}
-		}
-	} else {  // new_node->value == root->value
-		position = root;
-	}
-	root->height = 1 + 
-		std::max(avl::height(root->left), avl::height(root->right));
-	return position;
+    // rebalance AVL tree
+    for (AVLNodeT* p=new_node; p!=NULL; root=p, p=p->parent) {
+        if (avl::height(p->left) >= avl::height(p->right)+2) {  // inserted on left subtree
+            if (new_node->value < p->left->value) {  // left-left
+                avl::rotate_left_left(p);
+            } else {  // left-right
+                avl::rotate_left_right(p);
+            }
+        } else if (avl::height(p->right) >= avl::height(p->left)+2) {  // inserted on right subtree
+            if (p->right->value < new_node->value) {  // right-right
+                avl::rotate_right_right(p);
+            } else {  // right-left
+                avl::rotate_right_left(p);
+            }
+        } else {  // no need for rebalance
+            update_height(p);  // update height field
+        }
+    }
+    return position;
 }
 
 }  // namespace avl

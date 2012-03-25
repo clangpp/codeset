@@ -111,7 +111,7 @@ void test_rotation() {
 	tree::set_right(&nodes[1], &nodes[2]);
 	log(INFO_) << "before rotation: " << endl;
 	tree::print(p);
-	p = tree::rotate_left_left(p);
+	tree::rotate_left_left(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
 	pass = (NULL==p->parent) && (p==&nodes[1])
@@ -127,7 +127,7 @@ void test_rotation() {
 	tree::set_left(&nodes[2], &nodes[1]);
 	log(INFO_) << "before rotation: " << endl;
 	tree::print(p);
-	p = tree::rotate_right_right(p);
+	tree::rotate_right_right(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
 	pass = (NULL==p->parent) && (p==&nodes[2])
@@ -145,7 +145,7 @@ void test_rotation() {
 	tree::set_left(&nodes[3], &nodes[2]);
 	log(INFO_) << "before rotation: " << endl;
 	tree::print(p);
-	p = tree::rotate_left_right(p);
+	tree::rotate_left_right(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
 	pass = (NULL==p->parent) && (p==&nodes[3])
@@ -164,7 +164,7 @@ void test_rotation() {
 	tree::set_left(&nodes[3], &nodes[2]);
 	log(INFO_) << "before rotation: " << endl;
 	tree::print(p);
-	p = tree::rotate_right_left(p);
+	tree::rotate_right_left(p);
 	log(INFO_) << "after rotation: " << endl;
 	tree::print(p);
 	pass = (NULL==p->parent) && (p==&nodes[3])
