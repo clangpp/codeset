@@ -258,6 +258,36 @@ NodePtrT find(NodePtrT root, const T& value) {
 	return root;
 }
 
+template <typename NodeT>
+NodeT* insert(NodeT*& root, NodeT* new_node) {
+    new_node->parent = new_node->left = new_node->right = NULL;
+	if (NULL==root) {  // new_node become root of tree
+		root = new_node;
+		return new_node;
+	}
+
+    NodeT* curr = root;
+    while (true) {
+        if (new_node->value < curr->value) {  // insert on left subtree
+            if (curr->left) {  // left subtree is not empty
+                curr = curr->left;
+            } else {  // left subtree is empty
+                set_left(curr, new_node);
+                return new_node;
+            }
+        } else if (curr->value < new_node->value) {  // insert on right subtree
+            if (curr->right) {  // right subtree is not empty
+                curr = curr->right;
+            } else {  // right subtree is empty
+                set_right(curr, new_node);
+                return new_node;
+            }
+        } else {
+            return curr;
+        }
+    }
+}
+
 namespace avl {  // AVL tree algorithm
 
 template <typename AVLNodeT>
@@ -314,8 +344,8 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
 	}
 
 	AVLNodeT* position = NULL;
-	if (new_node->value < root->value) {  // left-child tree
-		position = insert(root->left, new_node);
+	if (new_node->value < root->value) {  // insert on left subtree
+		position = avl::insert(root->left, new_node);
 		if (avl::height(root->left) >= avl::height(root->right)+2) {
 			if (new_node->value < root->left->value) {  // left-left
 				root = avl::rotate_left_left(root);
@@ -323,8 +353,8 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
 				root = avl::rotate_left_right(root);
 			}
 		}
-	} else if (root->value < new_node->value) {  // right-child tree
-		position = insert(root->right, new_node);
+	} else if (root->value < new_node->value) {  // insert on right subtree
+		position = avl::insert(root->right, new_node);
 		if (avl::height(root->right) >= avl::height(root->left)+2) {
 			if (root->right->value < new_node->value) {  // right-right
 				root = avl::rotate_right_right(root);
@@ -341,16 +371,6 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
 }
 
 }  // namespace avl
-
-namespace splay {
-
-template <typename NodeT>
-NodeT* adjust(NodeT* root, NodeT* target) {
-    while (target->parent!=NULL) {
-    }
-}
-
-}  // namespace spaly
 
 }  // namespace tree
 

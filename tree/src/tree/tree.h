@@ -106,6 +106,11 @@ ssize_type height(const NodeT* root);  // NULL tree's height is -1
 template <typename NodePtrT, typename T>
 NodePtrT find(NodePtrT root, const T& value);
 
+// binary-search tree insertion
+// return node that contains new_node->value
+template <typename NodeT>
+NodeT* insert(NodeT*& root, NodeT* new_node);
+
 namespace avl {  // AVL tree algorithm
 
 // ********** <note> ************
@@ -145,7 +150,7 @@ namespace splay {
 template <typename NodeT>
 NodeT* adjust(NodeT* root, NodeT* target);
 
-}  // namespace spaly
+}  // namespace splay
 
 }  // namespace tree
 

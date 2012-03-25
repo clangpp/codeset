@@ -239,24 +239,78 @@ void test_observer() {
 	bool pass = true;
 	vector<BSNode<int> > nodes;
 	BSNode<int>* p = NULL;
+    BSNode<int>* root = NULL;
+    BSNode<int>* curr = NULL;
 
 	nodes.resize(7);
 	for (size_t i=0; i<nodes.size(); ++i)
 		nodes[i] = BSNode<int>(i);
-	p = &nodes[3];
-	tree::set_left(&nodes[3], &nodes[1]);
-	tree::set_right(&nodes[3], &nodes[4]);
-	tree::set_left(&nodes[1], &nodes[0]);
-	tree::set_right(&nodes[1], &nodes[2]);
-	tree::set_right(&nodes[4], &nodes[6]);
-	tree::set_left(&nodes[6], &nodes[5]);
+
+    log(INFO_) << "original tree: " << endl;
+    tree::print(root);
+
+    curr = &nodes[3];
+    p = tree::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (root==&nodes[3]) && (p==curr);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[1];
+    p = tree::insert(root, &nodes[1]);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (root==&nodes[3]) && (p==curr)
+        && (nodes[3].left==curr) && (curr->parent==&nodes[3]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[4];
+    p = tree::insert(root, &nodes[4]);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (root==&nodes[3]) && (p==curr)
+        && (nodes[3].right==curr) && (curr->parent==&nodes[3]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[0];
+    p = tree::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (root==&nodes[3]) && (p==curr)
+        && (nodes[1].left==curr) && (curr->parent==&nodes[1]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[2];
+    p = tree::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (root==&nodes[3]) && (p==curr)
+        && (nodes[1].right==curr) && (curr->parent==&nodes[1]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[6];
+    p = tree::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (root==&nodes[3]) && (p==curr)
+        && (nodes[4].right==curr) && (curr->parent==&nodes[4]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[5];
+    p = tree::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (root==&nodes[3]) && (p==curr)
+        && (nodes[6].left==curr) && (curr->parent==&nodes[6]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
 	pass = (tree::height((BSNode<int>*)NULL)==-1) && (tree::height(&nodes[3])==3) 
 		&& (tree::height(&nodes[4])==2) && (tree::height(&nodes[1])==1) 
 		&& (tree::height(&nodes[5])==0);
 	log(INFO_) << "test height: " << (pass ? "pass" : "FAILED") << endl;
 
-	pass = (tree::find(p, 6)==&nodes[6])
-		&& (tree::find(p, 7)==NULL) && (tree::find(p, -1)==NULL);
+	pass = (tree::find(root, 6)==&nodes[6])
+		&& (tree::find(root, 7)==NULL) && (tree::find(root, -1)==NULL);
 	log(INFO_) << "test find: " << (pass ? "pass" : "FAILED") << endl;
 }
 
