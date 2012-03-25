@@ -29,16 +29,31 @@ struct Collector {
 	void collect(int value) { values.push_back(value); }
 };
 
+template <typename T>
+struct AVLNode {
+	typedef T value_type;
+	value_type value;
+	AVLNode* left;
+	AVLNode* right;
+	AVLNode* parent;
+	tree::ssize_type height;
+	AVLNode(const value_type& val=value_type(), AVLNode* l=NULL,
+			AVLNode* r=NULL, AVLNode* p=NULL, tree::ssize_type h=0)
+		: value(val), left(l), right(r), parent(p), height(h) {}
+};
+
 void test_utility();
 void test_rotation();
 void test_traversal();
 void test_observer();
+void test_avl_tree();
 
 int main(int argc, char* argv[]) {
 	test_utility();
 	test_rotation();
 	test_traversal();
 	test_observer();
+	test_avl_tree();
 	system("pause");
     return 0;
 }
@@ -239,4 +254,95 @@ void test_observer() {
 	pass = (tree::find(p, 6)==&nodes[6])
 		&& (tree::find(p, 7)==NULL) && (tree::find(p, -1)==NULL);
 	log(INFO_) << "test find: " << (pass ? "pass" : "FAILED") << endl;
+}
+
+void test_avl_tree() {
+	Trace trace(INFO_, "test_avl_tree()");
+	bool pass = true;
+	vector<AVLNode<int> > nodes, neg_nodes;
+	AVLNode<int>* root = NULL;
+	AVLNode<int>* p = NULL;
+    AVLNode<int>* curr = NULL;
+
+	nodes.resize(100);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = AVLNode<int>(i);
+
+    log(INFO_) << "original tree: " << endl;
+    tree::print(root);
+
+    curr = &nodes[50];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (root==&nodes[50]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[45];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (root==&nodes[50]) && (root->left==&nodes[45]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[40];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (root==&nodes[45]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+    pass = (root==&nodes[45]) &&
+        (root->right==&nodes[50]) && (root->left==&nodes[40]);
+	log(INFO_) << "test rotate_left_left: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[55];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (root==&nodes[45]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[60];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (root->right==&nodes[55]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+    pass =  (nodes[55].left==&nodes[50]) && (nodes[55].right==&nodes[60]);
+	log(INFO_) << "test rotate_right_right: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[48];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (root==&nodes[50]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+    pass =  (root->left==&nodes[45]) && (root->right==&nodes[55])
+        && (root->left->right==&nodes[48]) && (root->right->left==NULL);
+	log(INFO_) << "test rotate_right_left: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[30];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (root==&nodes[50]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+
+    curr = &nodes[35];
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==curr) && (nodes[45].left==&nodes[35]);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
+    pass =  (nodes[35].left==&nodes[30]) && (nodes[35].right==&nodes[40])
+        && (nodes[30].right==NULL) && (nodes[40].left==NULL);
+	log(INFO_) << "test rotate_left_right: " << (pass ? "pass" : "FAILED") << endl;
+
+    AVLNode<int> node60(60);
+    curr = &node60;
+    p = tree::avl::insert(root, curr);
+    log(INFO_) << "after insert " << curr->value << endl;
+    tree::print(root);
+    pass = (p==&nodes[60]) && (p!=&node60);
+	log(INFO_) << "test insert: " << (pass ? "pass" : "FAILED") << endl;
 }

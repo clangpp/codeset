@@ -243,7 +243,7 @@ NodePtrT find(NodePtrT root, const T& value) {
 	while (root) {
 		if (value < root->value) {
 			root = root->left;
-		} else if (value > root->value) {
+		} else if (root->value < value) {
 			root = root->right;
 		} else {
 			return root;
@@ -256,6 +256,83 @@ namespace avl {  // AVL tree algorithm
 
 template <typename AVLNodeT>
 ssize_type height(const AVLNodeT* root) { return root ? root->height : -1; }
+
+template <typename AVLNodeT>
+void update_height(AVLNodeT* root) {
+    if (NULL==root) return;
+    root->height = 1 + 
+        std::max(avl::height(root->left), avl::height(root->right));
+}
+
+template <typename AVLNodeT>
+AVLNodeT* rotate_left_left(AVLNodeT* root) {
+    root = tree::rotate_left_left(root);
+    avl::update_height(root->right);
+    avl::update_height(root);
+    return root;
+}
+
+template <typename AVLNodeT>
+AVLNodeT* rotate_right_right(AVLNodeT* root) {
+    root = tree::rotate_right_right(root);
+    avl::update_height(root->left);
+    avl::update_height(root);
+    return root;
+}
+
+template <typename AVLNodeT>
+AVLNodeT* rotate_left_right(AVLNodeT* root) {
+    root = tree::rotate_left_right(root);
+    avl::update_height(root->left);
+    avl::update_height(root->right);
+    avl::update_height(root);
+    return root;
+}
+
+template <typename AVLNodeT>
+AVLNodeT* rotate_right_left(AVLNodeT* root) {
+    root = tree::rotate_right_left(root);
+    avl::update_height(root->left);
+    avl::update_height(root->right);
+    avl::update_height(root);
+    return root;
+}
+
+template <typename AVLNodeT>
+AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
+	if (NULL==root) {  // new_node become root of tree
+		new_node->parent = new_node->left = new_node->right = NULL;
+		new_node->height = 0;
+		root = new_node;
+		return new_node;
+	}
+
+	AVLNodeT* position = NULL;
+	if (new_node->value < root->value) {  // left-child tree
+		position = insert(root->left, new_node);
+		if (avl::height(root->left) >= avl::height(root->right)+2) {
+			if (new_node->value < root->left->value) {  // left-left
+				root = avl::rotate_left_left(root);
+			} else {  // left-right
+				root = avl::rotate_left_right(root);
+			}
+		}
+	} else if (root->value < new_node->value) {  // right-child tree
+		position = insert(root->right, new_node);
+		if (avl::height(root->right) >= avl::height(root->left)+2) {
+			if (root->right->value < new_node->value) {  // right-right
+				root = avl::rotate_right_right(root);
+			} else {  // right-left
+				root = avl::rotate_right_left(root);
+			}
+		}
+	} else {  // new_node->value == root->value
+		position = root;
+	}
+	root->height = 1 + 
+		std::max(avl::height(root->left), avl::height(root->right));
+	return position;
+}
 
 }  // namespace avl
 

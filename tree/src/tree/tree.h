@@ -101,7 +101,7 @@ template <typename NodeT>
 ssize_type height(const NodeT* root);  // NULL tree's height is -1
 
 // search value in binary-search tree
-// return node pointer that contains value; if not found, return NULL
+// return node that contains value; if not found, return NULL
 template <typename NodePtrT, typename T>
 NodePtrT find(NodePtrT root, const T& value);
 
@@ -115,6 +115,26 @@ namespace avl {  // AVL tree algorithm
 
 template <typename AVLNodeT>
 inline ssize_type height(const AVLNodeT* root);
+
+template <typename AVLNodeT>
+inline void update_height(AVLNodeT* root);
+
+template <typename AVLNodeT>
+inline AVLNodeT* rotate_left_left(AVLNodeT* root);  // left-left single rotation
+
+template <typename AVLNodeT>
+inline AVLNodeT* rotate_right_right(AVLNodeT* root);  // right-right single rotation
+
+template <typename AVLNodeT>
+inline AVLNodeT* rotate_left_right(AVLNodeT* root);  // left-right double rotation
+
+template <typename AVLNodeT>
+inline AVLNodeT* rotate_right_left(AVLNodeT* root);  // right-left double rotation
+
+// insert new_node into AVL tree root
+// return node that contains new_node->value
+template <typename AVLNodeT>
+AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node);
 
 }  // namespace avl
 
