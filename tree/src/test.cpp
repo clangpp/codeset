@@ -48,6 +48,7 @@ void test_traversal();
 void test_observer();
 void test_avl_tree();
 void test_splay_tree();
+void test_traversal_orders();
 
 int main(int argc, char* argv[]) {
 	test_utility();
@@ -56,6 +57,7 @@ int main(int argc, char* argv[]) {
 	test_observer();
 	test_avl_tree();
     test_splay_tree();
+    test_traversal_orders();
 	system("pause");
     return 0;
 }
@@ -311,6 +313,11 @@ void test_observer() {
 		&& (tree::height(&nodes[5])==0);
 	log(INFO_) << "test height: " << (pass ? "pass" : "FAILED") << endl;
 
+    pass = (tree::size((BSNode<int>*)NULL)==0) && (tree::size(&nodes[3])==7)
+        && (tree::size(&nodes[4])==3) && (tree::size(&nodes[1])==3)
+        && (tree::size(&nodes[5])==1);
+	log(INFO_) << "test size: " << (pass ? "pass" : "FAILED") << endl;
+
 	pass = (tree::find(root, 6)==&nodes[6])
 		&& (tree::find(root, 7)==NULL) && (tree::find(root, -1)==NULL);
 	log(INFO_) << "test find: " << (pass ? "pass" : "FAILED") << endl;
@@ -410,7 +417,7 @@ void test_avl_tree() {
 void test_splay_tree() {
     Trace trace(INFO_, "test_splay_tree()");
 	bool pass = true;
-	vector<BSNode<int> > nodes, neg_nodes;
+	vector<BSNode<int> > nodes;
 	BSNode<int>* root = NULL;
 	BSNode<int>* p = NULL;
     BSNode<int>* curr = NULL;
@@ -431,4 +438,81 @@ void test_splay_tree() {
         pass = (root==curr) && (NULL==root->parent);
         log(INFO_) << "test adjust: " << (pass ? "pass" : "FAILED") << endl;
     }
+}
+
+void test_traversal_orders() {
+    Trace trace(INFO_, "test_traversal_orders()");
+	bool pass = true;
+	vector<BSNode<int> > nodes;
+	BSNode<int>* root = NULL;
+	BSNode<int>* p = NULL;
+    BSNode<int>* curr = NULL;
+
+	nodes.resize(100);
+	for (size_t i=0; i<nodes.size(); ++i)
+		nodes[i] = BSNode<int>(i);
+    tree::insert(root, &nodes[50]);
+    tree::insert(root, &nodes[30]);
+    tree::insert(root, &nodes[20]);
+    tree::insert(root, &nodes[15]);
+    tree::insert(root, &nodes[10]);
+    tree::insert(root, &nodes[25]);
+    tree::insert(root, &nodes[40]);
+    tree::insert(root, &nodes[35]);
+    tree::insert(root, &nodes[45]);
+    tree::insert(root, &nodes[47]);
+    tree::insert(root, &nodes[70]);
+    tree::insert(root, &nodes[55]);
+    tree::insert(root, &nodes[60]);
+    tree::insert(root, &nodes[65]);
+    tree::insert(root, &nodes[85]);
+    tree::insert(root, &nodes[80]);
+    tree::insert(root, &nodes[75]);
+    log(INFO_) << "tree is " << endl;
+    tree::print(root);
+
+    Collector co;
+	co.values.clear();
+	tree::traverse_preorder(root, bind1st(mem_fun(&Collector::collect), &co));
+    vector<int> preorders = co.values;
+	log(INFO_) << "preorder traversal: ";
+	for (size_t i=0; i<preorders.size(); ++i)
+		standard_logger() << preorders[i] << " ";
+	standard_logger() << endl;
+
+	co.values.clear();
+	tree::traverse_inorder(root, bind1st(mem_fun(&Collector::collect), &co));
+    vector<int> inorders = co.values;
+	log(INFO_) << "inorder traversal: ";
+	for (size_t i=0; i<inorders.size(); ++i)
+		standard_logger() << inorders[i] << " ";
+	standard_logger() << endl;
+
+	co.values.clear();
+	tree::traverse_postorder(root, bind1st(mem_fun(&Collector::collect), &co));
+    vector<int> postorders = co.values;
+	log(INFO_) << "postorder traversal: ";
+	for (size_t i=0; i<postorders.size(); ++i)
+		standard_logger() << postorders[i] << " ";
+	standard_logger() << endl;
+
+    vector<int> result(inorders.size());
+    vector<int>::iterator iter;
+    iter = tree::preorder_inorder_to_postorder(
+            preorders.begin(), preorders.end(), inorders.begin(), result.begin());
+	log(INFO_) << "calculated postorder traversal: ";
+	for (size_t i=0; i<result.size(); ++i)
+		standard_logger() << result[i] << " ";
+	standard_logger() << endl;
+    pass == (iter==result.end()) && (result==postorders);
+    log(INFO_) << "test preorder_inorder_to_postorder: " << (pass ? "pass" : "FAILED") << endl;
+
+    iter = tree::inorder_postorder_to_preorder(
+            inorders.begin(), inorders.end(), postorders.begin(), result.begin());
+	log(INFO_) << "calculated postorder traversal: ";
+	for (size_t i=0; i<result.size(); ++i)
+		standard_logger() << result[i] << " ";
+	standard_logger() << endl;
+    pass == (iter==result.end()) && (result==preorders);
+    log(INFO_) << "test inorder_postorder_to_preorder: " << (pass ? "pass" : "FAILED") << endl;
 }

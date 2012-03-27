@@ -2,11 +2,13 @@
 #ifndef TREE_H_
 #define TREE_H_
 
+#include <cstddef>
 #include <iostream>
 #include <vector>
 
 namespace tree {
 
+typedef std::size_t size_type;  // unsigned size type
 typedef long ssize_type;  // signed size type
 
 // ********** <note> ************
@@ -104,6 +106,9 @@ void traverse_level_order(NodePtrT root, UnaryFunction op);
 template <typename NodeT>
 ssize_type height(const NodeT* root);  // NULL tree's height is -1
 
+template <typename NodeT>
+size_type size(const NodeT* root);  // how many nodes in tree
+
 // search value in binary-search tree
 // return node that contains value; if not found, return NULL
 template <typename NodePtrT, typename T>
@@ -154,6 +159,18 @@ template <typename NodeT>
 NodeT* adjust(NodeT* target);
 
 }  // namespace splay
+
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename OutputIterator>
+OutputIterator preorder_inorder_to_postorder(
+        RandomAccessIterator1 pre_first, RandomAccessIterator1 pre_last,
+        RandomAccessIterator2 in_first, OutputIterator post_iter);
+
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename OutputIterator>
+OutputIterator inorder_postorder_to_preorder(
+        RandomAccessIterator1 in_first, RandomAccessIterator1 in_last,
+        RandomAccessIterator2 post_first, OutputIterator pre_iter);
 
 }  // namespace tree
 

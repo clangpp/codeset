@@ -6,7 +6,9 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iterator>
 #include <queue>
+#include <stdexcept>
 
 namespace tree {
 
@@ -247,6 +249,12 @@ ssize_type height(const NodeT* root) {
 	return 1 + std::max(height(root->left), height(root->right));
 }
 
+template <typename NodeT>
+size_type size(const NodeT* root) {
+    if (NULL==root) return 0;
+    return 1 + size(root->left) + size(root->right);
+}
+
 template <typename NodePtrT, typename T>
 NodePtrT find(NodePtrT root, const T& value) {
 	while (root) {
@@ -405,6 +413,63 @@ NodeT* adjust(NodeT* target) {
 }
 
 }  // namespace splay
+
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename OutputIterator>
+OutputIterator preorder_inorder_to_postorder(
+        RandomAccessIterator1 pre_first, RandomAccessIterator1 pre_last,
+        RandomAccessIterator2 in_first, OutputIterator post_iter) {
+    if (pre_first==pre_last) return post_iter;  // empty tree
+
+    // find root position in inorder sequence
+    typedef typename std::iterator_traits<
+        RandomAccessIterator1>:: difference_type difference_type;
+    difference_type len = pre_last - pre_first;
+    RandomAccessIterator2 in_root = std::find(in_first, in_first+len, *pre_first);
+    if (in_root==in_first+len)
+        throw std::runtime_error("mismatched input sequences");
+    difference_type left_len = in_root-in_first;  // left subtree size
+
+    // traverse left subtree
+    post_iter = preorder_inorder_to_postorder(
+            pre_first+1, pre_first+1+left_len, in_first, post_iter);
+
+    // traverse right subtree
+    post_iter = preorder_inorder_to_postorder(
+            pre_first+1+left_len, pre_last, in_root+1, post_iter);
+
+    *(post_iter++) = *in_root;  // output root node
+    return post_iter;
+}  // O(n * log(n))
+
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename OutputIterator>
+OutputIterator inorder_postorder_to_preorder(
+        RandomAccessIterator1 in_first, RandomAccessIterator1 in_last,
+        RandomAccessIterator2 post_first, OutputIterator pre_iter) {
+    if (in_first==in_last) return pre_iter;  // empty tree
+
+    // find root position in inorder sequence
+    typedef typename std::iterator_traits<
+        RandomAccessIterator1>:: difference_type difference_type;
+    difference_type len = in_last - in_first;
+    RandomAccessIterator1 in_root =
+        std::find(in_first, in_last, *(post_first+len-1));
+    if (in_root==in_last)
+        throw std::runtime_error("mismatched input sequences");
+    difference_type left_len = in_root - in_first;  // left subtree size
+    
+    *(pre_iter++) = *in_root;  // output root node
+
+    // traverse left subtree
+    pre_iter = inorder_postorder_to_preorder(
+            in_first, in_root, post_first, pre_iter);
+
+    // traverse right subtree
+    pre_iter = inorder_postorder_to_preorder(
+            in_root+1, in_last, post_first+left_len, pre_iter);
+    return pre_iter;
+}  // O(n * log(n))
 
 }  // namespace tree
 
