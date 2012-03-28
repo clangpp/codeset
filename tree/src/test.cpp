@@ -49,6 +49,7 @@ void test_observer();
 void test_avl_tree();
 void test_splay_tree();
 void test_traversal_orders();
+void test_heap();
 
 int main(int argc, char* argv[]) {
 	test_utility();
@@ -58,6 +59,7 @@ int main(int argc, char* argv[]) {
 	test_avl_tree();
     test_splay_tree();
     test_traversal_orders();
+    test_heap();
 	system("pause");
     return 0;
 }
@@ -515,4 +517,148 @@ void test_traversal_orders() {
 	standard_logger() << endl;
     pass == (iter==result.end()) && (result==preorders);
     log(INFO_) << "test inorder_postorder_to_preorder: " << (pass ? "pass" : "FAILED") << endl;
+}
+
+void test_heap() {
+    Trace trace(INFO_, "test_heap()");
+    vector<int> values;
+    vector<BSNode<int> > nodes;
+    bool pass = true;
+
+    pass = (tree::heap::left(0)==1) && (tree::heap::left(1)==3)
+        && (tree::heap::left(2)==5) && (tree::heap::left(5)==11);
+    log(INFO_) << "test left: " << (pass ? "pass" : "FAILED") << endl;
+
+    pass = (tree::heap::right(0)==2) && (tree::heap::right(1)==4)
+        && (tree::heap::right(2)==6) && (tree::heap::right(5)==12);
+    log(INFO_) << "test right: " << (pass ? "pass" : "FAILED") << endl;
+
+    pass = (tree::heap::parent(0)==0) && (tree::heap::parent(1)==0)
+        && (tree::heap::parent(2)==0) && (tree::heap::parent(5)==2);
+    log(INFO_) << "test parent: " << (pass ? "pass" : "FAILED") << endl;
+
+    // test percolate_up()
+    int data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, -9, 10};
+    values.assign(data, data+sizeof(data)/sizeof(int));
+    nodes.resize(values.size());
+    for (size_t i=0; i<values.size(); ++i) {
+        nodes[i] = BSNode<int>(values[i]);
+        if (tree::heap::left(i)<values.size())
+            tree::set_left(&nodes[i], &nodes[tree::heap::left(i)]);
+        if (tree::heap::right(i)<values.size())
+            tree::set_right(&nodes[i], &nodes[tree::heap::right(i)]);
+    }
+    log(INFO_) << "original tree" << endl;
+    tree::print(&nodes[0]);
+
+    int i = 9;
+    tree::heap::percolate_up(
+            values.begin(), values.end(), i, greater<int>());
+    for (size_t i=0; i<values.size(); ++i)
+        nodes[i].value = values[i];
+    log(INFO_) << "after percolate_up " << i << ": " << data[i] << endl;
+    tree::print(&nodes[0]);
+    int data_check[] = {-9, 0, 2, 3, 1, 5, 6, 7, 8, 4, 10};
+    pass = equal(values.begin(), values.end(), data_check);
+    log(INFO_) << "test percolate_up: " << (pass ? "pass" : "FAILED") << endl;
+
+    // test percolate_down()
+    int data0[] = {0, 19, 2, 4, 3, 5, 6, 7, 8, 9, 10, 11, 12};
+    values.assign(data0, data0+sizeof(data0)/sizeof(int));
+    nodes.resize(values.size());
+    for (size_t i=0; i<values.size(); ++i) {
+        nodes[i] = BSNode<int>(values[i]);
+        if (tree::heap::left(i)<values.size())
+            tree::set_left(&nodes[i], &nodes[tree::heap::left(i)]);
+        if (tree::heap::right(i)<values.size())
+            tree::set_right(&nodes[i], &nodes[tree::heap::right(i)]);
+    }
+    log(INFO_) << "original tree" << endl;
+    tree::print(&nodes[0]);
+
+    i = 1;
+    tree::heap::percolate_down(
+            values.begin(), values.end(), i, greater<int>());
+    for (size_t i=0; i<values.size(); ++i)
+        nodes[i].value = values[i];
+    log(INFO_) << "after percolate_down " << i << ": " << data0[i] << endl;
+    tree::print(&nodes[0]);
+    int data0_check[] = {0, 3, 2, 4, 9, 5, 6, 7, 8, 19, 10, 11, 12};
+    pass = equal(values.begin(), values.end(), data0_check);
+    log(INFO_) << "test percolate_down: " << (pass ? "pass" : "FAILED") << endl;
+
+    // test make()
+    int data1[] = {150, 80, 40, 30, 10, 70, 110, 100, 20, 90, 60, 50, 120, 140, 130};
+    values.assign(data1, data1+sizeof(data1)/sizeof(int));
+    nodes.resize(values.size());
+    for (size_t i=0; i<values.size(); ++i) {
+        nodes[i] = BSNode<int>(values[i]);
+        if (tree::heap::left(i)<values.size())
+            tree::set_left(&nodes[i], &nodes[tree::heap::left(i)]);
+        if (tree::heap::right(i)<values.size())
+            tree::set_right(&nodes[i], &nodes[tree::heap::right(i)]);
+    }
+    log(INFO_) << "original array" << endl;
+    tree::print(&nodes[0]);
+
+    tree::heap::make(values.begin(), values.end(), greater<int>());
+
+    for (size_t i=0; i<values.size(); ++i)
+        nodes[i].value = values[i];
+    log(INFO_) << "after heap::make" << endl;
+    tree::print(&nodes[0]);
+
+    int data1_check[] = {10, 20, 40, 30, 60, 50, 110, 100, 150, 90, 80, 70, 120, 140, 130};
+    pass = equal(values.begin(), values.end(), data1_check);
+    log(INFO_) << "test make: " << (pass ? "pass" : "FAILED") << endl;
+
+    // test push()
+    int data2[] = {13, 21, 16, 24, 31, 19, 68, 65, 26, 32, 14};
+    values.assign(data2, data2+sizeof(data2)/sizeof(int));
+    nodes.resize(values.size());
+    for (size_t i=0; i<values.size(); ++i) {
+        nodes[i] = BSNode<int>(values[i]);
+        if (tree::heap::left(i)<values.size())
+            tree::set_left(&nodes[i], &nodes[tree::heap::left(i)]);
+        if (tree::heap::right(i)<values.size())
+            tree::set_right(&nodes[i], &nodes[tree::heap::right(i)]);
+    }
+    log(INFO_) << "original heap" << endl;
+    tree::print(&nodes[0]);
+
+    tree::heap::push(values.begin(), values.end(), greater<int>());
+
+    for (size_t i=0; i<values.size(); ++i)
+        nodes[i].value = values[i];
+    log(INFO_) << "after heap::push" << endl;
+    tree::print(&nodes[0]);
+
+    int data2_check[] = {13, 14, 16, 24, 21, 19, 68, 65, 26, 32, 31};
+    pass = equal(values.begin(), values.end(), data2_check);
+    log(INFO_) << "test push: " << (pass ? "pass" : "FAILED") << endl;
+
+    // test pop()
+    int data3[] = {13, 14, 16, 19, 21, 19, 68, 65, 26, 32, 31};
+    values.assign(data3, data3+sizeof(data3)/sizeof(int));
+    nodes.resize(values.size());
+    for (size_t i=0; i<values.size(); ++i) {
+        nodes[i] = BSNode<int>(values[i]);
+        if (tree::heap::left(i)<values.size())
+            tree::set_left(&nodes[i], &nodes[tree::heap::left(i)]);
+        if (tree::heap::right(i)<values.size())
+            tree::set_right(&nodes[i], &nodes[tree::heap::right(i)]);
+    }
+    log(INFO_) << "original heap" << endl;
+    tree::print(&nodes[0]);
+
+    tree::heap::pop(values.begin(), values.end(), greater<int>());
+
+    for (size_t i=0; i<values.size(); ++i)
+        nodes[i].value = values[i];
+    log(INFO_) << "after heap::pop" << endl;
+    tree::print(&nodes[0]);
+
+    int data3_check[] = {14, 19, 16, 26, 21, 19, 68, 65, 31, 32, 13};
+    pass = equal(values.begin(), values.end(), data3_check);
+    log(INFO_) << "test pop: " << (pass ? "pass" : "FAILED") << endl;
 }

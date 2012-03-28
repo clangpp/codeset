@@ -172,6 +172,54 @@ OutputIterator inorder_postorder_to_preorder(
         RandomAccessIterator1 in_first, RandomAccessIterator1 in_last,
         RandomAccessIterator2 post_first, OutputIterator pre_iter);
 
+namespace heap {
+
+// ********** <note> ************
+//  assumption: array index is zero based
+// ********** </note> ***********
+
+inline size_type left(size_type pos);
+
+inline size_type right(size_type pos);
+
+inline size_type parent(size_type pos);
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void percolate_up(RandomAccessIterator first,
+        RandomAccessIterator last, size_type pos, BinaryPredicate pred);
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void percolate_down(RandomAccessIterator first,
+        RandomAccessIterator last, size_type pos, BinaryPredicate pred);
+
+// equivalent to std::make_heap()
+// post-condition: for each none root position 'pos',
+//  pred(first[pos], first[parent(pos)]) != false
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void make(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
+template <typename RandomAccessIterator>
+inline void make(RandomAccessIterator first, RandomAccessIterator last);
+
+// equivalent to std::push_heap()
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void push(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
+template <typename RandomAccessIterator>
+inline void push(RandomAccessIterator first, RandomAccessIterator last);
+
+// equivalent to std::pop_heap()
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void pop(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
+template <typename RandomAccessIterator>
+inline void pop(RandomAccessIterator first, RandomAccessIterator last);
+
+}  // namespace heap
+
 }  // namespace tree
 
 #include "tree-inl.h"

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <queue>
 #include <stdexcept>
@@ -470,6 +471,106 @@ OutputIterator inorder_postorder_to_preorder(
             in_root+1, in_last, post_first+left_len, pre_iter);
     return pre_iter;
 }  // O(n * log(n))
+
+namespace heap {
+
+size_type left(size_type pos) { return (pos<<1) + 1; }
+
+size_type right(size_type pos) { return (pos<<1) + 2; }
+
+size_type parent(size_type pos) { return  pos ? (pos-1)>>1 : 0; }
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void percolate_up(RandomAccessIterator first,
+        RandomAccessIterator last, size_type pos, BinaryPredicate pred) {
+    typedef std::iterator_traits<RandomAccessIterator> traits;
+    typedef typename traits::value_type value_type;
+    typedef typename traits::difference_type difference_type;
+    difference_type len = last - first;
+    if (len<=1 || difference_type(pos)>=len) return;  // no need to percolate
+    value_type value = first[pos];
+    size_type ppos = heap::parent(pos);
+    while (pos>0 && pred(first[ppos],value)) {
+        first[pos] = first[ppos];  // nodes flow down
+        pos = ppos;
+        ppos = heap::parent(pos);
+    }
+    first[pos] = value;
+}
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void percolate_down(RandomAccessIterator first,
+        RandomAccessIterator last, size_type pos, BinaryPredicate pred) {
+    typedef std::iterator_traits<RandomAccessIterator> traits;
+    typedef typename traits::value_type value_type;
+    typedef typename traits::difference_type difference_type;
+    difference_type len = last - first;
+    if (len<=1 || difference_type(pos)>=len) return;  // no need to percolate
+    value_type value = first[pos];
+    for (difference_type child=0; (child=heap::left(pos))<len; pos=child) {
+        difference_type r_child = heap::right(pos);
+        if (r_child<len && pred(first[child],first[r_child]))
+            child = r_child;
+        if (pred(first[child],value)) break;  // no more percolate
+        first[pos] = first[child];  // nodes flow up
+    }
+    first[pos] = value;
+}
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void make(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>:: difference_type difference_type;
+    difference_type len = last - first;
+    if (len <= 1) return;  // no need to adjustment
+    for (difference_type pos=heap::parent(len-1); pos>=0; --pos)
+        percolate_down(first, last, pos, pred);
+}
+
+template <typename RandomAccessIterator>
+inline void make(RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    make(first, last, std::less<value_type>());
+}
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void push(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>:: difference_type difference_type;
+    difference_type len = last - first;
+    if (len <= 1) return;  // no need to adjustment
+    percolate_up(first, last, len-1, pred);
+}
+
+template <typename RandomAccessIterator>
+inline void push(RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    push(first, last, std::less<value_type>());
+}
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void pop(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>:: difference_type difference_type;
+    difference_type len = last - first;
+    if (len <= 1) return;  // no need to adjustment
+    std::iter_swap(first, last-1);
+    percolate_down(first, last, 0, pred);
+}
+
+template <typename RandomAccessIterator>
+inline void pop(RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    pop(first, last, std::less<value_type>());
+}
+
+}  // namespace heap
 
 }  // namespace tree
 
