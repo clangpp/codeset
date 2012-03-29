@@ -9,7 +9,7 @@
 namespace tree {
 
 typedef std::size_t size_type;  // unsigned size type
-typedef long ssize_type;  // signed size type
+typedef std::ptrdiff_t ssize_type;  // signed size type
 
 // ********** <note> ************
 // concept NodeT {
