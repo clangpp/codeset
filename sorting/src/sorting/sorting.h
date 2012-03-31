@@ -12,6 +12,13 @@ template <typename BidirectionalIterator>
 inline void insertion_sort(
         BidirectionalIterator first, BidirectionalIterator last);
 
+template <typename ForwardIterator, typename BinaryPredicate>
+void selection_sort(ForwardIterator first,
+        ForwardIterator last, BinaryPredicate pred);
+
+template <typename ForwardIterator>
+inline void selection_sort(ForwardIterator first, ForwardIterator last);
+
 }  // namespace sorting
 
 #include "sorting-inl.h"

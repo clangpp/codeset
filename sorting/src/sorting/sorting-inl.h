@@ -4,6 +4,7 @@
 
 #include "sorting.h"
 
+#include <algorithm>
 #include <functional>
 #include <iterator>
 
@@ -32,6 +33,26 @@ void insertion_sort(
     typedef typename std::iterator_traits<
         BidirectionalIterator>::value_type value_type;
     insertion_sort(first, last, std::less<value_type>());
+}
+
+template <typename ForwardIterator, typename BinaryPredicate>
+void selection_sort(ForwardIterator first,
+        ForwardIterator last, BinaryPredicate pred) {
+    for (ForwardIterator curr=first; curr!=last; ++curr) {
+        ForwardIterator best=curr, cursor=best;
+        for (++cursor; cursor!=last; ++cursor) {
+            if (pred(*cursor, *best)) best = cursor;
+        }
+        if (best!=curr)
+            std::iter_swap(curr, best);
+    }
+}
+
+template <typename ForwardIterator>
+void selection_sort(ForwardIterator first, ForwardIterator last) {
+    typedef typename std::iterator_traits<
+        ForwardIterator>::value_type value_type;
+    selection_sort(first, last, std::less<value_type>());
 }
 
 }  // namespace sorting
