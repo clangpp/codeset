@@ -560,7 +560,7 @@ void pop(RandomAccessIterator first,
     difference_type len = last - first;
     if (len <= 1) return;  // no need to adjustment
     std::iter_swap(first, last-1);
-    percolate_down(first, last, 0, pred);
+    percolate_down(first, last-1, 0, pred);
 }
 
 template <typename RandomAccessIterator>

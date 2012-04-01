@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
+#include <vector>
+
+#include "../tree/tree.h"
 
 namespace sorting {
 
@@ -60,7 +63,7 @@ void shell_sort(RandomAccessIterator first,
         RandomAccessIterator last, BinaryPredicate pred) {
     typedef typename std::iterator_traits<
         RandomAccessIterator>::difference_type difference_type;
-    vector<difference_type> gaps(1, 1);  // first gap must be 1
+    std::vector<difference_type> gaps(1, 1);  // first gap must be 1
     while (gaps.back() < last-first) {
         difference_type gap = gaps.back();
         // gap = 2 * gap;  // Shell's increments
@@ -110,6 +113,21 @@ void shell_sort(RandomAccessIterator first, RandomAccessIterator last,
 }
 
 }  // namespace internal
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void heap_sort(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred) {
+    tree::heap::make(first, last, pred);
+    for (; last!=first; --last)
+        tree::heap::pop(first, last, pred);
+}
+
+template <typename RandomAccessIterator>
+void heap_sort(RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    heap_sort(first, last, std::less<value_type>());
+}
 
 }  // namespace sorting
 

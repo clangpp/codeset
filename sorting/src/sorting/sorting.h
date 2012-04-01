@@ -36,6 +36,13 @@ void shell_sort(RandomAccessIterator first, RandomAccessIterator last,
 
 }  // namespace internal
 
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void heap_sort(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
+template <typename RandomAccessIterator>
+inline void heap_sort(RandomAccessIterator first, RandomAccessIterator last);
+
 }  // namespace sorting
 
 #include "sorting-inl.h"
