@@ -129,6 +129,50 @@ void heap_sort(RandomAccessIterator first, RandomAccessIterator last) {
     heap_sort(first, last, std::less<value_type>());
 }
 
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename BinaryPredicate>
+void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
+        RandomAccessIterator2 buffer, BinaryPredicate pred) {
+    if (last-first <= 1) return;
+    typedef typename std::iterator_traits<
+        RandomAccessIterator1>::difference_type difference_type;
+    difference_type mid_pos = (last-first)/2;
+    merge_sort(first, first+mid_pos, buffer, pred);
+    merge_sort(first+mid_pos, last, buffer+mid_pos, pred);
+    internal::merge(first, first+mid_pos, last, buffer, pred);
+}
+
+template <typename RandomAccessIterator1, typename RandomAccessIterator2>
+void merge_sort(RandomAccessIterator1 first,
+        RandomAccessIterator1 last, RandomAccessIterator2 buffer) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator1>::value_type value_type;
+    merge_sort(first, last, buffer, std::less<value_type>());
+}
+
+namespace internal {
+
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename BinaryPredicate>
+void merge(RandomAccessIterator1 first, RandomAccessIterator1 center,
+        RandomAccessIterator1 last, RandomAccessIterator2 buffer,
+        BinaryPredicate pred) {
+    RandomAccessIterator1 left(first), right(center);
+    RandomAccessIterator2 result(buffer);
+    while (left!=center && right!=last) {  // main merge
+        if (pred(*left, *right)) {
+            *(result++) = *(left++);
+        } else {
+            *(result++) = *(right++);
+        }
+    }
+    result = std::copy(left, center, result);  // copy rest of left part
+    result = std::copy(right, last, result);  // copy rest of right part
+    std::copy(buffer, result, first);  // copy buffer back to [first, last)
+}
+
+}  // namespace internal
+
 }  // namespace sorting
 
 #endif  // SORTING_INL_H_

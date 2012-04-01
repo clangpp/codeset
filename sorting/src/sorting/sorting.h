@@ -43,6 +43,25 @@ void heap_sort(RandomAccessIterator first,
 template <typename RandomAccessIterator>
 inline void heap_sort(RandomAccessIterator first, RandomAccessIterator last);
 
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename BinaryPredicate>
+void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
+        RandomAccessIterator2 buffer, BinaryPredicate pred);
+
+template <typename RandomAccessIterator1, typename RandomAccessIterator2>
+inline void merge_sort(RandomAccessIterator1 first,
+        RandomAccessIterator1 last, RandomAccessIterator2 buffer);
+
+namespace internal {
+
+template <typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename BinaryPredicate>
+void merge(RandomAccessIterator1 first, RandomAccessIterator1 center,
+        RandomAccessIterator1 last, RandomAccessIterator2 buffer,
+        BinaryPredicate pred);
+
+}  // namespace internal
+
 }  // namespace sorting
 
 #include "sorting-inl.h"
