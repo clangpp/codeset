@@ -19,6 +19,23 @@ void selection_sort(ForwardIterator first,
 template <typename ForwardIterator>
 inline void selection_sort(ForwardIterator first, ForwardIterator last);
 
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void shell_sort(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
+template <typename RandomAccessIterator>
+inline void shell_sort(RandomAccessIterator first, RandomAccessIterator last);
+
+namespace internal {
+
+template <typename RandomAccessIterator,
+         typename BidirectionalIterator, typename BinaryPredicate>
+void shell_sort(RandomAccessIterator first, RandomAccessIterator last,
+        BidirectionalIterator gap_first, BidirectionalIterator gap_last,
+        BinaryPredicate pred);
+
+}  // namespace internal
+
 }  // namespace sorting
 
 #include "sorting-inl.h"
