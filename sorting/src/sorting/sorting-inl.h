@@ -128,8 +128,6 @@ void heap_sort(RandomAccessIterator first, RandomAccessIterator last) {
     heap_sort(first, last, std::less<value_type>());
 }
 
-// work just like std::merge(), I write it to practice merge algorithm
-// pre-condition: both [first, center) and [center, last) are sorted
 template <typename InputIterator1, typename InputIterator2,
          typename OutputIterator, typename BinaryPredicate>
 OutputIterator merge(
@@ -214,19 +212,13 @@ void quick_sort(RandomAccessIterator first,
 
     // small amount array use insertion_sort
     if (last-first <= internal::QUICK_SORT_CUTOFF_RANGE) {
-        sorting::insertion_sort(first, last, pred);
+        insertion_sort(first, last, pred);
         return;
     }
 
-    // median3 algorithm (pre-condition: last-first>=2)
-    // post-condition: !(*center,*first) && !(*(last-1),*center)
-    RandomAccessIterator center = first + (last-first)/2;
-    if (pred(*center, *first)) std::iter_swap(first, center);
-    if (pred(*(last-1), *first)) std::iter_swap(first, last-1);
-    if (pred(*(last-1), *center)) std::iter_swap(center, last-1);
-
-    // partition (with pivot *center) and recursive quick_sort
-    center = sorting::partition(first+1, last-1, bind2nd(pred,*center));
+    // quick sort algorithm (pre-condition: last-first>=2)
+    RandomAccessIterator center = internal::median3(first, last, pred);
+    center = sorting::partition(first+1, last-1, std::bind2nd(pred,*center));
     sorting::quick_sort(first, center, pred);
     sorting::quick_sort(center, last, pred);
 }
@@ -236,6 +228,54 @@ void quick_sort(RandomAccessIterator first, RandomAccessIterator last) {
     typedef typename std::iterator_traits<
         RandomAccessIterator>::value_type value_type;
     quick_sort(first, last, std::less<value_type>());
+}
+
+namespace internal {
+
+// median3 algorithm
+// pre-condition: last-first>=2
+// post-condition: !(*center,*first) && !(*(last-1),*center)
+template <typename RandomAccessIterator, typename BinaryPredicate>
+RandomAccessIterator median3(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred) {
+    RandomAccessIterator center = first + (last-first)/2;
+    if (pred(*center, *first)) std::iter_swap(first, center);
+    if (pred(*(last-1), *first)) std::iter_swap(first, last-1);
+    if (pred(*(last-1), *center)) std::iter_swap(center, last-1);
+    return center;
+}
+
+}  // namespace internal
+
+template <typename RandomAccessIterator,
+         typename Distance, typename BinaryPredicate>
+RandomAccessIterator quick_select(RandomAccessIterator first,
+        RandomAccessIterator last, Distance pos, BinaryPredicate pred) {
+    if (pos<0 || last-first<=pos) return last;  // illegal input
+    if (last-first==1 && pos==0) return first;  // return condition
+
+    // small amount array use insertion_sort
+    if (last-first<=internal::QUICK_SORT_CUTOFF_RANGE) {
+        insertion_sort(first, last, pred);
+        return first+pos;
+    }
+
+    // recursive quick_select (pre-condition: last-first>=2)
+    RandomAccessIterator center = internal::median3(first, last, pred);
+    center = sorting::partition(first, last, std::bind2nd(pred,*center));
+    if (pos < center-first) {
+        return quick_select(first, center, pos, pred);
+    } else {
+        return quick_select(center, last, pos-(center-first), pred);
+    }
+}
+
+template <typename RandomAccessIterator, typename Distance>
+RandomAccessIterator quick_select(
+        RandomAccessIterator first, RandomAccessIterator last, Distance pos) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    return quick_select(first, last, pos, std::less<value_type>());
 }
 
 }  // namespace sorting

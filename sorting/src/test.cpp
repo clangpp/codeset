@@ -19,6 +19,7 @@ void test_shell_sort();
 void test_heap_sort();
 void test_merge_sort();
 void test_quick_sort();
+void test_select();
 
 int main(int argc, char* argv[]) {
     try {
@@ -28,6 +29,7 @@ int main(int argc, char* argv[]) {
         test_heap_sort();
         test_merge_sort();
         test_quick_sort();
+        test_select();
     } catch (const exception& e) {
         log(CRITICAL_) << "exception: " << e.what() << endl;
     }
@@ -251,5 +253,35 @@ void test_quick_sort() {
 			{-3, 1, 2, 3, 4, 7, 8, 10, 12, 15, 15, 20}, {1, 3, 4}, {3, 4}, {3}, {}};
 		pass = equal(seq.begin(), seq.end(), values_check[t]);
 		log(INFO_) << "test quick_sort: " << (pass ? "pass": "FAILED") << endl;
+	}
+}
+
+void test_select() {
+    Trace trace(INFO_, "test_select()");
+    bool pass = true;
+
+    int values[] = {3, 4, 1, 2, 8, 7, 10, 20, 15, 12, 15, -3};
+	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
+    int poss[] = {11, 1, 1, -1, 0};
+    int poss_check[] = {11, 1, 1, 1, 0};
+    int values_check[] = {20, 3, 4, 1, 0};
+    vector<int> seq;
+	
+	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+		seq.assign(values, values+lens[t]);
+		log(INFO_) << "before selecting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+		vector<int>::iterator iter =
+            sorting::quick_select(seq.begin(), seq.end(), poss[t]);
+		log(INFO_) << "after selecting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+        pass = iter-seq.begin()==poss_check[t];
+        if (iter!=seq.end())
+            pass &= (*iter==values_check[t]);
+		log(INFO_) << "test quick_select: " << (pass ? "pass": "FAILED") << endl;
 	}
 }

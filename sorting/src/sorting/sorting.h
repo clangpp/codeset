@@ -43,6 +43,8 @@ void heap_sort(RandomAccessIterator first,
 template <typename RandomAccessIterator>
 inline void heap_sort(RandomAccessIterator first, RandomAccessIterator last);
 
+// work just like std::merge(), I write it to practice merge algorithm
+// pre-condition: both [first, center) and [center, last) are sorted
 template <typename InputIterator1, typename InputIterator2,
          typename OutputIterator, typename BinaryPredicate>
 OutputIterator merge(
@@ -87,7 +89,23 @@ namespace internal {
 
 enum { QUICK_SORT_CUTOFF_RANGE = 10 };
 
+template <typename RandomAccessIterator, typename BinaryPredicate>
+inline RandomAccessIterator median3(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
 }  // namespace internal
+
+// parameter: pos is 0 based, meaning that the first element have pos 0
+// pre-condition: 0<=pos && pos<last-first  (if not fit, return last)
+// returns: iterator at index pos as if [first, last) is sorted.
+template <typename RandomAccessIterator,
+         typename Distance, typename BinaryPredicate>
+RandomAccessIterator quick_select(RandomAccessIterator first,
+        RandomAccessIterator last, Distance pos, BinaryPredicate pred);
+
+template <typename RandomAccessIterator, typename Distance>
+inline RandomAccessIterator quick_select(
+        RandomAccessIterator first, RandomAccessIterator last, Distance pos);
 
 }  // namespace sorting
 
