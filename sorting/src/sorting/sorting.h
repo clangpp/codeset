@@ -95,17 +95,26 @@ inline RandomAccessIterator median3(RandomAccessIterator first,
 
 }  // namespace internal
 
-// parameter: pos is 0 based, meaning that the first element have pos 0
-// pre-condition: 0<=pos && pos<last-first  (if not fit, return last)
-// returns: iterator at index pos as if [first, last) is sorted.
+// parameter: n is 0 based, first element has n 0
+// pre-condition: 0<=n && n<last-first  (if not fit, return last)
+// returns: iterator at index n in sorted( [first, last) )
 template <typename RandomAccessIterator,
          typename Distance, typename BinaryPredicate>
 RandomAccessIterator quick_select(RandomAccessIterator first,
-        RandomAccessIterator last, Distance pos, BinaryPredicate pred);
+        RandomAccessIterator last, Distance n, BinaryPredicate pred);
 
 template <typename RandomAccessIterator, typename Distance>
 inline RandomAccessIterator quick_select(
-        RandomAccessIterator first, RandomAccessIterator last, Distance pos);
+        RandomAccessIterator first, RandomAccessIterator last, Distance n);
+
+template <typename RandomAccessIterator,
+         typename Distance, typename BinaryPredicate>
+RandomAccessIterator heap_select(RandomAccessIterator first,
+        RandomAccessIterator last, Distance n, BinaryPredicate pred);
+
+template <typename RandomAccessIterator, typename Distance>
+inline RandomAccessIterator heap_select(
+        RandomAccessIterator first, RandomAccessIterator last, Distance n);
 
 }  // namespace sorting
 

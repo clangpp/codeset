@@ -263,10 +263,11 @@ void test_select() {
     int values[] = {3, 4, 1, 2, 8, 7, 10, 20, 15, 12, 15, -3};
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
     int poss[] = {11, 1, 1, -1, 0};
-    int poss_check[] = {11, 1, 1, 1, 0};
+    bool poss_legal[] = {true, true, true, false, false};
     int values_check[] = {20, 3, 4, 1, 0};
     vector<int> seq;
 	
+    // test quick_select
 	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before selecting: ";
@@ -279,9 +280,28 @@ void test_select() {
 		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
 			standard_logger() << *iter << " ";
 		standard_logger() << endl;
-        pass = iter-seq.begin()==poss_check[t];
+        pass = (iter!=seq.end())==poss_legal[t];
         if (iter!=seq.end())
             pass &= (*iter==values_check[t]);
 		log(INFO_) << "test quick_select: " << (pass ? "pass": "FAILED") << endl;
+	}
+	
+    // test heap_select
+	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+		seq.assign(values, values+lens[t]);
+		log(INFO_) << "before selecting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+		vector<int>::iterator iter =
+            sorting::heap_select(seq.begin(), seq.end(), poss[t]);
+		log(INFO_) << "after selecting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+        pass = (iter!=seq.end())==poss_legal[t];
+        if (iter!=seq.end())
+            pass &= (*iter==values_check[t]);
+		log(INFO_) << "test heap_select: " << (pass ? "pass": "FAILED") << endl;
 	}
 }

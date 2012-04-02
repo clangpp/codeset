@@ -250,32 +250,57 @@ RandomAccessIterator median3(RandomAccessIterator first,
 template <typename RandomAccessIterator,
          typename Distance, typename BinaryPredicate>
 RandomAccessIterator quick_select(RandomAccessIterator first,
-        RandomAccessIterator last, Distance pos, BinaryPredicate pred) {
-    if (pos<0 || last-first<=pos) return last;  // illegal input
-    if (last-first==1 && pos==0) return first;  // return condition
+        RandomAccessIterator last, Distance n, BinaryPredicate pred) {
+    if (n<0 || last-first<=n) return last;  // illegal input
+    if (last-first==1 && n==0) return first;  // return condition
 
     // small amount array use insertion_sort
     if (last-first<=internal::QUICK_SORT_CUTOFF_RANGE) {
         insertion_sort(first, last, pred);
-        return first+pos;
+        return first+n;
     }
 
     // recursive quick_select (pre-condition: last-first>=2)
     RandomAccessIterator center = internal::median3(first, last, pred);
     center = sorting::partition(first, last, std::bind2nd(pred,*center));
-    if (pos < center-first) {
-        return quick_select(first, center, pos, pred);
+    if (n < center-first) {
+        return quick_select(first, center, n, pred);
     } else {
-        return quick_select(center, last, pos-(center-first), pred);
+        return quick_select(center, last, n-(center-first), pred);
     }
 }
 
 template <typename RandomAccessIterator, typename Distance>
 RandomAccessIterator quick_select(
-        RandomAccessIterator first, RandomAccessIterator last, Distance pos) {
+        RandomAccessIterator first, RandomAccessIterator last, Distance n) {
     typedef typename std::iterator_traits<
         RandomAccessIterator>::value_type value_type;
-    return quick_select(first, last, pos, std::less<value_type>());
+    return quick_select(first, last, n, std::less<value_type>());
+}
+
+template <typename RandomAccessIterator,
+         typename Distance, typename BinaryPredicate>
+RandomAccessIterator heap_select(RandomAccessIterator first,
+        RandomAccessIterator last, Distance n, BinaryPredicate pred) {
+    if (n<0 || last-first<=n) return last;  // illegal input
+    if (last-first==1 && n==0) return first;  // return condition
+    tree::heap::make(first, first+n+1, pred);  // make "max" heap of size n+1
+
+    for (RandomAccessIterator curr=first+n+1; curr!=last; ++curr) {
+        if (pred(*curr, *first)) {  // maintain fixed size "max" heap
+            std::iter_swap(first, curr);
+            tree::heap::percolate_down(first, first+n+1, 0, pred);
+        }
+    }
+    return first;
+}
+
+template <typename RandomAccessIterator, typename Distance>
+RandomAccessIterator heap_select(
+        RandomAccessIterator first, RandomAccessIterator last, Distance n) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    return heap_select(first, last, n, std::less<value_type>());
 }
 
 }  // namespace sorting
