@@ -129,17 +129,43 @@ void heap_sort(RandomAccessIterator first, RandomAccessIterator last) {
     heap_sort(first, last, std::less<value_type>());
 }
 
+// work just like std::merge(), I write it to practice merge algorithm
+// pre-condition: both [first, center) and [center, last) are sorted
+template <typename InputIterator1, typename InputIterator2,
+         typename OutputIterator, typename BinaryPredicate>
+OutputIterator merge(
+        InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+        InputIterator2 last2, OutputIterator result, BinaryPredicate pred) {
+    while (first1!=last1 && first2!=last2) {  // main merge process
+        if (pred(*first1, *first2)) {
+            *(result++) = *(first1++);
+        } else {
+            *(result++) = *(first2++);
+        }
+    }
+    while (first1!=last1)  // copy rest of left part
+        *(result++) = *(first1++);
+    while (first2!=last2)  // copy rest of right part
+        *(result++) = *(first2++);
+    return result;
+}
+
+template <typename InputIterator1,
+         typename InputIterator2, typename OutputIterator>
+inline OutputIterator merge(InputIterator1 first1, InputIterator1 last1,
+        InputIterator2 first2, InputIterator2 last2, OutputIterator result) {
+    typedef typename std::iterator_traits<
+        InputIterator1>::value_type value_type;
+    return sorting::merge(first1, last1,
+            first2, last2, result, std::less<value_type>());
+}
+
 template <typename RandomAccessIterator1,
          typename RandomAccessIterator2, typename BinaryPredicate>
 void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
         RandomAccessIterator2 buffer, BinaryPredicate pred) {
-    if (last-first <= 1) return;
-    typedef typename std::iterator_traits<
-        RandomAccessIterator1>::difference_type difference_type;
-    difference_type mid_pos = (last-first)/2;
-    merge_sort(first, first+mid_pos, buffer, pred);
-    merge_sort(first+mid_pos, last, buffer+mid_pos, pred);
-    internal::merge(first, first+mid_pos, last, buffer, pred);
+    std::copy(first, last, buffer);  // make mirror sequence
+    internal::merge_sort(buffer, buffer+(last-first), first, pred);
 }
 
 template <typename RandomAccessIterator1, typename RandomAccessIterator2>
@@ -152,23 +178,19 @@ void merge_sort(RandomAccessIterator1 first,
 
 namespace internal {
 
+// pre-condition: [first, last) and [result, result+(last-first))
+//  contains same subsequence groups
 template <typename RandomAccessIterator1,
          typename RandomAccessIterator2, typename BinaryPredicate>
-void merge(RandomAccessIterator1 first, RandomAccessIterator1 center,
-        RandomAccessIterator1 last, RandomAccessIterator2 buffer,
-        BinaryPredicate pred) {
-    RandomAccessIterator1 left(first), right(center);
-    RandomAccessIterator2 result(buffer);
-    while (left!=center && right!=last) {  // main merge
-        if (pred(*left, *right)) {
-            *(result++) = *(left++);
-        } else {
-            *(result++) = *(right++);
-        }
-    }
-    result = std::copy(left, center, result);  // copy rest of left part
-    result = std::copy(right, last, result);  // copy rest of right part
-    std::copy(buffer, result, first);  // copy buffer back to [first, last)
+void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
+        RandomAccessIterator2 result, BinaryPredicate pred) {
+    if (last-first <= 1) return;
+    typedef typename std::iterator_traits<
+        RandomAccessIterator1>::difference_type difference_type;
+    difference_type len = last-first, mid_pos = len/2;
+    internal::merge_sort(result, result+mid_pos, first, pred);
+    internal::merge_sort(result+mid_pos, result+len, first+mid_pos, pred);
+    sorting::merge(first, first+mid_pos, first+mid_pos, last, result, pred);
 }
 
 }  // namespace internal

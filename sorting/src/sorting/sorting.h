@@ -43,6 +43,17 @@ void heap_sort(RandomAccessIterator first,
 template <typename RandomAccessIterator>
 inline void heap_sort(RandomAccessIterator first, RandomAccessIterator last);
 
+template <typename InputIterator1, typename InputIterator2,
+         typename OutputIterator, typename BinaryPredicate>
+OutputIterator merge(
+        InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+        InputIterator2 last2, OutputIterator result, BinaryPredicate pred);
+
+template <typename InputIterator1,
+         typename InputIterator2, typename OutputIterator>
+inline OutputIterator merge(InputIterator1 first1, InputIterator1 last1,
+        InputIterator2 first2, InputIterator2 last2, OutputIterator result);
+
 template <typename RandomAccessIterator1,
          typename RandomAccessIterator2, typename BinaryPredicate>
 void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
@@ -56,9 +67,8 @@ namespace internal {
 
 template <typename RandomAccessIterator1,
          typename RandomAccessIterator2, typename BinaryPredicate>
-void merge(RandomAccessIterator1 first, RandomAccessIterator1 center,
-        RandomAccessIterator1 last, RandomAccessIterator2 buffer,
-        BinaryPredicate pred);
+void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
+        RandomAccessIterator2 result, BinaryPredicate pred);
 
 }  // namespace internal
 

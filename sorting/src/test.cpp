@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <iterator>
 #include <list>
 #include <vector>
 
@@ -135,6 +136,56 @@ void test_heap_sort() {
 void test_merge_sort() {
     Trace trace(INFO_, "test_merge_sort()");
     bool pass = true;
+
+    int mvalues1[] = {1, 3, 5, 8, 12, 29}, len1=sizeof(mvalues1)/sizeof(int);
+    int mvalues2[] = {4, 7, 10, 18, 25, 32}, len2=sizeof(mvalues2)/sizeof(int);
+    int mvalues3[] = {2}, len3=sizeof(mvalues3)/sizeof(int);
+    int mvalues4[1] = {}, len4=0;
+    int mvalues5[1] = {}, len5=0;
+    int mvalues12_check[] = {1, 3, 4, 5, 7, 8, 10, 12, 18, 25, 29, 32};
+    int len12=sizeof(mvalues12_check)/sizeof(int);
+    int mvalues34_check[] = {2}, len34=sizeof(mvalues34_check)/sizeof(int);
+    int mvalues45_check[1] = {}, len45=0;
+    int mvalues13_check[] = {1, 2, 3, 5, 8, 12, 29}, len13=sizeof(mvalues13_check)/sizeof(int);
+    int mvalues24_check[] = {4, 7, 10, 18, 25, 32}, len24=sizeof(mvalues24_check)/sizeof(int);
+    vector<int> check;
+    vector<int>::iterator iter_check;
+
+    check.resize(len12);
+    iter_check = sorting::merge(mvalues1, mvalues1+len1,
+            mvalues2, mvalues2+len2, check.begin());
+    pass = (iter_check==check.end()) &&
+        equal(check.begin(), check.end(), mvalues12_check);
+    log(INFO_) << "test merge: " << (pass ? "pass": "FAILED") << endl;
+
+    check.resize(len34);
+    iter_check = sorting::merge(mvalues3, mvalues3+len3,
+            mvalues4, mvalues4+len4, check.begin());
+    pass = (iter_check==check.end()) &&
+        equal(check.begin(), check.end(), mvalues34_check);
+    log(INFO_) << "test merge: " << (pass ? "pass": "FAILED") << endl;
+
+    check.resize(len45);
+    iter_check = sorting::merge(mvalues4, mvalues4+len4,
+            mvalues5, mvalues5+len5, check.begin());
+    pass = (iter_check==check.end()) &&
+        equal(check.begin(), check.end(), mvalues45_check);
+    log(INFO_) << "test merge: " << (pass ? "pass": "FAILED") << endl;
+
+    check.resize(len13);
+    iter_check = sorting::merge(mvalues1, mvalues1+len1,
+            mvalues3, mvalues3+len3, check.begin());
+    pass = (iter_check==check.end()) &&
+        equal(check.begin(), check.end(), mvalues13_check);
+    log(INFO_) << "test merge: " << (pass ? "pass": "FAILED") << endl;
+
+    check.resize(len24);
+    iter_check = sorting::merge(mvalues2, mvalues2+len2,
+            mvalues4, mvalues4+len4, check.begin());
+    pass = (iter_check==check.end()) &&
+        equal(check.begin(), check.end(), mvalues24_check);
+    log(INFO_) << "test merge: " << (pass ? "pass": "FAILED") << endl;
+
     int values[] = {3, 4, 1, 2, 8, 7, 10, 20, 15, 12, 15, -3};
     vector<int> seq, buffer;
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
