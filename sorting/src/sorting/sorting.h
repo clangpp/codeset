@@ -95,6 +95,14 @@ inline RandomAccessIterator median3(RandomAccessIterator first,
 
 }  // namespace internal
 
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void indirect_sort(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
+template <typename RandomAccessIterator>
+inline void indirect_sort(
+        RandomAccessIterator first, RandomAccessIterator last);
+
 // parameter: n is 0 based, first element has n 0
 // pre-condition: 0<=n && n<last-first  (if not fit, return last)
 // returns: iterator at index n in sorted( [first, last) )

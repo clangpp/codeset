@@ -19,6 +19,7 @@ void test_shell_sort();
 void test_heap_sort();
 void test_merge_sort();
 void test_quick_sort();
+void test_indirect_sort();
 void test_select();
 
 int main(int argc, char* argv[]) {
@@ -29,6 +30,7 @@ int main(int argc, char* argv[]) {
         test_heap_sort();
         test_merge_sort();
         test_quick_sort();
+        test_indirect_sort();
         test_select();
     } catch (const exception& e) {
         log(CRITICAL_) << "exception: " << e.what() << endl;
@@ -44,7 +46,7 @@ void test_insertion_sort() {
     list<int> seq;
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
 	
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before sorting: ";
 		for (list<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
@@ -69,7 +71,7 @@ void test_selection_sort() {
     list<int> seq;
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
 	
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before sorting: ";
 		for (list<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
@@ -94,7 +96,7 @@ void test_shell_sort() {
     vector<int> seq;
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
 	
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before sorting: ";
 		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
@@ -119,7 +121,7 @@ void test_heap_sort() {
     vector<int> seq;
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
 	
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before sorting: ";
 		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
@@ -194,7 +196,7 @@ void test_merge_sort() {
     vector<int> seq, buffer;
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
 	
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
         buffer.resize(seq.size());
 		log(INFO_) << "before sorting: ";
@@ -225,7 +227,7 @@ void test_quick_sort() {
     int check_poss[sizeof(checks)/sizeof(checks[0])] = {0, 0, 1, 3, 0, 5};
 	list<int> lst;
 
-    for (int t=0; t<sizeof(parts_lens)/sizeof(int); ++t) {
+    for (size_t t=0; t<sizeof(parts_lens)/sizeof(int); ++t) {
 		lst.assign(parts[t], parts[t]+parts_lens[t]);
         list<int>::iterator iter = sorting::partition(
 			lst.begin(), lst.end(), bind2nd(less<int>(), 0));
@@ -238,7 +240,7 @@ void test_quick_sort() {
     vector<int> seq;
 	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
 	
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before sorting: ";
 		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
@@ -256,6 +258,32 @@ void test_quick_sort() {
 	}
 }
 
+void test_indirect_sort() {
+    Trace trace(INFO_, "test_indirect_sort()");
+    bool pass = true;
+
+    int values[] = {3, 4, 1, 2, 8, 7, 10, 20, 15, 12, 15, -3};
+    vector<int> seq;
+	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
+	
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
+		seq.assign(values, values+lens[t]);
+		log(INFO_) << "before sorting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+		sorting::indirect_sort(seq.begin(), seq.end());
+		log(INFO_) << "after sorting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+		int values_check[][sizeof(values)/sizeof(int)] = {
+			{-3, 1, 2, 3, 4, 7, 8, 10, 12, 15, 15, 20}, {1, 3, 4}, {3, 4}, {3}, {}};
+		pass = equal(seq.begin(), seq.end(), values_check[t]);
+		log(INFO_) << "test indirect_sort: " << (pass ? "pass": "FAILED") << endl;
+	}
+}
+
 void test_select() {
     Trace trace(INFO_, "test_select()");
     bool pass = true;
@@ -268,7 +296,7 @@ void test_select() {
     vector<int> seq;
 	
     // test quick_select
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before selecting: ";
 		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
@@ -287,7 +315,7 @@ void test_select() {
 	}
 	
     // test heap_select
-	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+	for (size_t t=0; t<sizeof(lens)/sizeof(int); ++t) {
 		seq.assign(values, values+lens[t]);
 		log(INFO_) << "before selecting: ";
 		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)

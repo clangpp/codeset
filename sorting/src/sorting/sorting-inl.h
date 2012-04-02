@@ -247,6 +247,61 @@ RandomAccessIterator median3(RandomAccessIterator first,
 
 }  // namespace internal
 
+namespace internal {
+
+template <typename BinaryPredicate, typename Iterator>
+class IndirectCompare:
+    public std::binary_function<Iterator, Iterator, bool> {
+public:
+    IndirectCompare(BinaryPredicate pred): pred_(pred) {}
+    bool operator () (const Iterator& lhs, const Iterator& rhs) const {
+        return pred_(*lhs, *rhs);
+    }
+private:
+    BinaryPredicate pred_;
+};
+
+}  // namespace internal
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void indirect_sort(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred) {
+
+    // make iterator vector
+    std::vector<RandomAccessIterator> iters;
+    for (RandomAccessIterator iter=first; iter!=last; ++iter)
+        iters.push_back(iter);
+
+    // do quick sort on iterator vector
+    quick_sort(iters.begin(), iters.end(), internal::
+            IndirectCompare<BinaryPredicate, RandomAccessIterator>(pred));
+
+    // shuffle items in place
+    typedef std::iterator_traits<RandomAccessIterator> traits;
+    typedef typename traits::value_type value_type;
+    typedef typename traits::difference_type difference_type;
+    for (difference_type i=0, len=iters.size(); i<len; ++i) {
+        if (iters[i] == first+i) continue;  // matched, no need to move
+
+        value_type value = first[i];
+        difference_type j = 0, next_j = 0;
+        for (j=i; iters[j]!=first+i; j=next_j) {  // circle move
+            next_j = iters[j] - first;
+            first[j] = *iters[j];
+            iters[j] = first+j;
+        }
+        first[j] = value;
+        iters[j] = first+j;
+    }
+}
+
+template <typename RandomAccessIterator>
+void indirect_sort(RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    indirect_sort(first, last, std::less<value_type>());
+}
+
 template <typename RandomAccessIterator,
          typename Distance, typename BinaryPredicate>
 RandomAccessIterator quick_select(RandomAccessIterator first,
