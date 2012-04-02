@@ -72,6 +72,23 @@ void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
 
 }  // namespace internal
 
+template <typename BidirectionalIterator, typename Predicate>
+BidirectionalIterator partition(BidirectionalIterator first,
+        BidirectionalIterator last, Predicate pred);
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void quick_sort(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred);
+
+template <typename RandomAccessIterator>
+inline void quick_sort(RandomAccessIterator first, RandomAccessIterator last);
+
+namespace internal {
+
+enum { QUICK_SORT_CUTOFF_RANGE = 10 };
+
+}  // namespace internal
+
 }  // namespace sorting
 
 #include "sorting-inl.h"

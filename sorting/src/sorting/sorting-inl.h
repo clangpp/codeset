@@ -46,8 +46,7 @@ void selection_sort(ForwardIterator first,
         for (++cursor; cursor!=last; ++cursor) {
             if (pred(*cursor, *best)) best = cursor;
         }
-        if (best!=curr)
-            std::iter_swap(curr, best);
+        if (best!=curr) std::iter_swap(curr, best);
     }
 }
 
@@ -143,16 +142,14 @@ OutputIterator merge(
             *(result++) = *(first2++);
         }
     }
-    while (first1!=last1)  // copy rest of left part
-        *(result++) = *(first1++);
-    while (first2!=last2)  // copy rest of right part
-        *(result++) = *(first2++);
+    while (first1!=last1) *(result++) = *(first1++);  // copy rest of left part
+    while (first2!=last2) *(result++) = *(first2++);  // copy rest of right part
     return result;
 }
 
 template <typename InputIterator1,
          typename InputIterator2, typename OutputIterator>
-inline OutputIterator merge(InputIterator1 first1, InputIterator1 last1,
+OutputIterator merge(InputIterator1 first1, InputIterator1 last1,
         InputIterator2 first2, InputIterator2 last2, OutputIterator result) {
     typedef typename std::iterator_traits<
         InputIterator1>::value_type value_type;
@@ -194,6 +191,52 @@ void merge_sort(RandomAccessIterator1 first, RandomAccessIterator1 last,
 }
 
 }  // namespace internal
+
+template <typename BidirectionalIterator, typename Predicate>
+BidirectionalIterator partition(BidirectionalIterator first,
+        BidirectionalIterator last, Predicate pred) {
+    while(first!=last) {
+        while (first!=last && pred(*first)) ++first;  // left-to-right scan
+        if (first!=last) --last;  // right sentry move to test element
+        while (first!=last && !pred(*last)) --last;  // right-to-left scan
+        if (first!=last) {
+            std::iter_swap(first, last);  // swap to right place
+            ++first;  // left sentry move to test element
+        }
+    }
+    return first;
+}
+
+template <typename RandomAccessIterator, typename BinaryPredicate>
+void quick_sort(RandomAccessIterator first,
+        RandomAccessIterator last, BinaryPredicate pred) {
+    if (last-first<=1) return;
+
+    // small amount array use insertion_sort
+    if (last-first <= internal::QUICK_SORT_CUTOFF_RANGE) {
+        sorting::insertion_sort(first, last, pred);
+        return;
+    }
+
+    // median3 algorithm (pre-condition: last-first>=2)
+    // post-condition: !(*center,*first) && !(*(last-1),*center)
+    RandomAccessIterator center = first + (last-first)/2;
+    if (pred(*center, *first)) std::iter_swap(first, center);
+    if (pred(*(last-1), *first)) std::iter_swap(first, last-1);
+    if (pred(*(last-1), *center)) std::iter_swap(center, last-1);
+
+    // partition (with pivot *center) and recursive quick_sort
+    center = sorting::partition(first+1, last-1, bind2nd(pred,*center));
+    sorting::quick_sort(first, center, pred);
+    sorting::quick_sort(center, last, pred);
+}
+
+template <typename RandomAccessIterator>
+void quick_sort(RandomAccessIterator first, RandomAccessIterator last) {
+    typedef typename std::iterator_traits<
+        RandomAccessIterator>::value_type value_type;
+    quick_sort(first, last, std::less<value_type>());
+}
 
 }  // namespace sorting
 

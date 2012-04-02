@@ -18,6 +18,7 @@ void test_selection_sort();
 void test_shell_sort();
 void test_heap_sort();
 void test_merge_sort();
+void test_quick_sort();
 
 int main(int argc, char* argv[]) {
     try {
@@ -26,6 +27,7 @@ int main(int argc, char* argv[]) {
         test_shell_sort();
         test_heap_sort();
         test_merge_sort();
+        test_quick_sort();
     } catch (const exception& e) {
         log(CRITICAL_) << "exception: " << e.what() << endl;
     }
@@ -206,5 +208,48 @@ void test_merge_sort() {
 			{-3, 1, 2, 3, 4, 7, 8, 10, 12, 15, 15, 20}, {1, 3, 4}, {3, 4}, {3}, {}};
 		pass = equal(seq.begin(), seq.end(), values_check[t]);
 		log(INFO_) << "test merge_sort: " << (pass ? "pass": "FAILED") << endl;
+	}
+}
+
+void test_quick_sort() {
+    Trace trace(INFO_, "test_quick_sort()");
+    bool pass = true;
+
+    int parts[][10] = { {}, {1}, {1, -1}, {1, -1, 25, -2, -8, 8, 22},
+        {25, 25, 25, 25, 25}, {-8, -8, -8, -8, -8} };
+    int parts_lens[sizeof(parts)/sizeof(parts[0])] = {0, 1, 2, 7, 5, 5};
+    int checks[][10] = { {}, {1}, {-1, 1}, {-8, -1, -2, 25, 1, 8, 22},
+        {25, 25, 25, 25, 25}, {-8, -8, -8, -8, -8} };
+    int check_poss[sizeof(checks)/sizeof(checks[0])] = {0, 0, 1, 3, 0, 5};
+	list<int> lst;
+
+    for (int t=0; t<sizeof(parts_lens)/sizeof(int); ++t) {
+		lst.assign(parts[t], parts[t]+parts_lens[t]);
+        list<int>::iterator iter = sorting::partition(
+			lst.begin(), lst.end(), bind2nd(less<int>(), 0));
+        pass = (distance(lst.begin(),iter)==check_poss[t]) &&
+            equal(lst.begin(), lst.end(), checks[t]);
+		log(INFO_) << "test partition: " << (pass ? "pass": "FAILED") << endl;
+    }
+
+    int values[] = {3, 4, 1, 2, 8, 7, 10, 20, 15, 12, 15, -3};
+    vector<int> seq;
+	int lens[] = {sizeof(values)/sizeof(int), 3, 2, 1, 0};
+	
+	for (int t=0; t<sizeof(lens)/sizeof(int); ++t) {
+		seq.assign(values, values+lens[t]);
+		log(INFO_) << "before sorting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+		sorting::quick_sort(seq.begin(), seq.end());
+		log(INFO_) << "after sorting: ";
+		for (vector<int>::iterator iter=seq.begin(); iter!=seq.end(); ++iter)
+			standard_logger() << *iter << " ";
+		standard_logger() << endl;
+		int values_check[][sizeof(values)/sizeof(int)] = {
+			{-3, 1, 2, 3, 4, 7, 8, 10, 12, 15, 15, 20}, {1, 3, 4}, {3, 4}, {3}, {}};
+		pass = equal(seq.begin(), seq.end(), values_check[t]);
+		log(INFO_) << "test quick_sort: " << (pass ? "pass": "FAILED") << endl;
 	}
 }
