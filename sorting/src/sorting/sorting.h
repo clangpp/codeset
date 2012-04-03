@@ -124,6 +124,11 @@ template <typename RandomAccessIterator, typename Distance>
 inline RandomAccessIterator heap_select(
         RandomAccessIterator first, RandomAccessIterator last, Distance n);
 
+// pre-condition: all elements are unsigned integral distinct small numbers
+template <typename ForwardIterator>
+ForwardIterator bucket_sort(
+        ForwardIterator first, ForwardIterator last, bool ascending=true);
+
 }  // namespace sorting
 
 #include "sorting-inl.h"

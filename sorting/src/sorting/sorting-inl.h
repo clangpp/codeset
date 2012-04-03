@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
+#include <stdexcept>
 #include <vector>
 
 #include "../tree/tree.h"
@@ -356,6 +357,31 @@ RandomAccessIterator heap_select(
     typedef typename std::iterator_traits<
         RandomAccessIterator>::value_type value_type;
     return heap_select(first, last, n, std::less<value_type>());
+}
+
+template <typename ForwardIterator>
+ForwardIterator bucket_sort(
+        ForwardIterator first, ForwardIterator last, bool ascending) {
+    typedef std::vector<bool>::difference_type difference_type;
+    typedef std::vector<bool>::size_type size_type;
+    std::vector<bool> buckets;
+    for (ForwardIterator curr=first; curr!=last; ++curr) {
+        if (*curr<0 || difference_type(buckets.max_size()>>1)<=*curr)
+            throw std::runtime_error("number negative or too large");
+        if (difference_type(buckets.size()) <= *curr)
+            buckets.resize(*curr+1);
+        buckets[*curr] = true;
+    }
+    if (ascending) {
+        for (difference_type i=0, len=buckets.size(); i<len; ++i) {
+            if (buckets[i]) *(first++) = i;
+        }
+    } else {
+        for (difference_type len=buckets.size(), i=len-1; i>=0; --i) {
+            if (buckets[i]) *(first++) = i;
+        }
+    }
+    return first;
 }
 
 }  // namespace sorting
