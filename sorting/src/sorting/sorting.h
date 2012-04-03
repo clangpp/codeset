@@ -4,6 +4,13 @@
 
 namespace sorting {
 
+template <typename ForwardIterator, typename BinaryPredicate>
+void bubble_sort(ForwardIterator first,
+        ForwardIterator last, BinaryPredicate pred);
+
+template <typename ForwardIterator>
+inline void bubble_sort(ForwardIterator first, ForwardIterator last);
+
 template <typename BidirectionalIterator, typename BinaryPredicate>
 void insertion_sort(BidirectionalIterator first,
         BidirectionalIterator last, BinaryPredicate pred);
@@ -103,6 +110,11 @@ template <typename RandomAccessIterator>
 inline void indirect_sort(
         RandomAccessIterator first, RandomAccessIterator last);
 
+// pre-condition: all elements are unsigned integral distinct small numbers
+template <typename ForwardIterator>
+ForwardIterator bucket_sort(
+        ForwardIterator first, ForwardIterator last, bool ascending=true);
+
 // parameter: n is 0 based, first element has n 0
 // pre-condition: 0<=n && n<last-first  (if not fit, return last)
 // returns: iterator at index n in sorted( [first, last) )
@@ -123,11 +135,6 @@ RandomAccessIterator heap_select(RandomAccessIterator first,
 template <typename RandomAccessIterator, typename Distance>
 inline RandomAccessIterator heap_select(
         RandomAccessIterator first, RandomAccessIterator last, Distance n);
-
-// pre-condition: all elements are unsigned integral distinct small numbers
-template <typename ForwardIterator>
-ForwardIterator bucket_sort(
-        ForwardIterator first, ForwardIterator last, bool ascending=true);
 
 }  // namespace sorting
 

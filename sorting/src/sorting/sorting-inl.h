@@ -14,6 +14,25 @@
 
 namespace sorting {
 
+template <typename ForwardIterator, typename BinaryPredicate>
+void bubble_sort(ForwardIterator first,
+        ForwardIterator last, BinaryPredicate pred) {
+    while (last!=first) {  // unsorted range narrow and narrow
+        ForwardIterator left(first), right(first);
+        for (++right; right!=last; ++left, ++right) {  // one loop bubble
+            if (pred(*right, *left)) std::iter_swap(left, right);
+        }
+        last = left;  // --last
+    }
+}
+
+template <typename ForwardIterator>
+inline void bubble_sort(ForwardIterator first, ForwardIterator last) {
+    typedef typename std::iterator_traits<
+        ForwardIterator>::value_type value_type;
+    bubble_sort(first, last, std::less<value_type>());
+}
+
 template <typename BidirectionalIterator, typename BinaryPredicate>
 void insertion_sort(BidirectionalIterator first,
         BidirectionalIterator last, BinaryPredicate pred) {
@@ -303,6 +322,31 @@ void indirect_sort(RandomAccessIterator first, RandomAccessIterator last) {
     indirect_sort(first, last, std::less<value_type>());
 }
 
+template <typename ForwardIterator>
+ForwardIterator bucket_sort(
+        ForwardIterator first, ForwardIterator last, bool ascending) {
+    typedef std::vector<bool>::difference_type difference_type;
+    typedef std::vector<bool>::size_type size_type;
+    std::vector<bool> buckets;
+    for (ForwardIterator curr=first; curr!=last; ++curr) {
+        if (*curr<0 || difference_type(buckets.max_size()>>1)<=*curr)
+            throw std::runtime_error("number negative or too large");
+        if (difference_type(buckets.size()) <= *curr)
+            buckets.resize(*curr+1);
+        buckets[*curr] = true;
+    }
+    if (ascending) {
+        for (difference_type i=0, len=buckets.size(); i<len; ++i) {
+            if (buckets[i]) *(first++) = i;
+        }
+    } else {
+        for (difference_type len=buckets.size(), i=len-1; i>=0; --i) {
+            if (buckets[i]) *(first++) = i;
+        }
+    }
+    return first;
+}
+
 template <typename RandomAccessIterator,
          typename Distance, typename BinaryPredicate>
 RandomAccessIterator quick_select(RandomAccessIterator first,
@@ -357,31 +401,6 @@ RandomAccessIterator heap_select(
     typedef typename std::iterator_traits<
         RandomAccessIterator>::value_type value_type;
     return heap_select(first, last, n, std::less<value_type>());
-}
-
-template <typename ForwardIterator>
-ForwardIterator bucket_sort(
-        ForwardIterator first, ForwardIterator last, bool ascending) {
-    typedef std::vector<bool>::difference_type difference_type;
-    typedef std::vector<bool>::size_type size_type;
-    std::vector<bool> buckets;
-    for (ForwardIterator curr=first; curr!=last; ++curr) {
-        if (*curr<0 || difference_type(buckets.max_size()>>1)<=*curr)
-            throw std::runtime_error("number negative or too large");
-        if (difference_type(buckets.size()) <= *curr)
-            buckets.resize(*curr+1);
-        buckets[*curr] = true;
-    }
-    if (ascending) {
-        for (difference_type i=0, len=buckets.size(); i<len; ++i) {
-            if (buckets[i]) *(first++) = i;
-        }
-    } else {
-        for (difference_type len=buckets.size(), i=len-1; i>=0; --i) {
-            if (buckets[i]) *(first++) = i;
-        }
-    }
-    return first;
 }
 
 }  // namespace sorting
