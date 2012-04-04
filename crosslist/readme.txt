@@ -1,0 +1,1 @@
+this is a rewrite version of cross_list, with new programming style, reference some name style of c++11.
