@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <stdexcept>
 #include <vector>
 
@@ -30,10 +31,10 @@ inline void union_sets_by_size(
         RandomAccessIterator sets, ssize_type root1, ssize_type root2) {
     if (sets[root1] <= sets[root2]) {  // size(root1) >= size(root2)
         sets[root1] += sets[root2];  // add root2's size to root1's
-        sets[root2] = sets[root1];  // attach tree root2 to tree root1
+        sets[root2] = root1;  // attach tree root2 to tree root1
     } else {  // size(root1) < size(root2)
         sets[root2] += sets[root1];  // add root1's size to root2's
-        sets[root1] = sets[root2];  // attach tree root1 to tree root2
+        sets[root1] = root2;  // attach tree root1 to tree root2
     }
 }
 
@@ -71,23 +72,44 @@ public:
 
 public:
     explicit DisjointSet(size_type n): sets_(n,-1) {}
+
     setid_type find(setid_type s) const {
         if (s<0 || s>=ssize_type(sets_.size()))
             throw std::invalid_argument("invalid setid");
         return disjoint_set::find_plain(sets_.begin(), s);
     }
+
     setid_type find(setid_type s) {
         if (s<0 || s>=ssize_type(sets_.size()))
             throw std::invalid_argument("invalid setid");
         return disjoint_set::find_compress_path(sets_.begin(), s);
     }
+
     void union_sets(setid_type root1, setid_type root2) {
-        if (root1==root2) return;  // same set
         if (std::min(root1,root2)<0 ||
                 std::max(root1,root2)>=ssize_type(sets_.size())) {
             throw std::invalid_argument("invalid setid");
         }
+        if (sets_[root1]>=0 || sets_[root2]>=0)
+            throw std::invalid_argument("non-root setid(s)");
+        if (root1==root2) return;  // same set
         return disjoint_set::union_sets_by_size(sets_.begin(), root1, root2);
+    }
+
+    size_type size() const { return sets_.size(); }
+
+    // get how many disjoint sets
+    size_type set_count() const {
+        return (size_type)std::count_if(sets_.begin(),
+                sets_.end(), std::bind2nd(std::less<ssize_type>(), 0));
+    }
+
+    size_type set_size(ssize_type root) const {
+        if (root<0 || root>=ssize_type(sets_.size()))
+            throw std::invalid_argument("invalid setid");
+        if (sets_[root]>=0)
+            throw std::invalid_argument("non-root setid");
+        return static_cast<size_type>(-sets_[root]);
     }
 
 private:
