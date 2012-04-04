@@ -90,7 +90,8 @@ void test_disjoint_set() {
     Trace trace(INFO_, "test_disjoint_set()");
     bool pass = true;
     const int N = 8;
-    DisjointSet ds(N);
+    DisjointSet ds;
+    ds = DisjointSet(N);
     const DisjointSet& cds(ds);
 
     // test union_sets
@@ -152,30 +153,23 @@ void test_disjoint_set() {
     } catch (const exception& e) {
         pass &= true;
     }
-    try {
-        cds.set_size(5);
-        pass &= false;
-    } catch (const exception& e) {
-        pass &= true;
-    }
-    pass &= (cds.set_size(4)==2);
-    log(INFO_) << "test DisjointSet::set_size(): " << (pass ? "pass" : "FAILED") << endl;
+    pass &= (cds.set_size(4)==2) & (cds.set_size(5)==2);
+    log(INFO_) << "test DisjointSet::set_size() const: " << (pass ? "pass" : "FAILED") << endl;
 
     pass = cds.size()==DisjointSet::size_type(N);
     ds.union_sets(6, 7);
     pass &= cds.size()==DisjointSet::size_type(N);
     log(INFO_) << "test DisjointSet::size(): " << (pass ? "pass" : "FAILED") << endl;
 
+    pass = (ds.set_size(4)==2) && (ds.set_size(5)==2);
     ds.union_sets(4, 6);
+    pass &= (ds.set_size(4)==4) && (ds.set_size(7)==4);
+    log(INFO_) << "test DisjointSet::set_size(): " << (pass ? "pass" : "FAILED") << endl;
+    
     ds.union_sets(3, 4);
     pass = (ds.set_count()==4) && (ds.set_size(4)==5);
-    try {
-        ds.union_sets(3, 6);
-        pass &= false;
-    } catch (const exception& e) {
-        pass &= true;
-    }
-    ds.union_sets(4, 4);
+    pass &= (ds.union_sets(3, 6)==false);
+    pass &= (ds.union_sets(4, 4)==false);
     pass &= (cds.set_count()==4);
     log(INFO_) << "test DisjointSet::union_sets(): " << (pass ? "pass" : "FAILED") << endl;
 

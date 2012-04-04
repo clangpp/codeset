@@ -19,7 +19,7 @@ typedef std::ptrdiff_t ssize_type;
 //  };
 // ************ notes **************
 
-// pre-condition: root1!=root2 && sets[root1], sets[root2] both referencable
+// pre-condition: root1 and root2 are root node of disdinct subsets
 template <typename RandomAccessIterator>
 inline void union_sets_plain(
         RandomAccessIterator sets, ssize_type root1, ssize_type root2) {
@@ -71,44 +71,50 @@ public:
     typedef ssize_type setid_type;
 
 public:
-    explicit DisjointSet(size_type n): sets_(n,-1) {}
+    explicit DisjointSet(size_type n=0): sets_(n,-1) {}
 
+    // find root node of subset that s belongs to
     setid_type find(setid_type s) const {
         if (s<0 || s>=ssize_type(sets_.size()))
             throw std::invalid_argument("invalid setid");
         return disjoint_set::find_plain(sets_.begin(), s);
     }
 
+    // find root node of subset that s belongs to
     setid_type find(setid_type s) {
         if (s<0 || s>=ssize_type(sets_.size()))
             throw std::invalid_argument("invalid setid");
         return disjoint_set::find_compress_path(sets_.begin(), s);
     }
 
-    void union_sets(setid_type root1, setid_type root2) {
-        if (std::min(root1,root2)<0 ||
-                std::max(root1,root2)>=ssize_type(sets_.size())) {
-            throw std::invalid_argument("invalid setid");
-        }
-        if (sets_[root1]>=0 || sets_[root2]>=0)
-            throw std::invalid_argument("non-root setid(s)");
-        if (root1==root2) return;  // same set
-        return disjoint_set::union_sets_by_size(sets_.begin(), root1, root2);
+    // union two subsets which s1 and s2 belongs to
+    // return true if union takes place, otherwise false.
+    bool union_sets(setid_type s1, setid_type s2) {
+        setid_type root1 = find(s1);
+        setid_type root2 = find(s2);
+        if (root1==root2) return false;
+        disjoint_set::union_sets_by_size(sets_.begin(), root1, root2);
+        return true;
     }
 
+    // get nodes amount in disjoint set
     size_type size() const { return sets_.size(); }
 
-    // get how many disjoint sets
+    // get subsets amount in disjoint set
     size_type set_count() const {
         return (size_type)std::count_if(sets_.begin(),
                 sets_.end(), std::bind2nd(std::less<ssize_type>(), 0));
     }
 
-    size_type set_size(ssize_type root) const {
-        if (root<0 || root>=ssize_type(sets_.size()))
-            throw std::invalid_argument("invalid setid");
-        if (sets_[root]>=0)
-            throw std::invalid_argument("non-root setid");
+    // get nodes amount in subset that s belongs to
+    size_type set_size(setid_type s) const {
+        setid_type root = find(s);
+        return static_cast<size_type>(-sets_[root]);
+    }
+
+    // get nodes amount in subset that s belongs to
+    size_type set_size(setid_type s) {
+        setid_type root = find(s);
         return static_cast<size_type>(-sets_[root]);
     }
 
