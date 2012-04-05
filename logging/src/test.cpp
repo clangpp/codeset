@@ -67,6 +67,15 @@ void test_standard_logger() {
 		log(WARNING_) << "warning" << message_suffix << endl;
 		log(ERROR_) << "error" << message_suffix << endl;
 		log(CRITICAL_) << "critical" << message_suffix << endl;
+        log(INFO_) << "testing log() and level() ..." << endl;
+        logging::log(INFO_) << ": ";
+        for (int i=0; i<5; ++i) log() << i << " ";
+        logging::Level old_level = logging::level();
+        logging::level() = logging::ERROR_;
+        for (int i=5; i<10; ++i) log() << i << " ";
+        logging::level() = old_level;
+        log() << endl;
+        log(INFO_) << "test log() and level() done." << endl;
 	}
 
 	// perform logging on standard logger through 

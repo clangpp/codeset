@@ -122,8 +122,7 @@ public:
         SinkContainer::iterator sink_iter = sinks_.find(&sink);
         if (sink_iter == sinks_.end())
             throw std::runtime_error("sink not in logger's sink set!");
-        else
-            return sink_iter->second;
+        return sink_iter->second;
     }
 
     // check whether a sink is attached to logger
@@ -153,6 +152,12 @@ private:
 inline Logger& standard_logger() {
     static Logger logger(std::clog, INFO_);
     return logger;
+}
+inline Logger& log() { return standard_logger(); }  // short name
+
+// free function mapping standard logger's member function /level_of_sink(sink)/
+inline Level& level(std::ostream& sink=std::clog) {
+    return standard_logger().level_of_sink(sink);
 }
 
 // free function mapping standard logger's member function /operator () (level)/

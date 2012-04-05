@@ -148,6 +148,11 @@ public:
 		clock::now(end_);
 		duration_ = 0.0;
 	}
+    void restart() {
+        stop();
+        clear();
+        start();
+    }
 private:
     time_point begin_;
     time_point end_;
@@ -166,6 +171,7 @@ inline void stop() { standard_timer().stop(); }
 inline void clear() { standard_timer().clear(); }
 inline double duration() { return standard_timer().duration(); }
 inline double period() { return standard_timer().period(); }
+inline void restart() { standard_timer().restart(); }
 
 }  // namespace timing
 
