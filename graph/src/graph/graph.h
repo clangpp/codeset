@@ -7,6 +7,13 @@
 namespace graph {
 }  // namespace graph
 
+namespace digraph {
+
+template <typename T, typename OutputIterator>
+OutputIterator topological_sort(CrossList<T>& g, OutputIterator result);
+
+}  // namespace digraph
+
 #include "graph-inl.h"
 
 #endif  // GRAPH_H_
