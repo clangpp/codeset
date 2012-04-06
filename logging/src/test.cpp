@@ -1,6 +1,7 @@
 // test.cpp
 
 #include "logging/logging.h"
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -29,6 +30,9 @@ void test_indent();
 // test attach facility
 void test_attach();
 
+// test Logger::LogIterator
+void test_log_iterator();
+
 int main(int argc, char* argv[]) {
 
     // test trace facility
@@ -47,6 +51,9 @@ int main(int argc, char* argv[]) {
 
     // test attach facility
     test_attach();
+
+    // test Logger::LogIterator
+    test_log_iterator();
 
 	// system("pause");
 	return EXIT_SUCCESS;
@@ -260,4 +267,19 @@ void test_attach() {
         log(INFO_) << "You'll see this line in '" << log_file << "' again" << endl;
     }
     log(INFO_) << "You won't see this line in '" << log_file << "' either" << endl;
+}
+
+void test_log_iterator() {
+    using namespace logging;
+    Trace trace(INFO_, "test_log_iterator()");
+    int values[] = {1, 2, 3, 4, 5};
+    log(INFO_) << "values are ";
+    copy(values, values+sizeof(values)/sizeof(int), log(" "));
+    log() << endl;
+
+    Logger logger(log());
+    int values1[] = {1, 2, 3, 4, 5};
+    logger(INFO_) << "on logger, values are ";
+    copy(values1, values1+sizeof(values1)/sizeof(int), logger(" "));
+    logger << endl;
 }

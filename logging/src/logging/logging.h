@@ -14,6 +14,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -142,6 +143,30 @@ public:
     // remove newest level indent to each message
     void unindent() { indents_.pop_back(); }
 
+public:  // output iterator APIs
+    class LogIterator:
+        public std::iterator<std::output_iterator_tag, void, void, void, void>{
+    public:
+        LogIterator(Logger& logger, const std::string& delim):
+            logger_(logger), delim_(delim) {}
+        LogIterator& operator ++ () { return *this; }
+        LogIterator& operator ++ (int) { return *this; }
+        LogIterator& operator * () { return *this; }
+        template <typename T>
+        LogIterator& operator = (const T& value) {
+            logger_ << value << delim_; return *this;
+        }
+    private:
+        Logger& logger_;
+        std::string delim_;
+    };
+    LogIterator operator () (const std::string& delim) {  // LogIterator observer
+        return LogIterator(*this, delim);
+    }
+    LogIterator operator () (const char* delim) {
+        return (*this)(delim ? std::string(delim) : std::string());
+    }
+
 private:
     SinkContainer sinks_;  // log sink set
     Level level_;  // only level that above level_ will write to sink
@@ -181,6 +206,14 @@ inline void error(const std::string& message) {
 }
 inline void critical(const std::string& message) {
     standard_logger().critical(message);
+}
+
+// free function mapping standard logger's member function /operator () (delim)/
+inline Logger::LogIterator log(const std::string& delim) {
+    return standard_logger()(delim);
+}
+inline Logger::LogIterator log(const char* delim) {
+    return log(delim ? std::string(delim) : std::string());
 }
 
 // trace helper, log 'enter' and 'leave' message of scope
