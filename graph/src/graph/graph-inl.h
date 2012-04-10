@@ -4,12 +4,31 @@
 
 #include "graph.h"
 
+#include <algorithm>
+#include <iterator>
+#include <limits>
 #include <queue>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace graph {
+
+template <typename ForwardIterator>
+void fill_max(ForwardIterator first, ForwardIterator last) {
+    typedef typename std::iterator_traits<
+        ForwardIterator>::value_type value_type;
+    std::fill(first, last, std::numeric_limits<value_type>::max());
+}
+
+template <typename ForwardIterator>
+void fill_min(ForwardIterator first, ForwardIterator last) {
+    typedef typename std::iterator_traits<
+        ForwardIterator>::value_type value_type;
+    typedef std::numeric_limits<value_type> limits;
+    std::fill(first, last, limits::is_integer ? limits::min() : -limits::max());
+}
+
 }  // namespace graph
 
 namespace digraph {

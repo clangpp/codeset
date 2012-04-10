@@ -11,6 +11,16 @@ typedef size_type vertex_type;
 
 const vertex_type null_vertex = static_cast<vertex_type>(-1);
 
+// fill [first, last) with maximum representable value of
+//  typename std::numeric_limits<ForwardIterator>::value_type
+template <typename ForwardIterator>
+inline void fill_max(ForwardIterator first, ForwardIterator last);
+
+// fill [first, last) with minimum representable value of
+//  typename std::numeric_limits<ForwardIterator>::value_type
+template <typename ForwardIterator>
+inline void fill_min(ForwardIterator first, ForwardIterator last);
+
 }  // namespace graph
 
 namespace digraph {

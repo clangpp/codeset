@@ -14,12 +14,14 @@ using namespace logging;
 
 void test_topological_sort();
 void test_dijkstra();
+void test_utility();
 
 int main() {
 	try {
         // logging::level() = DEBUG_;
 		test_topological_sort();
 		test_dijkstra();
+        test_utility();
 	} catch (const exception& e) {
 		log(CRITICAL_) << e.what() << endl;
 	}
@@ -157,4 +159,58 @@ void test_dijkstra() {
     copy(dists.begin(), dists.end(), log(DEBUG_)(" "));
     log() << endl;
     log(INFO_) << "test dijkstra_acyclic: " << (pass ? "pass": "FAILED") << endl;
+}
+
+void test_utility() {
+    Trace trace(INFO_, "test_utility()");
+    bool pass = true;
+    const int N = 3;
+
+    {
+        vector<int> values(N);
+        graph::fill_max(values.begin(), values.end());
+        pass = true;
+        for (int i=0; i<N; ++i)
+            pass &= (values[i]==numeric_limits<int>::max());
+        log(DEBUG_) << "max vlaue: " << values[0] << endl;
+        log(INFO_) << "test fill_max<int>: " << (pass ? "pass": "FAILED") << endl;
+        graph::fill_min(values.begin(), values.end());
+        pass = true;
+        for (int i=0; i<N; ++i)
+            pass &= (values[i]==numeric_limits<int>::min());
+        log(DEBUG_) << "min vlaue: " << values[0] << endl;
+        log(INFO_) << "test fill_max<int>: " << (pass ? "pass": "FAILED") << endl;
+    }
+
+    {
+        vector<unsigned int> values(N);
+        graph::fill_max(values.begin(), values.end());
+        pass = true;
+        for (int i=0; i<N; ++i)
+            pass &= (values[i]==numeric_limits<unsigned int>::max());
+        log(DEBUG_) << "max vlaue: " << values[0] << endl;
+        log(INFO_) << "test fill_max<unsigned int>: " << (pass ? "pass": "FAILED") << endl;
+        graph::fill_min(values.begin(), values.end());
+        pass = true;
+        for (int i=0; i<N; ++i)
+            pass &= (values[i]==numeric_limits<unsigned int>::min());
+        log(DEBUG_) << "min vlaue: " << values[0] << endl;
+        log(INFO_) << "test fill_max<unsigned int>: " << (pass ? "pass": "FAILED") << endl;
+    }
+
+    {
+        vector<double> values(N);
+        graph::fill_max(values.begin(), values.end());
+        pass = true;
+        for (int i=0; i<N; ++i)
+            pass &= (values[i]==numeric_limits<double>::max());
+        log(DEBUG_) << "max vlaue: " << values[0] << endl;
+        log(INFO_) << "test fill_max<double>: " << (pass ? "pass": "FAILED") << endl;
+        graph::fill_min(values.begin(), values.end());
+        pass = true;
+        for (int i=0; i<N; ++i)
+            pass &= (values[i]==-numeric_limits<double>::max());
+        log(DEBUG_) << "min vlaue: " << values[0] << endl;
+        log(INFO_) << "test fill_max<double>: " << (pass ? "pass": "FAILED") << endl;
+    }
 }
