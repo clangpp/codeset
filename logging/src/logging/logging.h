@@ -74,16 +74,6 @@ public:
         attach_sink(sink, level);
     }
 
-    // dispatch log information to sinks
-    template <typename T>
-    void dispatch_message(const T& value) {
-        for (SinkContainer::iterator sink=sinks_.begin();
-                sink!=sinks_.end(); ++sink) {
-            // write only when message_level_ >= sink's level
-            if (message_level_>=sink->second) (*sink->first) << value;
-        }
-    }
-
     // write log information to sinks
     template <typename T>
     Logger& operator << (const T& value) {
@@ -101,12 +91,10 @@ public:
 
     // set current log level, write log item prefix, and return the logger
     Logger& operator () (Level level) {
-        message_level_ = level;
-        (*this) << current_timestamp() << " " << to_string(level, 8) << " ";
-        for (IndentStack::const_iterator ii=indents_.begin();  // indents
-                ii!=indents_.end(); ++ii) {
-            (*this) << (*ii);
-        }
+        set_message_level(level);
+        write_timestamp();
+        write_message_level();
+        write_indents();
         return *this;
     }
 
@@ -170,6 +158,25 @@ public:  // output iterator APIs
     }
     LogIterator operator () (const char* delim) {
         return (*this)(delim ? std::string(delim) : std::string());
+    }
+
+public:  // key functions
+    template <typename T>
+    void dispatch_message(const T& value) {
+        for (SinkContainer::const_iterator sink=sinks_.begin();
+                sink!=sinks_.end(); ++sink) {
+            // write only when message_level_ >= sink's level
+            if (message_level_>=sink->second) (*sink->first) << value;
+        }
+    }
+    void set_message_level(Level level) { message_level_ = level; }
+    void write_timestamp() { *this << current_timestamp() << " "; }
+    void write_message_level() { *this << to_string(message_level_, 8) << " "; }
+    void write_indents() {
+        for (IndentStack::const_iterator ii=
+                indents_.begin(); ii!=indents_.end(); ++ii) {
+            (*this) << (*ii);
+        }
     }
 
 private:
