@@ -1,23 +1,20 @@
 // test.cpp
 #include "facility/facility.h"
+
+#include <cstdlib>
 #include <iostream>
+
 #include "logging/logging.h"
 
 using namespace std;
 using namespace facility;
 using namespace logging;
 
-// test to<ToType>(FromType from) facility
 void test_to();
-
-// test trim facility
 void test_trim();
-
-// test array_length facility
 void test_array_length();
-
-// test copy_little/big_endian() facility
 void test_copy_string();
+void test_split();
 
 template <typename CharT, typename OStream>
 OStream& write(OStream& os, const basic_string<CharT>& str);
@@ -27,7 +24,9 @@ int main() {
     test_trim();
     test_array_length();
     test_copy_string();
+    test_split();
 
+    system("pause");
     return 0;
 }
 
@@ -104,4 +103,17 @@ OStream& write(OStream& os, const basic_string<CharT>& str) {
         os << (str.size()-1==i ? "" : " ");
     }
     return os;
+}
+
+void test_split() {
+	Trace trace(INFO_, "test_split()");
+	bool pass = true;
+	string str;
+	vector<string> parts;
+
+	str = "abc def  ghi ";
+	char* check[] = {"abc", "def", "", "ghi", ""};
+	parts = split(str);
+	pass = (parts.size()==5) && equal(parts.begin(), parts.end(), check);
+	log(INFO_) << "test split: " << (pass ? "pass": "FAILED") << endl;
 }

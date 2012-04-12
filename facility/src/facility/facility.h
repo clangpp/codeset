@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 
 namespace facility {
 
@@ -61,6 +62,11 @@ template <typename InputIterator>
 std::wstring& copy_big_endian(
         InputIterator char_beg, InputIterator char_end, 
         std::size_t wide, std::wstring& dest);
+
+// split string by token
+// usage: vector<string> vs = split("abc def  ghi ");  // vs: "abc" "def" "" "ghi" ""
+std::vector<std::string> split(
+        std::string& str, const std::string& token=" ");
 
 }  // namespace facility
 

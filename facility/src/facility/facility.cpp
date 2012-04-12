@@ -21,4 +21,15 @@ std::string& trim_right(std::string& str) {
 	return str;
 }
 
+std::vector<std::string> split(
+        std::string& str, const std::string& token) {
+    std::vector<std::string> parts;
+    for (std::string::size_type begin=0, cursor=0;
+            cursor!=std::string::npos; begin=cursor+token.length()) {
+        cursor = str.find(token, begin);
+        parts.push_back(str.substr(begin,cursor-begin));
+    }
+    return parts;
+}
+
 }  // namespace facility
