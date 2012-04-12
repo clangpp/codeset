@@ -261,12 +261,16 @@ void test_named_logger() {
     Trace trace(INFO_, "test_named_logger()");
     NamedLogger nlog("module1");
     nlog(INFO_) << "message line" << endl;
-    nlog = logging::named_logger("module2");
+    
+	nlog = logging::named_logger("module2");
     nlog(INFO_) << "message line 2" << endl;
+
     int values[] = {1, 2, 3, 4, 5};
     nlog(INFO_) << "values are ";
     copy(values, values+sizeof(values)/sizeof(int), nlog(" "));
     nlog << endl;
+
+	nlog = NamedLogger();
     copy(values, values+sizeof(values)/sizeof(int), nlog(ERROR_)(" "));
     nlog << endl;
 }

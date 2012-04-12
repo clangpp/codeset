@@ -273,7 +273,7 @@ private:
 // class NamedLogger, provide log facility with module name
 class NamedLogger {
 public:
-    explicit NamedLogger(const std::string& name,
+    explicit NamedLogger(const std::string& name="",
             Logger& logger=standard_logger()): name_(name), logger_(&logger) {}
 
     // write log information to sinks
