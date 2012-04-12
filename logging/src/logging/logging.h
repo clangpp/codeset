@@ -270,6 +270,59 @@ private:
     std::ostream& sink_;
 };
 
+// class NamedLogger, provide log facility with module name
+class NamedLogger {
+public:
+    explicit NamedLogger(const std::string& name,
+            Logger& logger=standard_logger()): name_(name), logger_(&logger) {}
+
+    // write log information to sinks
+    template <typename T>
+    Logger& operator << (const T& value) {
+        logger_->dispatch_message(value); return *this;
+    }
+    Logger& operator << (std::ostream& (*pf) (std::ostream&)) {
+        return operator << <std::ostream& (*) (std::ostream&)>(pf);
+    }
+    Logger& operator << (std::ios& (*pf) (std::ios&)) {
+        return operator << <std::ios& (*) (std::ios&)>(pf);
+    }
+    Logger& operator << (std::ios_base& (*pf) (std::ios_base&)) {
+        return operator << <std::ios_base& (*) (std::ios_base&)>(pf);
+    }
+
+    NamedLogger& operator () (Level level) {
+        logger_->set_message_level(level);
+        logger_->write_timestamp();
+        logger_->write_message_level();
+        write_name();
+        logger_->write_indents();
+        return *this;
+    }
+
+public:  // LogIterator observer
+    Logger::LogIterator operator () (const std::string& delim) {
+        return Logger::LogIterator(*logger_, delim);
+    }
+    Logger::LogIterator operator () (const char* delim) {
+        return (*this)(delim ? std::string(delim) : std::string());
+    }
+
+public:  // key functions
+    void write_name() { *logger_ << "[" << name_ << "] "; }
+    operator Logger& () { return *logger_; }
+
+private:
+    std::string name_;
+    Logger* logger_;
+};
+
+// generate NamedLogger object
+inline NamedLogger named_logger(
+        const std::string& name, Logger& logger=standard_logger()) {
+    return NamedLogger(name, logger);
+}
+
 }  // namespace logging
 
 #endif  // LOGGING_H_

@@ -9,56 +9,28 @@
 
 using namespace std;
 
-// test logging namespace scope API
 void test_standard_logger();
-
-// test logging::Logger
 void test_logger();
-
-// test severity levels
 void test_severity_levels();
-
-// write test messages to logger through stream inserter
 void test_logger_inserter(logging::Logger& logger);
-
-// write test messages to logger through member functions
 void test_logger_functions(logging::Logger& logger);
-
-// test indent facility
 void test_indent();
-
-// test attach facility
 void test_attach();
-
-// test Logger::LogIterator
 void test_log_iterator();
+void test_named_logger();
 
 int main(int argc, char* argv[]) {
 
-    // test trace facility
-
-	// test standard logger
 	test_standard_logger();
-
-	// test logging::Logger
 	test_logger();
-
-	// test severity levels
 	test_severity_levels();
-
-    // test indent facility
     test_indent();
-
-    // test attach facility
     test_attach();
-
-    // test Logger::LogIterator
     test_log_iterator();
-
+    test_named_logger();
 	system("pause");
 	return EXIT_SUCCESS;
 }
-
 
 void test_standard_logger() {
 	logging::Trace trace(logging::INFO_, "test_standard_logger()");
@@ -282,4 +254,19 @@ void test_log_iterator() {
     logger(INFO_) << "on logger, values are ";
     copy(values1, values1+sizeof(values1)/sizeof(int), logger(" "));
     logger << endl;
+}
+
+void test_named_logger() {
+    using namespace logging;
+    Trace trace(INFO_, "test_named_logger()");
+    NamedLogger nlog("module1");
+    nlog(INFO_) << "message line" << endl;
+    nlog = logging::named_logger("module2");
+    nlog(INFO_) << "message line 2" << endl;
+    int values[] = {1, 2, 3, 4, 5};
+    nlog(INFO_) << "values are ";
+    copy(values, values+sizeof(values)/sizeof(int), nlog(" "));
+    nlog << endl;
+    copy(values, values+sizeof(values)/sizeof(int), nlog(ERROR_)(" "));
+    nlog << endl;
 }
