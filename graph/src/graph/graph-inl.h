@@ -72,8 +72,7 @@ void dijkstra(const CrossList<T>& g, vertex_type s,
     // use priority_queue to arrange vertices by their states
     typedef T dist_type;
     typedef WeightedVertex<dist_type> weighted_vertex;
-    typedef typename weighted_vertex::
-        template reverse_compare<BinaryPredicate> reverse_compare;
+    typedef WeightedReverseCompare<BinaryPredicate> reverse_compare;
     std::priority_queue<weighted_vertex, std::vector<weighted_vertex>,
         reverse_compare> states(make_weighted_rcompare(pred));
     prev[s] = s;

@@ -300,13 +300,13 @@ void test_utility() {
     pass = (v3.weight==12 && v3.vertex==3);
     log(INFO_) << "test WeightedVertex convertion constructor: " << (pass ? "pass": "FAILED") << endl;
 
-    graph::WeightedVertex<int>::compare<less<int> > comp;
+    graph::WeightedCompare<less<int> > comp;
     pass = comp(v2,v1) && !comp(v1,v2);
-    log(INFO_) << "test WeightedVertex::compare: " << (pass ? "pass": "FAILED") << endl;
+    log(INFO_) << "test WeightedCompare: " << (pass ? "pass": "FAILED") << endl;
 
-    graph::WeightedVertex<int>::reverse_compare<less<int> > rcomp;
+    graph::WeightedReverseCompare<less<int> > rcomp;
     pass = rcomp(v1,v2) && !rcomp(v2,v1);
-    log(INFO_) << "test WeightedVertex::reverse_compare: " << (pass ? "pass": "FAILED") << endl;
+    log(INFO_) << "test WeightedReverseCompare: " << (pass ? "pass": "FAILED") << endl;
 
     pass = graph::make_weighted_compare(less<int>())(v2,v1) &&
         !graph::make_weighted_compare(less<int>())(v1,v2);

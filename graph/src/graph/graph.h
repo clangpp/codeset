@@ -35,35 +35,42 @@ struct WeightedVertex {
     template <typename WeightT1>
     WeightedVertex(const WeightedVertex<WeightT1>& wv):
         weight(static_cast<weight_type>(wv.weight)), vertex(wv.vertex) {}
+};
 
-    template <typename WeightCompare=std::less<WeightT> >
-    struct compare:
-        std::binary_function<WeightedVertex, WeightedVertex, bool> {
-        WeightCompare weight_comp;
-        compare(WeightCompare w_comp=WeightCompare()): weight_comp(w_comp) {}
-        bool operator () (const WeightedVertex& lhs,
-                const WeightedVertex& rhs) const {
-            bool result = false;
-            if (result=weight_comp(lhs.weight, rhs.weight)) return result;
-            if (result=weight_comp(rhs.weight, lhs.weight)) return !result;
-            return lhs.vertex < rhs.vertex;
-        }
-    };
+template <typename WeightCompare>
+struct WeightedCompare:
+    std::binary_function<
+        WeightedVertex<typename WeightCompare::first_argument_type>,
+        WeightedVertex<typename WeightCompare::first_argument_type>, bool> {
+    typedef typename WeightCompare::first_argument_type weight_type;
+    WeightCompare weight_comp;
+    WeightedCompare(WeightCompare w_comp=WeightCompare()):
+		weight_comp(w_comp) {}
+    bool operator () (const WeightedVertex<weight_type>& lhs,
+            const WeightedVertex<weight_type>& rhs) const {
+        bool result = false;
+        if (result=weight_comp(lhs.weight, rhs.weight)) return result;
+        if (result=weight_comp(rhs.weight, lhs.weight)) return !result;
+        return lhs.vertex < rhs.vertex;
+    }
+};
 
-    template <typename WeightCompare=std::less<WeightT> >
-    struct reverse_compare:
-        std::binary_function<WeightedVertex, WeightedVertex, bool> {
-        WeightCompare weight_comp;
-        reverse_compare(WeightCompare w_comp=WeightCompare()):
-            weight_comp(w_comp) {}
-        bool operator () (const WeightedVertex& lhs,
-                const WeightedVertex& rhs) const {
-            bool result = false;
-            if (result=weight_comp(rhs.weight, lhs.weight)) return result;
-            if (result=weight_comp(lhs.weight, rhs.weight)) return !result;
-            return lhs.vertex < rhs.vertex;
-        }
-    };
+template <typename WeightCompare>
+struct WeightedReverseCompare:
+    std::binary_function<
+        WeightedVertex<typename WeightCompare::first_argument_type>,
+        WeightedVertex<typename WeightCompare::first_argument_type>, bool> {
+    typedef typename WeightCompare::first_argument_type weight_type;
+    WeightCompare weight_comp;
+    WeightedReverseCompare(WeightCompare w_comp=WeightCompare()):
+		weight_comp(w_comp) {}
+    bool operator () (const WeightedVertex<weight_type>& lhs,
+            const WeightedVertex<weight_type>& rhs) const {
+        bool result = false;
+        if (result=weight_comp(rhs.weight, lhs.weight)) return result;
+        if (result=weight_comp(lhs.weight, rhs.weight)) return !result;
+        return lhs.vertex < rhs.vertex;
+    }
 };
 
 template <typename WeightT>
@@ -73,21 +80,15 @@ WeightedVertex<WeightT> make_weighted_vertex(
 }
 
 template <typename BinaryPredicate>
-typename WeightedVertex<typename BinaryPredicate::first_argument_type>::
-        template compare<BinaryPredicate>
+WeightedCompare<BinaryPredicate>
 make_weighted_compare(BinaryPredicate pred) {
-    return typename WeightedVertex<
-        typename BinaryPredicate::first_argument_type>::
-        template compare<BinaryPredicate>(pred);
+    return WeightedCompare<BinaryPredicate>(pred);
 }
 
 template <typename BinaryPredicate>
-typename WeightedVertex<typename BinaryPredicate::first_argument_type>::
-        template reverse_compare<BinaryPredicate>
+WeightedReverseCompare<BinaryPredicate>
 make_weighted_rcompare(BinaryPredicate pred) {
-    return typename WeightedVertex<
-        typename BinaryPredicate::first_argument_type>::
-        template reverse_compare<BinaryPredicate>(pred);
+    return WeightedReverseCompare<BinaryPredicate>(pred);
 }
 
 }  // namespace graph
