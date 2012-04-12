@@ -69,20 +69,25 @@ private:
     typedef std::vector<std::string> IndentStack;
 
 public:
-    Logger(): level_(INFO_) {}
-    Logger(std::ostream& sink, Level level=INFO_): level_(INFO_) {
+    Logger(): message_level_(INFO_) {}
+    Logger(std::ostream& sink, Level level=INFO_): message_level_(INFO_) {
         attach_sink(sink, level);
+    }
+
+    // dispatch log information to sinks
+    template <typename T>
+    void dispatch_message(const T& value) {
+        for (SinkContainer::iterator sink=sinks_.begin();
+                sink!=sinks_.end(); ++sink) {
+            // write only when message_level_ >= sink's level
+            if (message_level_>=sink->second) (*sink->first) << value;
+        }
     }
 
     // write log information to sinks
     template <typename T>
     Logger& operator << (const T& value) {
-        for (SinkContainer::iterator sink=sinks_.begin();
-                sink!=sinks_.end(); ++sink) {
-            if (level_>=sink->second)  // write only when level_ >= sink's level
-                (*sink->first) << value;
-        }
-        return *this;
+        dispatch_message(value); return *this;
     }
     Logger& operator << (std::ostream& (*pf) (std::ostream&)) {
         return operator << <std::ostream& (*) (std::ostream&)>(pf);
@@ -96,7 +101,7 @@ public:
 
     // set current log level, write log item prefix, and return the logger
     Logger& operator () (Level level) {
-        level_ = level;
+        message_level_ = level;
         (*this) << current_timestamp() << " " << to_string(level, 8) << " ";
         for (IndentStack::const_iterator ii=indents_.begin();  // indents
                 ii!=indents_.end(); ++ii) {
@@ -169,7 +174,7 @@ public:  // output iterator APIs
 
 private:
     SinkContainer sinks_;  // log sink set
-    Level level_;  // only level that above level_ will write to sink
+    Level message_level_;  // write message to sinks with level <= message_level_
     IndentStack indents_;  // indent string list
 };
 
@@ -221,14 +226,14 @@ class Trace {
 public:
     Trace(Level level, const std::string& scope,
             Logger& logger=standard_logger()):
-            logger_(logger), level_(level), scope_(scope) {
-        logger_(level_) << "enter " << scope_ << std::endl;
+            logger_(logger), message_level_(level), scope_(scope) {
+        logger_(message_level_) << "enter " << scope_ << std::endl;
     }
-    ~Trace() { logger_(level_) << "leave " << scope_ << std::endl; }
+    ~Trace() { logger_(message_level_) << "leave " << scope_ << std::endl; }
 
 private:
     Logger& logger_;
-    Level level_;
+    Level message_level_;
     std::string scope_;
 };
 

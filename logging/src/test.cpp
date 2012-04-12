@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     // test Logger::LogIterator
     test_log_iterator();
 
-	// system("pause");
+	system("pause");
 	return EXIT_SUCCESS;
 }
 
