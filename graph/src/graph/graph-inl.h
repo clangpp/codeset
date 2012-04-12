@@ -5,6 +5,7 @@
 #include "graph.h"
 
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <queue>
@@ -59,30 +60,28 @@ OutputIterator topological_sort(CrossList<T>& g, OutputIterator result) {
 }
 
 template <typename T, typename RandomAccessIterator1,
-         typename RandomAccessIterator2>
+         typename RandomAccessIterator2, typename BinaryPredicate>
 void dijkstra(const CrossList<T>& g, vertex_type s,
-        RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist,
+        BinaryPredicate pred) {
     if (g.row_count()!=g.column_count())
         throw std::invalid_argument("not a digraph");
     if (s >= g.column_count())
         throw std::out_of_range("s is not a valid vertex in g");
 
-    // init vertices states
-    typedef T dist_type;
-    dist_type infinity_dist = std::numeric_limits<dist_type>::max();
-    size_type vertex_count = g.column_count();
-    for (vertex_type v=0; v<vertex_count; ++v) {
-        prev[v] = v==s ? s : null_vertex;
-        dist[v] = v==s ? 0 : infinity_dist;
-    }
-
     // use priority_queue to arrange vertices by their states
-    typedef std::pair<dist_type, vertex_type> work_node;
-    std::priority_queue<work_node,
-        std::vector<work_node>, std::greater<work_node> > states;
-    for (states.push(std::make_pair(dist[s], s)); !states.empty(); ) {
-        dist_type d = states.top().first;
-        vertex_type v = states.top().second;
+    typedef T dist_type;
+    typedef WeightedVertex<dist_type> weighted_vertex;
+    typedef typename weighted_vertex::
+        reverse_compare<BinaryPredicate> reverse_compare;
+    std::priority_queue<weighted_vertex, std::vector<weighted_vertex>,
+        reverse_compare> states(make_weighted_rcompare(pred));
+    prev[s] = s;
+    dist[s] = 0;
+    states.push(make_weighted_vertex(dist[s], s));
+    while (!states.empty()) {
+        dist_type d = states.top().weight;
+        vertex_type v = states.top().vertex;
         states.pop();
         if (dist[v] < d) continue;  // already adjusted by other states
 
@@ -93,13 +92,31 @@ void dijkstra(const CrossList<T>& g, vertex_type s,
         for (; row_iter!=row_end; ++row_iter) {
             vertex_type w = row_iter.column();
             dist_type dvw = *row_iter;
-            if (dist[v] + dvw < dist[w]) {
+            if (pred(dist[v]+dvw, dist[w])) {
                 prev[w] = v;
                 dist[w] = dist[v] + dvw;
-                states.push(std::make_pair(dist[w], w));
+                states.push(make_weighted_vertex(dist[w], w));
             }
         }
     }
+}
+
+template <typename T, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+void dijkstra_shortest(const CrossList<T>& g, vertex_type s,
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
+    std::fill(prev, prev+g.column_count(), null_vertex);
+    fill_max(dist, dist+g.column_count());
+    dijkstra(g, s, prev, dist, std::less<T>());
+}
+
+template <typename T, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+void dijkstra_longest(const CrossList<T>& g, vertex_type s,
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
+    std::fill(prev, prev+g.column_count(), null_vertex);
+    fill_min(dist, dist+g.column_count());
+    dijkstra(g, s, prev, dist, std::greater<T>());
 }
 
 template <typename T, typename RandomAccessIterator1,
