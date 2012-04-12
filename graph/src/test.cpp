@@ -182,7 +182,7 @@ void test_dijkstra() {
     g.rinsert(7, 8, 5);
     g.rinsert(8, 10, 5);
     g.rinsert(9, 10, 6);
-    digraph::dijkstra_acyclic(g, 0, prevs.begin(), dists.begin());
+    digraph::acyclic_dijkstra_shortest(g, 0, prevs.begin(), dists.begin());
 	graph::vertex_type NV=graph::null_vertex;
     graph::vertex_type prevs_check2[] = {0, NV, NV, 0, NV, 3, 5, 5, 6, 6, 8};
     int INF = numeric_limits<int>::max();
@@ -193,7 +193,42 @@ void test_dijkstra() {
     log() << endl;
     copy(dists.begin(), dists.end(), log(DEBUG_)(" "));
     log() << endl;
-    log(INFO_) << "test dijkstra_acyclic: " << (pass ? "pass": "FAILED") << endl;
+    log(INFO_) << "test acyclic_dijkstra_shortest: " << (pass ? "pass": "FAILED") << endl;
+
+    // case 5: longest acyclic dijkstra
+    n = 14;
+    g.clear();
+    g.reserve(n, n);
+    prevs.assign(n, 0);
+    dists.assign(n, 0);
+    g.rinsert(0, 1, 3);
+    g.rinsert(0, 2, 2);
+    g.rinsert(1, 3, 0);
+    g.rinsert(1, 4, 3);
+    g.rinsert(2, 3, 0);
+    g.rinsert(2, 6, 1);
+    g.rinsert(3, 5, 2);
+    g.rinsert(4, 7, 0);
+    g.rinsert(5, 7, 0);
+    g.rinsert(5, 8, 0);
+    g.rinsert(6, 8, 0);
+    g.rinsert(6, 11, 4);
+    g.rinsert(7, 9, 3);
+    g.rinsert(8, 10, 2);
+    g.rinsert(9, 12, 0);
+    g.rinsert(10, 12, 0);
+    g.rinsert(11, 12, 0);
+    g.rinsert(12, 13, 1);
+    digraph::acyclic_dijkstra_longest(g, 0, prevs.begin(), dists.begin());
+    graph::vertex_type prevs_check4[] = {0, 0, 0, 1, 1, 3, 2, 4, 5, 7, 8, 6, 9, 12};
+    int dists_check4[] = {0, 3, 2, 3, 6, 5, 3, 6, 5, 9, 7, 7, 9, 10};
+    pass = equal(prevs.begin(), prevs.end(), prevs_check4) &&
+        equal(dists.begin(), dists.end(), dists_check4);
+    copy(prevs.begin(), prevs.end(), log(DEBUG_)(" "));
+    log() << endl;
+    copy(dists.begin(), dists.end(), log(DEBUG_)(" "));
+    log() << endl;
+    log(INFO_) << "test acyclic_dijkstra_longest: " << (pass ? "pass": "FAILED") << endl;
 }
 
 void test_utility() {

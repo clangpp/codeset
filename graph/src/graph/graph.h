@@ -27,7 +27,7 @@ inline void fill_min(ForwardIterator first, ForwardIterator last);
 template <typename WeightT>
 struct WeightedVertex {
     typedef WeightT weight_type;
-    typedef vertex_type vertex_type;
+    typedef graph::vertex_type vertex_type;
     weight_type weight;
     vertex_type vertex;
     WeightedVertex(const weight_type& w=weight_type(),
@@ -74,18 +74,20 @@ WeightedVertex<WeightT> make_weighted_vertex(
 
 template <typename BinaryPredicate>
 typename WeightedVertex<typename BinaryPredicate::first_argument_type>::
-        compare<BinaryPredicate>
+        template compare<BinaryPredicate>
 make_weighted_compare(BinaryPredicate pred) {
-    return WeightedVertex<typename BinaryPredicate::first_argument_type>::
-        compare<BinaryPredicate>(pred);
+    return typename WeightedVertex<
+        typename BinaryPredicate::first_argument_type>::
+        template compare<BinaryPredicate>(pred);
 }
 
 template <typename BinaryPredicate>
 typename WeightedVertex<typename BinaryPredicate::first_argument_type>::
-        reverse_compare<BinaryPredicate>
+        template reverse_compare<BinaryPredicate>
 make_weighted_rcompare(BinaryPredicate pred) {
-    return WeightedVertex<typename BinaryPredicate::first_argument_type>::
-        reverse_compare<BinaryPredicate>(pred);
+    return typename WeightedVertex<
+        typename BinaryPredicate::first_argument_type>::
+        template reverse_compare<BinaryPredicate>(pred);
 }
 
 }  // namespace graph
@@ -115,8 +117,19 @@ inline void dijkstra_longest(const CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
 template <typename T, typename RandomAccessIterator1,
+         typename RandomAccessIterator2, typename BinaryPredicate>
+void acyclic_dijkstra(CrossList<T>& g, vertex_type s,
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist,
+        BinaryPredicate pred);
+
+template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-void dijkstra_acyclic(CrossList<T>& g, vertex_type s,
+inline void acyclic_dijkstra_shortest(CrossList<T>& g, vertex_type s,
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist);
+
+template <typename T, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+inline void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
 }  // namespace digraph

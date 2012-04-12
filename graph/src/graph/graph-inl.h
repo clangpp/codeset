@@ -73,7 +73,7 @@ void dijkstra(const CrossList<T>& g, vertex_type s,
     typedef T dist_type;
     typedef WeightedVertex<dist_type> weighted_vertex;
     typedef typename weighted_vertex::
-        reverse_compare<BinaryPredicate> reverse_compare;
+        template reverse_compare<BinaryPredicate> reverse_compare;
     std::priority_queue<weighted_vertex, std::vector<weighted_vertex>,
         reverse_compare> states(make_weighted_rcompare(pred));
     prev[s] = s;
@@ -120,33 +120,33 @@ void dijkstra_longest(const CrossList<T>& g, vertex_type s,
 }
 
 template <typename T, typename RandomAccessIterator1,
-         typename RandomAccessIterator2>
-void dijkstra_acyclic(CrossList<T>& g, vertex_type s,
-        RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
+         typename RandomAccessIterator2, typename BinaryPredicate>
+void acyclic_dijkstra(CrossList<T>& g, vertex_type s,
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist,
+        BinaryPredicate pred) {
     if (g.row_count()!=g.column_count())
         throw std::invalid_argument("not a digraph");
     if (s >= g.column_count())
         throw std::out_of_range("s is not a valid vertex in g");
 
-    // init vertices states
+    // initialize states
     typedef T dist_type;
-    dist_type infinity_dist = std::numeric_limits<dist_type>::max();
-    size_type vertex_count = g.column_count();
+    dist_type null_dist = dist[s];
+    prev[s] = s;
+    dist[s] = 0;
     std::queue<vertex_type> topo_q;  // vertices with indegree 0
-    for (vertex_type v=0; v<vertex_count; ++v) {
-        prev[v] = v==s ? s : null_vertex;
-        dist[v] = v==s ? 0 : infinity_dist;
+    for (vertex_type v=0; v<g.column_count(); ++v) {
         if (g.column_size(v)==0) topo_q.push(v);
     }
 
     // work in topological order
-    for (topo_q.push(s); !topo_q.empty(); ) {
+    while (!topo_q.empty()) {
         vertex_type v = topo_q.front();
         topo_q.pop();
 
         // remove vertices those cannot reach from s
         typename CrossList<T>::row_iterator row_iter, row_end;
-        if (dist[v]==infinity_dist) {
+        if (dist[v]==null_dist) {
             row_iter=g.row_begin(v), row_end=g.row_end(v);
             while (row_iter!=row_end) {
                 vertex_type w = row_iter.column();
@@ -161,7 +161,7 @@ void dijkstra_acyclic(CrossList<T>& g, vertex_type s,
         while (row_iter!=row_end) {
             vertex_type w = row_iter.column();
             dist_type dvw = *row_iter;
-            if (dist[v] + dvw < dist[w]) {
+            if (pred(dist[v]+dvw, dist[w])) {
                 prev[w] = v;
                 dist[w] = dist[v] + dvw;
             }
@@ -169,6 +169,24 @@ void dijkstra_acyclic(CrossList<T>& g, vertex_type s,
             if (g.column_size(w)==0) topo_q.push(w);
         }
     }
+}
+
+template <typename T, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+void acyclic_dijkstra_shortest(CrossList<T>& g, vertex_type s,
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
+    std::fill(prev, prev+g.column_count(), null_vertex);
+    fill_max(dist, dist+g.column_count());
+    acyclic_dijkstra(g, s, prev, dist, std::less<T>());
+}
+
+template <typename T, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
+        RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
+    std::fill(prev, prev+g.column_count(), null_vertex);
+    fill_min(dist, dist+g.column_count());
+    acyclic_dijkstra(g, s, prev, dist, std::greater<T>());
 }
 
 }  // namespace digraph
