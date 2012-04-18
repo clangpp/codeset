@@ -303,7 +303,7 @@ public:  // iterator observers
     }
 
 public:  // operation interface
-	CrossList(size_type row_count=0, size_type column_count=0,
+	explicit CrossList(size_type row_count=0, size_type column_count=0,
 			const value_type& default_value=value_type());
 	CrossList(const CrossList& other);
 	virtual ~CrossList();
