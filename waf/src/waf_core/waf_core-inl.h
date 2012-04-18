@@ -218,9 +218,9 @@ void word_activation_force(
         std::istream& co_mat_is, Predicate1 care_left, Predicate2 care_right,
         UnaryFunction term_freq, force_type prec, std::ostream& waf_mat_os) {
 
-    typedef serialization::sparse_matrix::Cell<force_type> waf_cell_type;
-    serialization::sparse_matrix::Cell<cooccur_type> co_cell;
-    serialization::sparse_matrix::Dimension dimension;
+    typedef serialization::sparsematrix::Cell<force_type> waf_cell_type;
+    serialization::sparsematrix::Cell<cooccur_type> co_cell;
+    serialization::sparsematrix::Dimension dimension;
     size_type curr_line(-1), term_size(0);
     char beg_ch = 0;
     while (co_mat_is >> beg_ch) {
@@ -310,8 +310,8 @@ void affinity_measure(const cross_list<force_type>& waf_mat,
         throw std::invalid_argument(ss.str());
     }
 
-    typedef serialization::sparse_matrix::Cell<affinity_type> a_cell_type;
-    typedef serialization::sparse_matrix::Dimension dimension_type;
+    typedef serialization::sparsematrix::Cell<affinity_type> a_cell_type;
+    typedef serialization::sparsematrix::Dimension dimension_type;
     cross_list<affinity_type> a_mat;
 	size_type term_size = waf_mat.row_size();
     a_mat.resize(term_size, term_size);

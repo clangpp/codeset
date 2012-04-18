@@ -170,8 +170,8 @@ private:
 // =============================================================================
 template <typename T>
 bool cell_value_greater(
-        const serialization::sparse_matrix::Cell<T>& lhs,
-        const serialization::sparse_matrix::Cell<T>& rhs);
+        const serialization::sparsematrix::Cell<T>& lhs,
+        const serialization::sparsematrix::Cell<T>& rhs);
 
 // predicate facility
 // =============================================================================

@@ -723,8 +723,8 @@ void accumulate_to(
 template <typename T>
 std::ostream& operator << (std::ostream& os, const cross_list<T>& mat)
 {
-    typedef serialization::sparse_matrix::Cell<T> cell_type;
-    typedef serialization::sparse_matrix::Dimension dimension_type;
+    typedef serialization::sparsematrix::Cell<T> cell_type;
+    typedef serialization::sparsematrix::Dimension dimension_type;
 	for (typename cross_list<T>::size_type r=0; r<mat.row_size(); ++r)
 	{
 		if (mat.size_of_row(r)==0)
@@ -746,8 +746,8 @@ std::istream& operator >> (std::istream& is, cross_list<T>& mat)
 {
 	typedef typename cross_list<T>::size_type size_type;
 	typedef typename cross_list<T>::value_type value_type;
-    typedef serialization::sparse_matrix::Cell<T> cell_type;
-    typedef serialization::sparse_matrix::Dimension dimension_type;
+    typedef serialization::sparsematrix::Cell<T> cell_type;
+    typedef serialization::sparsematrix::Dimension dimension_type;
 	mat.clear();
     cell_type cell;
     dimension_type dimension;
