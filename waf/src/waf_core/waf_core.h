@@ -6,8 +6,8 @@
 #include <istream>
 #include <ostream>
 
-#include "../cross_list/cross_list.h"
-#include "../sparse_matrix/sparse_matrix.h"
+#include "../crosslist/crosslist.h"
+#include "../sparsematrix/sparsematrix.h"
 
 namespace waf {
 
@@ -36,14 +36,14 @@ void term_frequency(
 
 // append co-occurrence information of [termid_first, termid_last) onto co_mat
 // element in co_mat is (total-distance, count) pair
-// pre-condition: *max_element(termid_first, termid_last) < co_mat.row_size()
-// pre-condition: *max_element(termid_first, termid_last) < co_mat.col_size()
+// pre-condition: *max_element(termid_first, termid_last) < co_mat.row_count()
+// pre-condition: *max_element(termid_first, termid_last) < co_mat.column_count()
 template <typename InputIterator,
          typename Predicate1, typename Predicate2>
 void co_occurrence(
         InputIterator termid_first, InputIterator termid_last,
 		Predicate1 care_left, Predicate2 care_right,
-        size_type co_win, sparse_matrix<cooccur_type>& co_mat);
+        size_type co_win, SparseMatrix<cooccur_type>& co_mat);
 
 // inplace convert (total-distance, count) to (mean-distance, count)
 template <typename ForwardIterator>
@@ -64,13 +64,13 @@ affinity_type affinity_or_mean(
         InputIterator first2, InputIterator last2, Predicate2 care2,
         UnaryFunction iter_termid, affinity_type or_nolink = null_affinity);
 
-// pre-condition: waf_mat1.row_size()==waf_mat1.col_size()
-// pre-condition: waf_mat2.row_size()==waf_mat2.col_size()
-// pre-condition: i1<waf_mat1.row_size() && i2<waf_mat2.row_size()
+// pre-condition: waf_mat1.row_count()==waf_mat1.column_count()
+// pre-condition: waf_mat2.row_count()==waf_mat2.column_count()
+// pre-condition: i1<waf_mat1.row_count() && i2<waf_mat2.row_count()
 template <typename Predicate1, typename Predicate2>
 affinity_type affinity_measure(
-		const cross_list<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
-		const cross_list<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
+		const CrossList<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
+		const CrossList<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
         affinity_type affinity_nolink = null_affinity);
 
 
@@ -78,9 +78,9 @@ affinity_type affinity_measure(
 // =============================================================================
 template <typename Predicate1, typename Predicate2, typename UnaryFunction>
 void word_activation_force(
-        const cross_list<cooccur_type>& co_mat, 
+        const CrossList<cooccur_type>& co_mat, 
         Predicate1 care_left, Predicate2 care_right,
-        UnaryFunction term_freq, force_type prec, cross_list<force_type>& waf_mat);
+        UnaryFunction term_freq, force_type prec, CrossList<force_type>& waf_mat);
 
 template <typename Predicate1, typename Predicate2, typename UnaryFunction>
 void word_activation_force(
@@ -89,45 +89,45 @@ void word_activation_force(
 
 template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat, Predicate1 care, Predicate2 back,
+        const CrossList<force_type>& waf_mat, Predicate1 care, Predicate2 back,
         affinity_type prec, affinity_type affinity_nolink,
-        cross_list<affinity_type>& a_mat);
+        CrossList<affinity_type>& a_mat);
 
 template <typename Predicate1, typename Predicate2>
-void affinity_measure(const cross_list<force_type>& waf_mat,
+void affinity_measure(const CrossList<force_type>& waf_mat,
         Predicate1 care, Predicate2 back, affinity_type prec,
         affinity_type affinity_nolink, std::ostream& a_mat_os);
 
 template <typename Predicate1, typename Predicate2, typename OutputIterator>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 back1,
-        const cross_list<force_type>& waf_mat2, Predicate2 back2,
+        const CrossList<force_type>& waf_mat1, Predicate1 back1,
+        const CrossList<force_type>& waf_mat2, Predicate2 back2,
         affinity_type affinity_nolink, OutputIterator term_a_iter);
 
 template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 back1,
-        const cross_list<force_type>& waf_mat2, Predicate2 back2,
-        affinity_type affinity_nolink, cross_list<affinity_type>& a_mat);
+        const CrossList<force_type>& waf_mat1, Predicate1 back1,
+        const CrossList<force_type>& waf_mat2, Predicate2 back2,
+        affinity_type affinity_nolink, CrossList<affinity_type>& a_mat);
 
 template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 back1,
-        const cross_list<force_type>& waf_mat2, Predicate2 back2,
+        const CrossList<force_type>& waf_mat1, Predicate1 back1,
+        const CrossList<force_type>& waf_mat2, Predicate2 back2,
         affinity_type affinity_nolink, std::ostream& a_mat_os);
 
 template <typename Predicate1, typename Predicate2,
          typename Predicate3, typename Predicate4>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
-        const cross_list<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
-        affinity_type prec, affinity_type affinity_nolink, cross_list<affinity_type>& a_mat);
+        const CrossList<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
+        const CrossList<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
+        affinity_type prec, affinity_type affinity_nolink, CrossList<affinity_type>& a_mat);
 
 template <typename Predicate1, typename Predicate2,
          typename Predicate3, typename Predicate4>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
-        const cross_list<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
+        const CrossList<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
+        const CrossList<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
         affinity_type prec, affinity_type affinity_nolink, std::ostream& a_mat_os);
 
 }  // namespace waf

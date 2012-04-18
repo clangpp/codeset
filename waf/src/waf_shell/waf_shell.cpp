@@ -381,7 +381,7 @@ int run_co_occurrence(int argc, char* argv[]) {
             care_right = waf::care_all();
         }
 
-        sparse_matrix<waf::cooccur_type> co_mat;
+        SparseMatrix<waf::cooccur_type> co_mat;
         ifstream fin;
         for (size_t i=0; i<termid_files.size(); ++i) {
             fin.close();
@@ -620,7 +620,7 @@ int run_affinity_measure(int argc, char* argv[]) {
                         " file '" << waf_matrix_files[0] << "'" << endl;
                     return -1;
                 }
-                cross_list<waf::force_type> waf_mat;
+                CrossList<waf::force_type> waf_mat;
                 fin >> waf_mat;
 
                 ofstream fout(affinity_matrix_file.c_str());
@@ -637,7 +637,7 @@ int run_affinity_measure(int argc, char* argv[]) {
             break;
         case 2:  // two waf-matrix to one affinity-vector
             {
-                cross_list<waf::force_type> waf_mat1, waf_mat2;
+                CrossList<waf::force_type> waf_mat1, waf_mat2;
                 ifstream fin1(waf_matrix_files[0].c_str());
                 if (!fin1) {
                     log(ERROR_) << "fail to open word-activation-force matrix"

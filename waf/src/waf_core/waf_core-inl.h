@@ -34,12 +34,12 @@ void term_frequency(
 namespace internal {
 
 inline void comat_enlarge(
-        sparse_matrix<cooccur_type>& co_mat,
+        SparseMatrix<waf::cooccur_type>& co_mat,
         termid_type termid1, termid_type termid2) {
 
     termid_type max_termid = std::max(termid1, termid2);
-    if (co_mat.row_size() <= max_termid) {
-        co_mat.resize(max_termid+1, max_termid+1);  // enlarge matrix
+    if (co_mat.row_count() <= max_termid) {
+        co_mat.reserve(max_termid+1, max_termid+1);  // enlarge matrix
 
         waf::size_type index_dim = co_mat.sparse().first;
         waf::size_type index_hope = 
@@ -57,7 +57,7 @@ template <typename InputIterator,
 void co_occurrence(
         InputIterator termid_first, InputIterator termid_last,
 		Predicate1 care_left, Predicate2 care_right,
-        size_type co_win, sparse_matrix<cooccur_type>& co_mat) {
+        size_type co_win, SparseMatrix<cooccur_type>& co_mat) {
 
     co_mat.clear();
     co_mat.sparse(8, 8);  // no special meaning, just greater than 0
@@ -157,24 +157,24 @@ affinity_type affinity_or_mean(
 
 template <typename Predicate1, typename Predicate2>
 affinity_type affinity_measure(
-		const cross_list<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
-		const cross_list<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
+		const CrossList<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
+		const CrossList<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
         affinity_type affinity_nolink) {
 
 	// calculate k_mean (scan col_i and col_j)
     affinity_type k_mean = affinity_or_mean(
-            waf_mat1.cbegin_of_col(i1),waf_mat1.cend_of_col(i1), back1,
-            waf_mat2.cbegin_of_col(i2),waf_mat2.cend_of_col(i2), back2,
+            waf_mat1.column_begin(i1),waf_mat1.column_end(i1), back1,
+            waf_mat2.column_begin(i2),waf_mat2.column_end(i2), back2,
             std::mem_fun_ref(
-                &cross_list<force_type>::const_col_iterator::row_index), -1);
+                &CrossList<force_type>::const_column_iterator::row), -1);
     if (k_mean<=0 && k_mean>-0.01) return 0;  // k_mean == 0
 
 	// calculate l_mean (scan row_i and row_j)
     affinity_type l_mean = affinity_or_mean(
-            waf_mat1.cbegin_of_row(i1),waf_mat1.cend_of_row(i1), back1,
-            waf_mat2.cbegin_of_row(i2),waf_mat2.cend_of_row(i2), back2,
+            waf_mat1.row_begin(i1),waf_mat1.row_end(i1), back1,
+            waf_mat2.row_begin(i2),waf_mat2.row_end(i2), back2,
             std::mem_fun_ref(
-                &cross_list<force_type>::const_row_iterator::col_index), -1);
+                &CrossList<force_type>::const_row_iterator::column), -1);
     if (l_mean<=0 && l_mean>-0.01) return 0;  // l_mean == 0
 
     // there are neither in-link nor out-link
@@ -189,20 +189,20 @@ affinity_type affinity_measure(
 // =============================================================================
 template <typename Predicate1, typename Predicate2, typename UnaryFunction>
 void word_activation_force(
-        const cross_list<cooccur_type>& co_mat, 
+        const CrossList<cooccur_type>& co_mat, 
         Predicate1 care_left, Predicate2 care_right,
-        UnaryFunction term_freq, force_type prec, cross_list<force_type>& waf_mat) {
+        UnaryFunction term_freq, force_type prec, CrossList<force_type>& waf_mat) {
 
 	waf_mat.clear();
-    size_type term_size = std::max(co_mat.row_size(), co_mat.col_size());
-    waf_mat.resize(term_size, term_size);
+    size_type term_size = std::max(co_mat.row_count(), co_mat.column_count());
+    waf_mat.reserve(term_size, term_size);
 
-    cross_list<cooccur_type>::const_iterator co_iter = co_mat.cbegin();
-    cross_list<cooccur_type>::const_iterator co_end = co_mat.cend();
+    CrossList<cooccur_type>::const_iterator co_iter = co_mat.cbegin();
+    CrossList<cooccur_type>::const_iterator co_end = co_mat.cend();
     for (; co_iter!=co_end; ++co_iter) {
 
 		// verify there is at least one term(id) concerned
-		termid_type i = co_iter.row_index(), j = co_iter.col_index();
+		termid_type i = co_iter.row(), j = co_iter.column();
 		if (!care_left(i) || !care_right(j)) continue;
 
 		// calculate waf from term i to term j which the element denotes
@@ -265,22 +265,22 @@ void word_activation_force(
 
 template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat, Predicate1 care, Predicate2 back,
+        const CrossList<force_type>& waf_mat, Predicate1 care, Predicate2 back,
         affinity_type prec, affinity_type affinity_nolink,
-        cross_list<affinity_type>& a_mat) {
+        CrossList<affinity_type>& a_mat) {
 
     // argument checking
-    if (waf_mat.row_size()!=waf_mat.col_size()) {
+    if (waf_mat.row_count()!=waf_mat.column_count()) {
         std::stringstream ss;
         ss << "waf::affinity_measure(waf_mat, care, back, prec, a_nolink, a_mat):\n";
         ss << "waf_mat row size must be exactly the same as column size, but\n";
-        ss << "\twaf_mat: row=" << waf_mat.row_size() << ", column=" << waf_mat.col_size() << "\n";
+        ss << "\twaf_mat: row=" << waf_mat.row_count() << ", column=" << waf_mat.column_count() << "\n";
         throw std::invalid_argument(ss.str());
     }
 
     a_mat.clear();
-	size_type term_size = waf_mat.row_size();
-    a_mat.resize(term_size, term_size);
+	size_type term_size = waf_mat.row_count();
+    a_mat.reserve(term_size, term_size);
 
     for (size_type i=0; i<term_size; ++i) {
         if (!care(i)) continue;
@@ -297,25 +297,25 @@ void affinity_measure(
 }
 
 template <typename Predicate1, typename Predicate2>
-void affinity_measure(const cross_list<force_type>& waf_mat,
+void affinity_measure(const CrossList<force_type>& waf_mat,
         Predicate1 care, Predicate2 back, affinity_type prec,
         affinity_type affinity_nolink, std::ostream& a_mat_os) {
 
     // argument checking
-    if (waf_mat.row_size()!=waf_mat.col_size()) {
+    if (waf_mat.row_count()!=waf_mat.column_count()) {
         std::stringstream ss;
         ss << "waf::affinity_measure(waf_mat, care, back, prec, a_nolink, a_mat_os):\n";
         ss << "waf_mat row size must be exactly the same as column size, but\n";
-        ss << "\twaf_mat: row=" << waf_mat.row_size() << ", column=" << waf_mat.col_size() << "\n";
+        ss << "\twaf_mat: row=" << waf_mat.row_count() << ", column=" << waf_mat.column_count() << "\n";
         throw std::invalid_argument(ss.str());
     }
 
     typedef serialization::sparsematrix::Cell<affinity_type> a_cell_type;
     typedef serialization::sparsematrix::Dimension dimension_type;
-    cross_list<affinity_type> a_mat;
-	size_type term_size = waf_mat.row_size();
-    a_mat.resize(term_size, term_size);
-    dimension_type dimension(a_mat.row_size(), a_mat.col_size());
+    CrossList<affinity_type> a_mat;
+	size_type term_size = waf_mat.row_count();
+    a_mat.reserve(term_size, term_size);
+    dimension_type dimension(a_mat.row_count(), a_mat.column_count());
 
     for (size_type i=0; i<term_size; ++i) {
         if (!care(i)) continue;
@@ -331,15 +331,15 @@ void affinity_measure(const cross_list<force_type>& waf_mat,
         }
 
         // write one row of a_mat to ostream
-        cross_list<affinity_type>::row_iterator row_iter = a_mat.begin_of_row(i);
-        cross_list<affinity_type>::row_iterator row_end = a_mat.end_of_row(i);
+        CrossList<affinity_type>::row_iterator row_iter = a_mat.row_begin(i);
+        CrossList<affinity_type>::row_iterator row_end = a_mat.row_end(i);
         for (; row_iter!=row_end; ++row_iter)
-            a_mat_os << a_cell_type(i, row_iter.col_index(), *row_iter);
+            a_mat_os << a_cell_type(i, row_iter.column(), *row_iter);
 
         // erase this row from a_mat
-        row_iter = a_mat.begin_of_row(i);
+        row_iter = a_mat.row_begin(i);
         if (row_iter != row_end) {
-            a_mat.erase(row_iter, row_end);
+            a_mat.erase_range(row_iter, row_end);
             a_mat_os << std::endl;
         }
     }
@@ -348,23 +348,23 @@ void affinity_measure(const cross_list<force_type>& waf_mat,
 
 template <typename Predicate1, typename Predicate2, typename OutputIterator>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 back1,
-        const cross_list<force_type>& waf_mat2, Predicate2 back2,
+        const CrossList<force_type>& waf_mat1, Predicate1 back1,
+        const CrossList<force_type>& waf_mat2, Predicate2 back2,
         affinity_type affinity_nolink, OutputIterator term_a_iter) {
 
     // argument checking
-    if (waf_mat1.row_size()!=waf_mat1.col_size() ||
-            waf_mat2.row_size()!=waf_mat2.col_size() ||
-            waf_mat1.row_size()!=waf_mat2.row_size()) {
+    if (waf_mat1.row_count()!=waf_mat1.column_count() ||
+            waf_mat2.row_count()!=waf_mat2.column_count() ||
+            waf_mat1.row_count()!=waf_mat2.row_count()) {
         std::stringstream ss;
         ss << "waf::affinity_measure(waf_mat1, back1, waf_mat2, back2, a_nolink, term_a_iter):\n";
         ss << "all dimensions of waf matrices must be exactly the same, but\n";
-        ss << "\twaf_mat1: row=" << waf_mat1.row_size() << ", column=" << waf_mat1.col_size() << "\n";
-        ss << "\twaf_mat2: row=" << waf_mat2.row_size() << ", column=" << waf_mat2.col_size() << "\n";
+        ss << "\twaf_mat1: row=" << waf_mat1.row_count() << ", column=" << waf_mat1.column_count() << "\n";
+        ss << "\twaf_mat2: row=" << waf_mat2.row_count() << ", column=" << waf_mat2.column_count() << "\n";
         throw std::invalid_argument(ss.str());
     }
 
-    size_type term_size = waf_mat1.row_size();
+    size_type term_size = waf_mat1.row_count();
     for (termid_type i=0; i<term_size; ++i, ++term_a_iter) {
         *term_a_iter = affinity_measure(
                 waf_mat1, i, back1, waf_mat2, i, back2, affinity_nolink);
@@ -373,25 +373,25 @@ void affinity_measure(
 
 template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 back1,
-        const cross_list<force_type>& waf_mat2, Predicate2 back2,
-        affinity_type affinity_nolink, cross_list<affinity_type>& a_mat) {
+        const CrossList<force_type>& waf_mat1, Predicate1 back1,
+        const CrossList<force_type>& waf_mat2, Predicate2 back2,
+        affinity_type affinity_nolink, CrossList<affinity_type>& a_mat) {
 
     // argument checking
-    if (waf_mat1.row_size()!=waf_mat1.col_size() ||
-            waf_mat2.row_size()!=waf_mat2.col_size() ||
-            waf_mat1.row_size()!=waf_mat2.row_size()) {
+    if (waf_mat1.row_count()!=waf_mat1.column_count() ||
+            waf_mat2.row_count()!=waf_mat2.column_count() ||
+            waf_mat1.row_count()!=waf_mat2.row_count()) {
         std::stringstream ss;
         ss << "waf::affinity_measure(waf_mat1, back1, waf_mat2, back2, a_nolink, a_mat):\n";
         ss << "all dimensions of waf matrices must be exactly the same, but\n";
-        ss << "\twaf_mat1: row=" << waf_mat1.row_size() << ", column=" << waf_mat1.col_size() << "\n";
-        ss << "\twaf_mat2: row=" << waf_mat2.row_size() << ", column=" << waf_mat2.col_size() << "\n";
+        ss << "\twaf_mat1: row=" << waf_mat1.row_count() << ", column=" << waf_mat1.column_count() << "\n";
+        ss << "\twaf_mat2: row=" << waf_mat2.row_count() << ", column=" << waf_mat2.column_count() << "\n";
         throw std::invalid_argument(ss.str());
     }
 
     a_mat.clear();
-    size_type term_size = waf_mat1.row_size();
-    a_mat.resize(term_size, term_size);
+    size_type term_size = waf_mat1.row_count();
+    a_mat.reserve(term_size, term_size);
     for (termid_type i=0; i<term_size; ++i) {
         for (termid_type j=0; j<term_size; ++j) {
             a_mat.rat(i, j) = affinity_measure(
@@ -402,25 +402,25 @@ void affinity_measure(
 
 template <typename Predicate1, typename Predicate2>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 back1,
-        const cross_list<force_type>& waf_mat2, Predicate2 back2,
+        const CrossList<force_type>& waf_mat1, Predicate1 back1,
+        const CrossList<force_type>& waf_mat2, Predicate2 back2,
         affinity_type affinity_nolink, std::ostream& a_mat_os) {
 
     // argument checking
-    if (waf_mat1.row_size()!=waf_mat1.col_size() ||
-            waf_mat2.row_size()!=waf_mat2.col_size() ||
-            waf_mat1.row_size()!=waf_mat2.row_size()) {
+    if (waf_mat1.row_count()!=waf_mat1.column_count() ||
+            waf_mat2.row_count()!=waf_mat2.column_count() ||
+            waf_mat1.row_count()!=waf_mat2.row_count()) {
         std::stringstream ss;
         ss << "waf::affinity_measure(waf_mat1, back1, waf_mat2, back2, a_nolink, a_mat_os):\n";
         ss << "all dimensions of waf matrices must be exactly the same, but\n";
-        ss << "\twaf_mat1: row=" << waf_mat1.row_size() << ", column=" << waf_mat1.col_size() << "\n";
-        ss << "\twaf_mat2: row=" << waf_mat2.row_size() << ", column=" << waf_mat2.col_size() << "\n";
+        ss << "\twaf_mat1: row=" << waf_mat1.row_count() << ", column=" << waf_mat1.column_count() << "\n";
+        ss << "\twaf_mat2: row=" << waf_mat2.row_count() << ", column=" << waf_mat2.column_count() << "\n";
         throw std::invalid_argument(ss.str());
     }
 
-    typedef serialization::sparse_matrix::Cell<affinity_type> a_cell_type;
-    typedef serialization::sparse_matrix::Dimension dimension_type;
-    size_type term_size = waf_mat1.row_size();
+    typedef serialization::sparsematrix::Cell<affinity_type> a_cell_type;
+    typedef serialization::sparsematrix::Dimension dimension_type;
+    size_type term_size = waf_mat1.row_count();
     for (termid_type i=0; i<term_size; ++i) {
         for (termid_type j=0; j<term_size; ++j) {
             affinity_type a_value = affinity_measure(
@@ -435,28 +435,28 @@ void affinity_measure(
 template <typename Predicate1, typename Predicate2,
          typename Predicate3, typename Predicate4>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
-        const cross_list<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
-        affinity_type prec, affinity_type affinity_nolink, cross_list<affinity_type>& a_mat) {
+        const CrossList<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
+        const CrossList<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
+        affinity_type prec, affinity_type affinity_nolink, CrossList<affinity_type>& a_mat) {
 
     // argument checking
-    if (waf_mat1.row_size()!=waf_mat1.col_size() ||
-            waf_mat2.row_size()!=waf_mat2.col_size() ||
-            waf_mat1.row_size()!=waf_mat2.row_size()) {
+    if (waf_mat1.row_count()!=waf_mat1.column_count() ||
+            waf_mat2.row_count()!=waf_mat2.column_count() ||
+            waf_mat1.row_count()!=waf_mat2.row_count()) {
         std::stringstream ss;
         ss << "waf::affinity_measure(waf_mat1, care1, back1"
             << ", waf_mat2, care2, back2, prec, a_nolink, a_mat):\n";
         ss << "all dimensions of waf matrices must be exactly the same, but\n";
-        ss << "\twaf_mat1: row=" << waf_mat1.row_size()
-            << ", column=" << waf_mat1.col_size() << "\n";
-        ss << "\twaf_mat2: row=" << waf_mat2.row_size()
-            << ", column=" << waf_mat2.col_size() << "\n";
+        ss << "\twaf_mat1: row=" << waf_mat1.row_count()
+            << ", column=" << waf_mat1.column_count() << "\n";
+        ss << "\twaf_mat2: row=" << waf_mat2.row_count()
+            << ", column=" << waf_mat2.column_count() << "\n";
         throw std::invalid_argument(ss.str());
     }
 
     a_mat.clear();
-    size_type term_size = waf_mat1.row_size();
-    a_mat.resize(term_size, term_size);
+    size_type term_size = waf_mat1.row_count();
+    a_mat.reserve(term_size, term_size);
     for (termid_type i=0; i<term_size; ++i) {
         if (!care1(i)) continue;
         for (termid_type j=0; j<term_size; ++j) {
@@ -472,28 +472,28 @@ void affinity_measure(
 template <typename Predicate1, typename Predicate2,
          typename Predicate3, typename Predicate4>
 void affinity_measure(
-        const cross_list<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
-        const cross_list<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
+        const CrossList<force_type>& waf_mat1, Predicate1 care1, Predicate2 back1,
+        const CrossList<force_type>& waf_mat2, Predicate3 care2, Predicate4 back2,
         affinity_type prec, affinity_type affinity_nolink, std::ostream& a_mat_os) {
 
     // argument checking
-    if (waf_mat1.row_size()!=waf_mat1.col_size() ||
-            waf_mat2.row_size()!=waf_mat2.col_size() ||
-            waf_mat1.row_size()!=waf_mat2.row_size()) {
+    if (waf_mat1.row_count()!=waf_mat1.column_count() ||
+            waf_mat2.row_count()!=waf_mat2.column_count() ||
+            waf_mat1.row_count()!=waf_mat2.row_count()) {
         std::stringstream ss;
         ss << "waf::affinity_measure(waf_mat1, care1, back1,"
             << " waf_mat2, care2, back2, prec, a_nolink, a_mat_os):\n";
         ss << "all dimensions of waf matrices must be exactly the same, but\n";
-        ss << "\twaf_mat1: row=" << waf_mat1.row_size()
-            << ", column=" << waf_mat1.col_size() << "\n";
-        ss << "\twaf_mat2: row=" << waf_mat2.row_size()
-            << ", column=" << waf_mat2.col_size() << "\n";
+        ss << "\twaf_mat1: row=" << waf_mat1.row_count()
+            << ", column=" << waf_mat1.column_count() << "\n";
+        ss << "\twaf_mat2: row=" << waf_mat2.row_count()
+            << ", column=" << waf_mat2.column_count() << "\n";
         throw std::invalid_argument(ss.str());
     }
 
-    typedef serialization::sparse_matrix::Cell<affinity_type> a_cell_type;
-    typedef serialization::sparse_matrix::Dimension dimension_type;
-    size_type term_size = waf_mat1.row_size();
+    typedef serialization::sparsematrix::Cell<affinity_type> a_cell_type;
+    typedef serialization::sparsematrix::Dimension dimension_type;
+    size_type term_size = waf_mat1.row_count();
     for (termid_type i=0; i<term_size; ++i) {
         if (!care1(i)) continue;
         for (termid_type j=0; j<term_size; ++j) {

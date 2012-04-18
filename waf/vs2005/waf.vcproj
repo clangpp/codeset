@@ -114,7 +114,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\cross_list\cross_list.h"
+				RelativePath="..\src\crosslist\crosslist.h"
 				>
 			</File>
 			<File
@@ -138,7 +138,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\sparse_matrix\sparse_matrix.h"
+				RelativePath="..\src\sparsematrix\sparsematrix.h"
 				>
 			</File>
 			<File
