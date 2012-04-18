@@ -19,15 +19,15 @@ note: ":" means depend on
     [waf_core]: waf core algorithm type definations
 
 [waf_core]: waf core library, implement waf related algorithm
-    [cross_list]: waf matrix and affinity matrix data structure
-    [sparse_matrix]: co-occurrence matrix data structure
+    [crosslist]: waf matrix and affinity matrix data structure
+    [sparsematrix]: co-occurrence matrix data structure
     [serialization]: stream based/related waf algorithm
 
-[cross_list]: cross list data structure, an implemention of sparse matrix
-    [serialization]: cross list to/from stream
+[sparsematrix]: a simple indexed cross list to optimize random accessing of cross list
+    [crosslist]: base data structure of [sparse_matrix]
 
-[sparse_matrix]: a simple indexed cross list to optimize random accessing of cross list
-    [cross_list]: base data structure of [sparse_matrix]
+[serialization]: cross list to/from stream
+    [crosslist]: cross list data structure, an implemention of sparse matrix
 
 [configure]: a simple configuration library, read configuration file and command line options
     [facility]: provide some simple tool for [configure]

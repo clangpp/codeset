@@ -135,7 +135,7 @@ void test_FreqVector() {
 
 void test_CellComp() {
     Trace trace(INFO_, "test_CellComp()");
-    serialization::sparse_matrix::Cell<int> c1(10,20,1000), c2(10,20,1000);
+    serialization::sparsematrix::Cell<int> c1(10,20,1000), c2(10,20,1000);
 
     assert(waf::cell_value_greater(c1,c2)==false);
     assert(waf::cell_value_greater(c2,c1)==false);

@@ -39,7 +39,7 @@ void test_term_frequency() {
 
     stringstream ss;
     ss << "1 2 3 5 3 -1 5 2 5 3 5 4 5 -1";
-    istream_iterator<waf::termid_type> is_iter(ss), is_end;
+    istream_iterator<int> is_iter(ss), is_end;
 
     waf::TermSet termset;
     termset.insert(1, "1");
@@ -63,11 +63,11 @@ void test_term_frequency() {
 
 void test_co_occurrence() {
     Trace trace(INFO_, "test_co_occurrence()");
-    sparse_matrix<waf::cooccur_type> co_mat;
+    SparseMatrix<waf::cooccur_type> co_mat;
 
     stringstream ss;
     ss << "0 1 2 2 3 5 -1 0 3 1";
-    istream_iterator<waf::termid_type> is_iter(ss), is_end;
+    istream_iterator<int> is_iter(ss), is_end;
     waf::co_occurrence(is_iter, is_end,
             waf::care_all(), waf::care_all(), 5, co_mat);
     waf::mean_distance(co_mat.begin(), co_mat.end());
@@ -132,7 +132,7 @@ void test_affinity_or_mean() {
     termset.insert(5, "y");
     termset.insert(6, "z");
 
-    cross_list<waf::force_type> waf_mat(
+    CrossList<waf::force_type> waf_mat(
             termset.max_termid()+1, termset.max_termid()+1);
     waf_mat(termset["t"], termset["u"]) = 0.04;
     waf_mat(termset["w"], termset["u"]) = 0.05;
@@ -152,19 +152,19 @@ void test_affinity_or_mean() {
 
     // in-link of "u" and "v"
     waf::force_type or_mean = waf::affinity_or_mean(
-            waf_mat.begin_of_col(u_id), waf_mat.end_of_col(u_id), waf::care_all(),
-            waf_mat.begin_of_col(v_id), waf_mat.end_of_col(v_id), waf::care_all(),
+            waf_mat.column_begin(u_id), waf_mat.column_end(u_id), waf::care_all(),
+            waf_mat.column_begin(v_id), waf_mat.column_end(v_id), waf::care_all(),
             mem_fun_ref(
-                &cross_list<waf::force_type>::const_col_iterator::row_index)
+                &CrossList<waf::force_type>::const_column_iterator::row)
             );
     assert(abs(or_mean - 0.4) < 0.01);
 
     // out-link of "u" and "v"
     or_mean = waf::affinity_or_mean(
-            waf_mat.begin_of_row(u_id), waf_mat.end_of_row(u_id), waf::care_all(),
-            waf_mat.begin_of_row(v_id), waf_mat.end_of_row(v_id), waf::care_all(),
+            waf_mat.row_begin(u_id), waf_mat.row_end(u_id), waf::care_all(),
+            waf_mat.row_begin(v_id), waf_mat.row_end(v_id), waf::care_all(),
             mem_fun_ref(
-                &cross_list<waf::force_type>::const_row_iterator::col_index)
+                &CrossList<waf::force_type>::const_row_iterator::column)
             );
     assert(abs(or_mean - 0.5) < 0.01);
 
@@ -182,7 +182,7 @@ void test_affinity_measure() {
     termset.insert(5, "y");
     termset.insert(6, "z");
 
-    cross_list<waf::force_type> waf_mat(
+    CrossList<waf::force_type> waf_mat(
             termset.max_termid()+1, termset.max_termid()+1);
     waf_mat(termset["t"], termset["u"]) = 0.04;
     waf_mat(termset["w"], termset["u"]) = 0.05;

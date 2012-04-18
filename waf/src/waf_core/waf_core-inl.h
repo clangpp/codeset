@@ -197,8 +197,8 @@ void word_activation_force(
     size_type term_size = std::max(co_mat.row_count(), co_mat.column_count());
     waf_mat.reserve(term_size, term_size);
 
-    CrossList<cooccur_type>::const_iterator co_iter = co_mat.cbegin();
-    CrossList<cooccur_type>::const_iterator co_end = co_mat.cend();
+    CrossList<cooccur_type>::const_iterator co_iter = co_mat.begin();
+    CrossList<cooccur_type>::const_iterator co_end = co_mat.end();
     for (; co_iter!=co_end; ++co_iter) {
 
 		// verify there is at least one term(id) concerned
