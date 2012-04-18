@@ -46,12 +46,12 @@ inline std::basic_ostream<CharT, Traits>& operator << (
 	return os << " ( " << val.first << " " << val.second << " " << val.third << " ) ";
 }
 
-// namespace sparse_matrix
+// namespace sparsematrix
 // element: " ( row column value ) "
 // dimension: " [ row column ] "
 // each line stores one row of matrix, last line stores dimension of matrix
 // =============================================================================
-namespace sparse_matrix {
+namespace sparsematrix {
 
 template <typename CharT, typename Traits, typename T>
 std::basic_istream<CharT, Traits>& operator >> (
@@ -85,7 +85,58 @@ std::basic_ostream<CharT, Traits>& operator << (
 	return os << " [ " << val.row << " " << val.column << " ] ";
 }
 
-}  // namespace sparse_matrix
+}  // namespace sparsematrix
+
+template <typename CharT, typename Traits, typename T>
+std::basic_istream<CharT, Traits>& operator >> (
+        std::basic_istream<CharT, Traits>& is, CrossList<T>& c) {
+    typedef serialization::sparsematrix::Cell<T> cell_type;
+    typedef serialization::sparsematrix::Dimension dimension_type;
+	c.clear();
+    cell_type cell;
+    dimension_type dimension;
+    char beg_ch=0;
+    while (is >> beg_ch)  // for each line
+    {
+        is.putback(beg_ch);
+        bool unknown_pattern = false;
+        switch (beg_ch) {
+        case '(':  // cell unit
+            is >> cell;
+            if (cell.row>=c.row_count()) c.row_reserve(cell.row+1);
+            if (cell.column>=c.column_count()) c.column_reserve(cell.column+1);
+            c.rinsert(cell.row, cell.column, cell.value);
+            break;
+        case '[':  // dimension
+            is >> dimension;
+            c.reserve(dimension.row, dimension.column);
+            break;
+        default:
+            unknown_pattern = true;
+            break;
+        }
+        if (unknown_pattern) break;  // unknown pattern, break loop
+    }
+	return is;
+}
+
+template <typename CharT, typename Traits, typename T>
+std::basic_ostream<CharT, Traits>& operator << (
+        std::basic_ostream<CharT, Traits>& os, const CrossList<T>& c) {
+    typedef serialization::sparsematrix::Cell<T> cell_type;
+    typedef serialization::sparsematrix::Dimension dimension_type;
+    typedef typename CrossList<T>::const_row_iterator const_row_iterator;
+	for (typename CrossList<T>::size_type r=0; r<c.row_count(); ++r)
+	{
+		if (c.row_size(r)==0) continue;
+		const_row_iterator row_iter=c.row_begin(r), row_end=c.row_end(r);
+		for (; row_iter!=row_end; ++row_iter)	// write every node
+            os << cell_type(row_iter.row(),row_iter.column(),*row_iter);
+		os << std::endl;
+	}
+	os << dimension_type(c.row_count(), c.column_count()) << std::endl;
+	return os;
+}
 
 }  // namespace serialization
 

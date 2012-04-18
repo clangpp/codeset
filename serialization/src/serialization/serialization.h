@@ -7,6 +7,7 @@
 #include <ostream>
 #include <utility>
 
+#include "../crosslist/crosslist.h"
 
 namespace serialization {
 
@@ -43,9 +44,9 @@ template <typename CharT, typename Traits, typename T1, typename T2, typename T3
 inline std::basic_ostream<CharT, Traits>& operator << (
 		std::basic_ostream<CharT, Traits>& os, Triad<T1, T2, T3>& val);
 
-// namespace sparse_matrix
+// namespace sparsematrix
 // =============================================================================
-namespace sparse_matrix {
+namespace sparsematrix {
 
 // element of sparse matrix, (row, column, value) tuple
 template <typename T>
@@ -86,7 +87,15 @@ template <typename CharT, typename Traits>
 inline std::basic_ostream<CharT, Traits>& operator << (
 		std::basic_ostream<CharT, Traits>& os, const Dimension& val);
 
-}  // namespace sparse_matrix
+}  // namespace sparsematrix
+
+template <typename CharT, typename Traits, typename T>
+std::basic_istream<CharT, Traits>& operator >> (
+        std::basic_istream<CharT, Traits>& is, CrossList<T>& c);
+
+template <typename CharT, typename Traits, typename T>
+std::basic_ostream<CharT, Traits>& operator << (
+        std::basic_ostream<CharT, Traits>& os, const CrossList<T>& c);
 
 }  // namespace serialization
 
