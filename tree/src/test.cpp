@@ -202,9 +202,8 @@ void test_traversal() {
 	co.values.clear();
 	tree::traverse_inorder(p, bind1st(mem_fun(&Collector::collect), &co));
 	log(INFO_) << "inorder traversal: ";
-	for (size_t i=0; i<co.values.size(); ++i)
-		standard_logger() << co.values[i] << " ";
-	standard_logger() << endl;
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
 	int inorder[] = {3,1,6,4,0,5,2};
 	pass = equal(co.values.begin(), co.values.end(), inorder);
 	log(INFO_) << "test traverse_inorder: " << (pass ? "pass" : "FAILED") << endl;
@@ -212,9 +211,8 @@ void test_traversal() {
 	co.values.clear();
 	tree::traverse_postorder(p, bind1st(mem_fun(&Collector::collect), &co));
 	log(INFO_) << "postorder traversal: ";
-	for (size_t i=0; i<co.values.size(); ++i)
-		standard_logger() << co.values[i] << " ";
-	standard_logger() << endl;
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
 	int postorder[] = {3,6,4,1,5,2,0};
 	pass = equal(co.values.begin(), co.values.end(), postorder);
 	log(INFO_) << "test traverse_postorder: " << (pass ? "pass" : "FAILED") << endl;
@@ -222,9 +220,8 @@ void test_traversal() {
 	co.values.clear();
 	tree::traverse_preorder(p, bind1st(mem_fun(&Collector::collect), &co));
 	log(INFO_) << "preorder traversal: ";
-	for (size_t i=0; i<co.values.size(); ++i)
-		standard_logger() << co.values[i] << " ";
-	standard_logger() << endl;
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
 	int preorder[] = {0,1,3,4,6,2,5};
 	pass = equal(co.values.begin(), co.values.end(), preorder);
 	log(INFO_) << "test traverse_preorder: " << (pass ? "pass" : "FAILED") << endl;
@@ -232,12 +229,83 @@ void test_traversal() {
 	co.values.clear();
 	tree::traverse_level_order(p, bind1st(mem_fun(&Collector::collect), &co));
 	log(INFO_) << "level_order traversal: ";
-	for (size_t i=0; i<co.values.size(); ++i)
-		standard_logger() << co.values[i] << " ";
-	standard_logger() << endl;
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
 	int level_order[] = {0,1,2,3,4,5,6};
 	pass = equal(co.values.begin(), co.values.end(), level_order);
 	log(INFO_) << "test traverse_level_order: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_inorder_recursive(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "inorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), inorder);
+	log(INFO_) << "test traverse_inorder_recursive: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_postorder_recursive(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "postorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), postorder);
+	log(INFO_) << "test traverse_postorder_recursive: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_preorder_recursive(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "preorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), preorder);
+	log(INFO_) << "test traverse_preorder_recursive: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_inorder_stack(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "inorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), inorder);
+	log(INFO_) << "test traverse_inorder_stack: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_postorder_stack(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "postorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), postorder);
+	log(INFO_) << "test traverse_postorder_stack: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_preorder_stack(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "preorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), preorder);
+	log(INFO_) << "test traverse_preorder_stack: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_inorder_tricky(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "inorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), inorder);
+	log(INFO_) << "test traverse_inorder_tricky: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_postorder_tricky(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "postorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), postorder);
+	log(INFO_) << "test traverse_postorder_tricky: " << (pass ? "pass" : "FAILED") << endl;
+
+	co.values.clear();
+	tree::traverse_preorder_tricky(p, bind1st(mem_fun(&Collector::collect), &co));
+	log(INFO_) << "preorder traversal: ";
+    copy(co.values.begin(), co.values.end(), log(" "));
+    log() << endl;
+	pass = equal(co.values.begin(), co.values.end(), preorder);
+	log(INFO_) << "test traverse_preorder_tricky: " << (pass ? "pass" : "FAILED") << endl;
 }
 
 void test_observer() {
@@ -315,10 +383,10 @@ void test_observer() {
 		&& (tree::height(&nodes[5])==0);
 	log(INFO_) << "test height: " << (pass ? "pass" : "FAILED") << endl;
 
-    pass = (tree::size((BSNode<int>*)NULL)==0) && (tree::size(&nodes[3])==7)
-        && (tree::size(&nodes[4])==3) && (tree::size(&nodes[1])==3)
-        && (tree::size(&nodes[5])==1);
-	log(INFO_) << "test size: " << (pass ? "pass" : "FAILED") << endl;
+    pass = (tree::count((BSNode<int>*)NULL)==0) && (tree::count(&nodes[3])==7)
+        && (tree::count(&nodes[4])==3) && (tree::count(&nodes[1])==3)
+        && (tree::count(&nodes[5])==1);
+	log(INFO_) << "test count: " << (pass ? "pass" : "FAILED") << endl;
 
 	pass = (tree::find(root, 6)==&nodes[6])
 		&& (tree::find(root, 7)==NULL) && (tree::find(root, -1)==NULL);
@@ -421,7 +489,6 @@ void test_splay_tree() {
 	bool pass = true;
 	vector<BSNode<int> > nodes;
 	BSNode<int>* root = NULL;
-	BSNode<int>* p = NULL;
     BSNode<int>* curr = NULL;
 
 	nodes.resize(100);
@@ -447,8 +514,6 @@ void test_traversal_orders() {
 	bool pass = true;
 	vector<BSNode<int> > nodes;
 	BSNode<int>* root = NULL;
-	BSNode<int>* p = NULL;
-    BSNode<int>* curr = NULL;
 
 	nodes.resize(100);
 	for (size_t i=0; i<nodes.size(); ++i)

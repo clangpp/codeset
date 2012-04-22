@@ -92,22 +92,49 @@ NodeT* double_rotation(
 // ********** </note> ***********
 
 template <typename NodePtrT, typename UnaryFunction>
-void traverse_preorder(NodePtrT root, UnaryFunction op);
+inline void traverse_preorder(NodePtrT root, UnaryFunction op);
 
 template <typename NodePtrT, typename UnaryFunction>
-void traverse_inorder(NodePtrT root, UnaryFunction op);
+inline void traverse_inorder(NodePtrT root, UnaryFunction op);
 
 template <typename NodePtrT, typename UnaryFunction>
-void traverse_postorder(NodePtrT root, UnaryFunction op);
+inline void traverse_postorder(NodePtrT root, UnaryFunction op);
 
 template <typename NodePtrT, typename UnaryFunction>
 void traverse_level_order(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_preorder_recursive(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_inorder_recursive(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_postorder_recursive(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_preorder_stack(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_inorder_stack(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_postorder_stack(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_preorder_tricky(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_inorder_tricky(NodePtrT root, UnaryFunction op);
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_postorder_tricky(NodePtrT root, UnaryFunction op);
 
 template <typename NodeT>
 ssize_type height(const NodeT* root);  // NULL tree's height is -1
 
 template <typename NodeT>
-size_type size(const NodeT* root);  // how many nodes in tree
+size_type count(const NodeT* root);  // how many nodes in tree
 
 // search value in binary-search tree
 // return node that contains value; if not found, return NULL

@@ -9,6 +9,7 @@
 #include <functional>
 #include <iterator>
 #include <queue>
+#include <stack>
 #include <stdexcept>
 
 namespace tree {
@@ -202,26 +203,17 @@ NodeT* double_rotation(
 
 template <typename NodePtrT, typename UnaryFunction>
 void traverse_preorder(NodePtrT root, UnaryFunction op) {
-	if (NULL==root) return;
-	op(root->value);
-	traverse_preorder(root->left, op);
-	traverse_preorder(root->right, op);
+    traverse_preorder_recursive(root, op);
 }
 
 template <typename NodePtrT, typename UnaryFunction>
 void traverse_inorder(NodePtrT root, UnaryFunction op) {
-	if (NULL==root) return;
-	traverse_inorder(root->left, op);
-	op(root->value);
-	traverse_inorder(root->right, op);
+    traverse_inorder_recursive(root, op);
 }
 
 template <typename NodePtrT, typename UnaryFunction>
 void traverse_postorder(NodePtrT root, UnaryFunction op) {
-	if (NULL==root) return;
-	traverse_postorder(root->left, op);
-	traverse_postorder(root->right, op);
-	op(root->value);
+    traverse_postorder_recursive(root, op);
 }
 
 template <typename NodePtrT, typename UnaryFunction>
@@ -244,6 +236,146 @@ void traverse_level_order(NodePtrT root, UnaryFunction op) {
 	}
 }
 
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_preorder_recursive(NodePtrT root, UnaryFunction op) {
+	if (NULL==root) return;
+	op(root->value);
+	traverse_preorder(root->left, op);
+	traverse_preorder(root->right, op);
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_inorder_recursive(NodePtrT root, UnaryFunction op) {
+	if (NULL==root) return;
+	traverse_inorder(root->left, op);
+	op(root->value);
+	traverse_inorder(root->right, op);
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_postorder_recursive(NodePtrT root, UnaryFunction op) {
+	if (NULL==root) return;
+	traverse_postorder(root->left, op);
+	traverse_postorder(root->right, op);
+	op(root->value);
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_preorder_stack(NodePtrT root, UnaryFunction op) {
+    std::stack<NodePtrT> s;
+    s.push(root);
+    while (!s.empty()) {
+        NodePtrT curr = s.top();
+        s.pop();
+        if (NULL==curr) continue;
+        op(curr->value);  // visit current node firstly
+        s.push(curr->right);  // visit right subtree thirdly
+        s.push(curr->left);  // visit left subtree secondly
+    }
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_inorder_stack(NodePtrT root, UnaryFunction op) {
+    std::stack<std::pair<NodePtrT, bool> > s;  // bool activated
+    s.push(make_pair(root, false));
+    while (!s.empty()) {
+        NodePtrT curr = s.top().first;
+        bool activated = s.top().second;
+        s.pop();
+        if (NULL==curr) continue;
+        if (activated) {
+            op(curr->value);  // visit current node
+            continue;
+        }
+
+        // current node not activated, push right, root, left
+        s.push(make_pair(curr->right, false));  // visit right subtree thirdly
+        s.push(make_pair(curr, true));  // visit current node secondly
+        s.push(make_pair(curr->left, false));  // visit left subtree firstly
+    }
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_postorder_stack(NodePtrT root, UnaryFunction op) {
+    std::stack<std::pair<NodePtrT, bool> > s;  // bool activated
+    s.push(make_pair(root, false));
+    while (!s.empty()) {
+        NodePtrT curr = s.top().first;
+        bool activated = s.top().second;
+        s.pop();
+        if (NULL==curr) continue;
+        if (activated) {
+            op(curr->value);  // visit current node
+            continue;
+        }
+
+        // current node not activated, push root, right, left
+        s.push(make_pair(curr, true));  // visit current node thirdly
+        s.push(make_pair(curr->right, false));  // visit right subtree secondly
+        s.push(make_pair(curr->left, false));  // visit left subtree firstly
+    }
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_preorder_tricky(NodePtrT root, UnaryFunction op) {
+    std::stack<NodePtrT> s;
+    NodePtrT curr = root;
+    while (!s.empty() || curr!=NULL) {
+        if (curr!=NULL) {
+            op(curr->value);  // visit before pushed
+            s.push(curr);
+            curr = curr->left;
+        } else {
+            curr = s.top();
+            s.pop();
+            curr = curr->right;
+        }
+    }
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_inorder_tricky(NodePtrT root, UnaryFunction op) {
+    std::stack<NodePtrT> s;
+    NodePtrT curr = root;
+    while (!s.empty() || curr!=NULL) {
+        if (curr!=NULL) {
+            s.push(curr);
+            curr = curr->left;
+        } else {
+            curr = s.top();
+            op(curr->value);  // visit before poped
+            s.pop();
+            curr = curr->right;
+        }
+    }
+}
+
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_postorder_tricky(NodePtrT root, UnaryFunction op) {
+    std::stack<std::pair<NodePtrT, NodePtrT> > s;
+    NodePtrT curr=root;
+    while (!s.empty() || curr!=NULL) {
+        if (curr!=NULL) {
+            s.push(make_pair(curr, curr->right));
+            curr = curr->left;
+            continue;
+        }
+
+        NodePtrT self = s.top().first;
+        NodePtrT right = s.top().second;
+        const NodePtrT right_visited_flag = NULL;
+        s.pop();
+        if (right_visited_flag==right) {
+            op(self->value);  // visit after right subtree visited
+            continue;
+        }
+
+        s.push(make_pair(self, right_visited_flag));
+        s.push(make_pair(right, right->right));
+        curr = right->left;
+    }
+}
+
 template <typename NodeT>
 ssize_type height(const NodeT* root) {
 	if (NULL==root) return -1;
@@ -251,9 +383,9 @@ ssize_type height(const NodeT* root) {
 }
 
 template <typename NodeT>
-size_type size(const NodeT* root) {
+size_type count(const NodeT* root) {
     if (NULL==root) return 0;
-    return 1 + size(root->left) + size(root->right);
+    return 1 + count(root->left) + count(root->right);
 }
 
 template <typename NodePtrT, typename T>
