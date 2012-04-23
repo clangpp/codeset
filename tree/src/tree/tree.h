@@ -13,10 +13,10 @@ typedef std::ptrdiff_t ssize_type;  // signed size type
 
 // ********** <note> ************
 // concept NodeT {
-//	value_type value;
-// 	NodeT* left;
-// 	NodeT* right
-// 	NodeT* parent;
+//     value_type value;
+//     NodeT* left;
+//     NodeT* right
+//     NodeT* parent;
 // };
 // ********** </note> ***********
 
@@ -45,15 +45,15 @@ namespace internal {
 
 template <typename NodeT>
 void print_preorder(std::ostream& out,
-		const NodeT* root, std::vector<int>& path);
+        const NodeT* root, std::vector<int>& path);
 
 template <typename NodeT>
 void print_inorder(std::ostream& out,
-		const NodeT* root, std::vector<int>& path);
+        const NodeT* root, std::vector<int>& path);
 
 template <typename NodeT>
 void print_postorder(std::ostream& out,
-		const NodeT* root, std::vector<int>& path);
+        const NodeT* root, std::vector<int>& path);
 
 }  // namespace internal
 
@@ -79,15 +79,15 @@ NodeT* double_rotation(
 
 // ********** <note> ************
 // concept NodePtrT {
-//	NodeT* or const NodeT*
+//     NodeT* or const NodeT*
 // };
 // ********** </note> ***********
 
 // ********** <note> ************
 // concept UnaryFunction {
-// 	UnaryFunction op;
-// 	NodePtrT p;
-// 	requires op(p->value);
+//     UnaryFunction op;
+//     NodePtrT p;
+//     requires op(p->value);
 // };
 // ********** </note> ***********
 
@@ -150,7 +150,7 @@ namespace avl {  // AVL tree algorithm
 
 // ********** <note> ************
 // concept AVLNodeT : public NodeT{
-//	ssize_type height;
+//     ssize_type height;
 // };
 // ********** </note> ***********
 
@@ -202,7 +202,7 @@ OutputIterator inorder_postorder_to_preorder(
 namespace heap {
 
 // ********** <note> ************
-//  assumption: array index is zero based
+// assumption: array index is zero based
 // ********** </note> ***********
 
 inline size_type left(size_type pos);
