@@ -288,7 +288,7 @@ void traverse_inorder_stack(NodePtrT root, UnaryFunction op) {
             continue;
         }
 
-        // current node not expanded, push right, root, left
+        // expand current subtree, push right, root, left
         s.push(make_pair(curr->right, false));  // visit right subtree thirdly
         s.push(make_pair(curr, true));  // visit current node secondly
         s.push(make_pair(curr->left, false));  // visit left subtree firstly
@@ -309,7 +309,7 @@ void traverse_postorder_stack(NodePtrT root, UnaryFunction op) {
             continue;
         }
 
-        // current node not expanded, push root, right, left
+        // expand current subtree, push root, right, left
         s.push(make_pair(curr, true));  // visit current node thirdly
         s.push(make_pair(curr->right, false));  // visit right subtree secondly
         s.push(make_pair(curr->left, false));  // visit left subtree firstly
