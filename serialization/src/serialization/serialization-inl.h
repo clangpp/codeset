@@ -3,6 +3,7 @@
 #define SERIALIZATION_INL_H_
 
 #include "serialization.h"
+#include <stdexcept>
 #include <string>
 
 namespace serialization {
@@ -85,6 +86,30 @@ std::basic_ostream<CharT, Traits>& operator << (
 	return os << " [ " << val.row << " " << val.column << " ] ";
 }
 
+template <typename CharT, typename Traits, typename T>
+bool next_cell(
+        std::basic_istream<CharT, Traits>& is, Cell<T>& cell, Dimension& dim) {
+    char beg_ch=0;
+    is >> beg_ch;
+    is.putback(beg_ch);
+    bool is_cell = false;
+    switch (beg_ch) {
+    case '(':  // cell unit
+        is >> cell;
+        is_cell = true;
+        break;
+    case '[':  // dimension unit
+        is >> dim;
+        is_cell = false;
+        break;
+    default:
+        is_cell = false;
+        throw std::runtime_error("unknown pattern");
+        break;
+    }
+    return is_cell;
+}
+
 }  // namespace sparsematrix
 
 template <typename CharT, typename Traits, typename T>
@@ -95,29 +120,22 @@ std::basic_istream<CharT, Traits>& operator >> (
 	c.clear();
     cell_type cell;
     dimension_type dimension;
-    char beg_ch=0;
-    while (is >> beg_ch)  // for each line
-    {
-        is.putback(beg_ch);
-        bool unknown_pattern = false;
-        switch (beg_ch) {
-        case '(':  // cell unit
-            is >> cell;
-            if (cell.row>=c.row_count()) c.row_reserve(cell.row+1);
-            if (cell.column>=c.column_count()) c.column_reserve(cell.column+1);
-            c.rinsert(cell.row, cell.column, cell.value);
-            break;
-        case '[':  // dimension
-            is >> dimension;
-            c.reserve(dimension.row, dimension.column);
-            break;
-        default:
-            unknown_pattern = true;
+    while (is) {  // one unit per cycle
+        try {
+            if (sparsematrix::next_cell(is, cell, dimension)) {
+                if (cell.row>=c.row_count())
+                    c.row_reserve(cell.row+1);
+                if (cell.column>=c.column_count())
+                    c.column_reserve(cell.column+1);
+                c.rinsert(cell.row, cell.column, cell.value);
+            } else {
+                c.reserve(dimension.row, dimension.column);
+            }
+        } catch (const std::exception& e) {
             break;
         }
-        if (unknown_pattern) break;  // unknown pattern, break loop
     }
-	return is;
+    return is;
 }
 
 template <typename CharT, typename Traits, typename T>
