@@ -152,7 +152,7 @@ std::basic_ostream<CharT, Traits>& operator << (
             os << cell_type(row_iter.row(),row_iter.column(),*row_iter);
 		os << std::endl;
 	}
-	os << dimension_type(c.row_count(), c.column_count()) << std::endl;
+	os << dimension_type(c.row_count(), c.column_count()) << std::flush;
 	return os;
 }
 

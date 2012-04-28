@@ -141,7 +141,7 @@ void test_crosslist_serialization() {
 	ss << " ( 0 0 1 )  ( 0 2 2 ) \n";
 	ss << " ( 1 1 3 )  ( 1 3 4 ) \n";
 	ss << " ( 2 1 5 )  ( 2 2 6 ) \n";
-    ss << " [ 3 4 ] \n";
+    ss << " [ 3 4 ] ";
 	ss >> c;
 	assert(3 == c.row_count());
 	assert(4 == c.column_count());
