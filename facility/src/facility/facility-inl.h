@@ -85,7 +85,7 @@ std::string& copy_little_endian(
         wchar_type wch = *wchar_beg;
         bool is_ascii = (wch^(wch&0x7f))==0;
         if (is_ascii) {
-            dest.push_back(wch);
+            dest.push_back(static_cast<char>(wch));
         } else {
             for (std::size_t j=0; j<wide; ++j)
                 dest.push_back(wch >> (j<<3));
@@ -127,7 +127,7 @@ std::string& copy_big_endian(
         wchar_type wch = *wchar_beg;
         bool is_ascii = (wch^(wch&0x7f))==0;
         if (is_ascii) {
-            dest.push_back(wch);
+            dest.push_back(static_cast<char>(wch));
         } else {
             for (std::size_t j=0; j<wide; ++j)
                 dest.push_back(wch >> ((wide-1-j)<<3));

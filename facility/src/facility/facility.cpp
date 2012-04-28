@@ -3,21 +3,24 @@
 
 #include <algorithm>
 #include <cctype>
+#include <functional>
 #include <iterator>
 
 namespace facility {
 
 std::string& trim_left(std::string& str) {
-	std::string::iterator iter = str.begin();
-	for (; iter!=str.end() && std::isspace(*iter); ++iter) {}
-	str.erase(str.begin(), iter);
+	std::string::iterator nsp_beg =
+		std::find_if(str.begin(), str.end(),
+				std::not1(std::ptr_fun<int, int>(&std::isspace)));
+	str.erase(str.begin(), nsp_beg);
 	return str;
 }
 
 std::string& trim_right(std::string& str) {
-	std::string::reverse_iterator riter = str.rbegin();
-	for (; riter!=str.rend() && std::isspace(*riter); ++riter) {}
-	str.erase(riter.base(), str.rbegin().base());
+	std::string::reverse_iterator nsp_rbeg =
+		std::find_if(str.rbegin(), str.rend(),
+				std::not1(std::ptr_fun<int, int>(&std::isspace)));
+	str.erase(nsp_rbeg.base(), str.end());
 	return str;
 }
 

@@ -31,10 +31,32 @@ int main() {
 }
 
 void test_to() {
-	cout << "35" << " " << to<int>("35") << endl;
+	Trace trace(INFO_, "test_to()");
+	bool pass = true;
+	pass = to<int>("35")==35;
+	log(INFO_) << "test to<int>: " << (pass ? "pass" : "FAILED") << endl;
 }
 
 void test_trim() {
+	Trace trace(INFO_, "test_trim()");
+	bool pass = true;
+	string str("\tabc def\tghi\r\n \v");
+	string str_trim_left("abc def\tghi\r\n \v");
+	string str_trim_right("\tabc def\tghi");
+	string str_trim("abc def\tghi");
+	string str_test;
+	
+	str_test = str;
+	pass = facility::trim_left(str_test)==str_trim_left;
+	log(INFO_) << "test trim_left: " << (pass ? "pass" : "FAILED") << endl;
+
+	str_test = str;
+	pass = facility::trim_right(str_test)==str_trim_right;
+	log(INFO_) << "test trim_right: " << (pass ? "pass" : "FAILED") << endl;
+
+	str_test = str;
+	pass = facility::trim(str_test)==str_trim;
+	log(INFO_) << "test trim: " << (pass ? "pass" : "FAILED") << endl;
 }
 
 void test_array_length() {
