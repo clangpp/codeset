@@ -36,7 +36,7 @@ typename CrossList<T>::const_iterator CrossList<T>::end() const {
 template <typename T>
 typename CrossList<T>::row_iterator
     CrossList<T>::row_begin(size_type row_index) {
-	if (!is_legal_row(row_index)) {
+	if (!is_valid_row(row_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::row_begin(size_type): row_index illegal");
     }
@@ -46,7 +46,7 @@ typename CrossList<T>::row_iterator
 template <typename T>
 typename CrossList<T>::const_row_iterator
     CrossList<T>::row_begin(size_type row_index) const {
-	if (!is_legal_row(row_index)) {
+	if (!is_valid_row(row_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::row_begin(size_type) const: row_index illegal");
     }
@@ -56,7 +56,7 @@ typename CrossList<T>::const_row_iterator
 template <typename T>
 typename CrossList<T>::row_iterator
     CrossList<T>::row_end(size_type row_index) {
-	if (!is_legal_row(row_index)) {
+	if (!is_valid_row(row_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::row_end(size_type): row_index illegal");
     }
@@ -66,7 +66,7 @@ typename CrossList<T>::row_iterator
 template <typename T>
 typename CrossList<T>::const_row_iterator
     CrossList<T>::row_end(size_type row_index) const {
-	if (!is_legal_row(row_index)) {
+	if (!is_valid_row(row_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::row_end(size_type) const: row_index illegal");
     }
@@ -76,7 +76,7 @@ typename CrossList<T>::const_row_iterator
 template <typename T>
 typename CrossList<T>::column_iterator
     CrossList<T>::column_begin(size_type col_index) {
-	if (!is_legal_column(col_index)) {
+	if (!is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::column_begin(size_type): col_index illegal");
     }
@@ -86,7 +86,7 @@ typename CrossList<T>::column_iterator
 template <typename T>
 typename CrossList<T>::const_column_iterator
     CrossList<T>::column_begin(size_type col_index) const {
-	if (!is_legal_column(col_index)) {
+	if (!is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::column_begin(size_type) const: col_index illegal");
     }
@@ -96,7 +96,7 @@ typename CrossList<T>::const_column_iterator
 template <typename T>
 typename CrossList<T>::column_iterator
     CrossList<T>::column_end(size_type col_index) {
-	if (!is_legal_column(col_index)) {
+	if (!is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::column_end(size_type): col_index illegal");
     }
@@ -106,7 +106,7 @@ typename CrossList<T>::column_iterator
 template <typename T>
 typename CrossList<T>::const_column_iterator
     CrossList<T>::column_end(size_type col_index) const {
-	if (!is_legal_column(col_index)) {
+	if (!is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::column_end(size_type) const: col_index illegal");
     }
@@ -212,7 +212,7 @@ void CrossList<T>::transpose() {
 template <typename T>
 bool CrossList<T>::insert(
         size_type row_index,size_type col_index,const_reference value) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::insert(size_type,size_type,const_reference): row_index or col_index illegal");
     }
@@ -231,7 +231,7 @@ bool CrossList<T>::insert(
 template <typename T>
 bool CrossList<T>::rinsert(
         size_type row_index,size_type col_index,const_reference value) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::rinsert(size_type,size_type,const_reference): row_index or col_index illegal");
     }
@@ -248,7 +248,7 @@ bool CrossList<T>::rinsert(
 
 template <typename T>
 bool CrossList<T>::erase(size_type row_index,size_type col_index) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::erase(size_type,size_type): row_index or col_index illegal");
     }
@@ -262,7 +262,7 @@ bool CrossList<T>::erase(size_type row_index,size_type col_index) {
 
 template <typename T>
 bool CrossList<T>::rerase(size_type row_index,size_type col_index) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::rerase(size_type,size_type): row_index or col_index illegal");
     }
@@ -278,7 +278,7 @@ template <typename T>
 template <typename Iterator>
 void CrossList<T>::erase(Iterator iter) {
 	node* p=node_of_iterator(iter);
-	if (NULL==p || !is_legal_row(p->row) || !is_legal_column(p->column)) {
+	if (NULL==p || !is_valid_row(p->row) || !is_valid_column(p->column)) {
 		throw std::invalid_argument(
                 "CrossList<T>::erase(Iterator): illegal iterator");
     }
@@ -291,7 +291,7 @@ void CrossList<T>::erase_range(Iterator first, Iterator last) {
 	while (first!=last) {
 		node* p=node_of_iterator(first);
 		++first;
-		if (NULL==p || !is_legal_row(p->row) || !is_legal_column(p->column)) {
+		if (NULL==p || !is_valid_row(p->row) || !is_valid_column(p->column)) {
 			throw std::invalid_argument(
                     "CrossList<T>::erase(Iterator,Iterator): range contains illegal iterator");
         }
@@ -302,7 +302,7 @@ void CrossList<T>::erase_range(Iterator first, Iterator last) {
 template <typename T>
 typename CrossList<T>::reference CrossList<T>::at(
         size_type row_index,size_type col_index) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::at(size_type,size_type): row_index or col_index illegal");
     }
@@ -319,7 +319,7 @@ typename CrossList<T>::reference CrossList<T>::at(
 template <typename T>
 typename CrossList<T>::const_reference CrossList<T>::at(
         size_type row_index, size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::at(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -335,7 +335,7 @@ typename CrossList<T>::const_reference CrossList<T>::at(
 template <typename T>
 typename CrossList<T>::reference CrossList<T>::rat(
         size_type row_index,size_type col_index) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::rat(size_type,size_type): row_index or col_index illegal");
     }
@@ -352,7 +352,7 @@ typename CrossList<T>::reference CrossList<T>::rat(
 template <typename T>
 typename CrossList<T>::const_reference CrossList<T>::rat(
         size_type row_index, size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::rat(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -368,7 +368,7 @@ typename CrossList<T>::const_reference CrossList<T>::rat(
 template <typename T>
 typename CrossList<T>::value_type CrossList<T>::get(
         size_type row_index, size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::get(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -381,7 +381,7 @@ typename CrossList<T>::value_type CrossList<T>::get(
 template <typename T>
 typename CrossList<T>::value_type CrossList<T>::rget(
         size_type row_index, size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::rget(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -394,7 +394,7 @@ typename CrossList<T>::value_type CrossList<T>::rget(
 template <typename T>
 void CrossList<T>::set(
         size_type row_index, size_type col_index, const_reference value) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::set(size_type,size_type,const_reference): row_index or col_index illegal");
     }
@@ -414,7 +414,7 @@ void CrossList<T>::set(
 template <typename T>
 void CrossList<T>::rset(
         size_type row_index, size_type col_index, const_reference value) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::rset(size_type,size_type,const_reference): row_index or col_index illegal");
     }
@@ -433,7 +433,7 @@ void CrossList<T>::rset(
 
 template <typename T>
 bool CrossList<T>::exist(size_type row_index,size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::exist(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -443,7 +443,7 @@ bool CrossList<T>::exist(size_type row_index,size_type col_index) const {
 
 template <typename T>
 bool CrossList<T>::rexist(size_type row_index,size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::rexist(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -512,7 +512,7 @@ void CrossList<T>::column_reserve(size_type new_count)
 template <typename T>
 typename CrossList<T>::size_type
     CrossList<T>::row_size(size_type row_index) const {
-	if (!is_legal_row(row_index)) {
+	if (!is_valid_row(row_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::row_size(size_type) const: row_index illegal");
     }
@@ -522,7 +522,7 @@ typename CrossList<T>::size_type
 template <typename T>
 typename CrossList<T>::size_type
     CrossList<T>::column_size(size_type col_index) const {
-	if (!is_legal_column(col_index)) {
+	if (!is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "CrossList<T>::column_size(size_type) const: col_index illegal");
     }

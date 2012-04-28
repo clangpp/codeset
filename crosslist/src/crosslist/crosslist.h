@@ -437,12 +437,12 @@ protected:  // internal operations (level -1)
 	void reset_headers(header_iterator first, header_iterator last);
 
 	// check if a row index is in legal range
-	bool is_legal_row(size_type row_index) const {
+	bool is_valid_row(size_type row_index) const {
         return row_index < row_count();
     }
 
 	// check if a column index is in legal range
-	bool is_legal_column(size_type col_index) const {
+	bool is_valid_column(size_type col_index) const {
         return col_index < column_count();
     }
 
