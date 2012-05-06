@@ -89,7 +89,7 @@ std::basic_ostream<CharT, Traits>& operator << (
 template <typename CharT, typename Traits, typename T>
 bool next_cell(
         std::basic_istream<CharT, Traits>& is, Cell<T>& cell, Dimension& dim) {
-    char beg_ch=0;
+    char beg_ch='\0';
     is >> beg_ch;
     is.putback(beg_ch);
     bool is_cell = false;
