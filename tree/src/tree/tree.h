@@ -13,6 +13,7 @@ typedef std::ptrdiff_t ssize_type;  // signed size type
 
 // ********** <note> ************
 // concept NodeT {
+//     typedef implemention-defined value_type;
 //     value_type value;
 //     NodeT* left;
 //     NodeT* right
@@ -143,8 +144,11 @@ NodePtrT find(NodePtrT root, const T& value);
 
 // binary-search tree insertion
 // return node that contains new_node->value
+template <typename NodeT, typename BinaryPredicate>
+NodeT* insert(NodeT*& root, NodeT* new_node, BinaryPredicate pred);
+
 template <typename NodeT>
-NodeT* insert(NodeT*& root, NodeT* new_node);
+inline NodeT* insert(NodeT*& root, NodeT* new_node);
 
 namespace avl {  // AVL tree algorithm
 
@@ -174,8 +178,11 @@ inline void rotate_right_left(AVLNodeT*& root);  // right-left double rotation
 
 // insert new_node into AVL tree root
 // return node that contains new_node->value
+template <typename AVLNodeT, typename BinaryPredicate>
+AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node, BinaryPredicate pred);
+
 template <typename AVLNodeT>
-AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node);
+inline AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node);
 
 }  // namespace avl
 

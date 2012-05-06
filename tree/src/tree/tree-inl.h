@@ -402,8 +402,8 @@ NodePtrT find(NodePtrT root, const T& value) {
     return root;
 }
 
-template <typename NodeT>
-NodeT* insert(NodeT*& root, NodeT* new_node) {
+template <typename NodeT, typename BinaryPredicate>
+NodeT* insert(NodeT*& root, NodeT* new_node, BinaryPredicate pred) {
     new_node->parent = new_node->left = new_node->right = NULL;
     if (NULL==root) {  // new_node become root of tree
         root = new_node;
@@ -412,14 +412,14 @@ NodeT* insert(NodeT*& root, NodeT* new_node) {
 
     NodeT* curr = root;
     while (true) {
-        if (new_node->value < curr->value) {  // insert on left subtree
+        if (pred(new_node->value,curr->value)) {  // insert on left subtree
             if (curr->left) {  // left subtree is not empty
                 curr = curr->left;
             } else {  // left subtree is empty
                 set_left(curr, new_node);
                 return new_node;
             }
-        } else if (curr->value < new_node->value) {  // insert on right subtree
+        } else if (pred(curr->value,new_node->value)) {  // insert on right subtree
             if (curr->right) {  // right subtree is not empty
                 curr = curr->right;
             } else {  // right subtree is empty
@@ -430,6 +430,11 @@ NodeT* insert(NodeT*& root, NodeT* new_node) {
             return curr;
         }
     }
+}
+
+template <typename NodeT>
+NodeT* insert(NodeT*& root, NodeT* new_node) {
+	return insert(root, new_node, std::less<typename NodeT::value_type>());
 }
 
 namespace avl {  // AVL tree algorithm
@@ -474,30 +479,36 @@ void rotate_right_left(AVLNodeT*& root) {
     avl::update_height(root);
 }
 
-template <typename AVLNodeT>
-AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
+template <typename AVLNodeT, typename BinaryPredicate>
+AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node, BinaryPredicate pred) {
     AVLNodeT* position = tree::insert(root, new_node);  // bs-tree insertion
     if (position != new_node) return position;  // already exists
 
     // rebalance AVL tree
     for (AVLNodeT* p=new_node; p!=NULL; root=p, p=p->parent) {
         if (avl::height(p->left) >= avl::height(p->right)+2) {
-            if (new_node->value < p->left->value) {  // left-left
+            if (pred(new_node->value,p->left->value)) {  // left-left
                 avl::rotate_left_left(p);
             } else {  // left-right
                 avl::rotate_left_right(p);
             }
         } else if (avl::height(p->right) >= avl::height(p->left)+2) {
-            if (p->right->value < new_node->value) {  // right-right
+            if (pred(p->right->value,new_node->value)) {  // right-right
                 avl::rotate_right_right(p);
             } else {  // right-left
                 avl::rotate_right_left(p);
             }
         } else {  // no need for rebalance
-            update_height(p);  // update height field
+            avl::update_height(p);  // update height field
         }
     }
     return position;
+}
+
+template <typename AVLNodeT>
+AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
+	return avl::insert(root, new_node,
+			std::less<typename AVLNodeT::value_type>());
 }
 
 }  // namespace avl
