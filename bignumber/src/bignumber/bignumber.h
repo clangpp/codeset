@@ -7,12 +7,11 @@
 
 namespace bignumber {
 
-template <typename DigitContainer>
-void multiplies(
-        const DigitContainer& lhs, const DigitContainer& rhs,
-        const typename DigitContainer::value_type& round,
-        DigitContainer& result);
-
+// pre-condition: [low_beg1, high_end1) [low_beg2, high_end2) are
+//  big numbers with digits from low to high
+// pre-condition: result has enough space to contain the final result
+// remarks: calculate product of big numbers [low_beg1, high_end1) and
+//  [low_beg2, high_end2), add the product to big number result.
 template <typename ForwardIterator1, typename ForwardIterator2,
          typename DigitT, typename RandomAccessIterator>
 RandomAccessIterator multiplies(
@@ -21,28 +20,6 @@ RandomAccessIterator multiplies(
         const DigitT& round, RandomAccessIterator result);
 
 }  // bignumber
-
-// template <typename DigitT, DigitT Round>
-// class BigNumber {
-// public:
-//     typedef DigitT digit_type;
-// 
-// public:
-//     BigNumber() {}
-// 
-//     template <typename InputIterator>
-//     BigNumber(first, last);  // from high digit to low digit
-// 
-//     BigNumber& operator *= (const BigNumber& rhs);
-// 
-// public:
-//     static bool valid_digit(const digit_type& value) {
-//         return 0<=vaule && value<Round;
-//     }
-// 
-// private:
-//     std::vector<digit_type> digits_;
-// };
 
 #include "bignumber-inl.h"
 

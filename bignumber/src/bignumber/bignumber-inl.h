@@ -8,32 +8,6 @@
 
 namespace bignumber {
 
-template <typename DigitContainer>
-void multiplies(
-        const DigitContainer& lhs, const DigitContainer& rhs,
-        const typename DigitContainer::value_type& round,
-        DigitContainer& result) {
-    result.clear();
-    typedef typename DigitContainer::value_type digit_type;
-    typedef typename DigitContainer::size_type size_type;
-    digit_type carry=0, value=0;
-    for (size_type r=0; r<rhs.size(); ++r) {
-        carry = 0;
-        for (size_type l=0; l<lhs.size(); ++l) {
-            if (l+r >= result.size()) result.resize(l+r+1);
-            value = lhs[l] * rhs[r] + carry + result[l+r];
-            carry = value / round;
-            result[l+r] = value % round;
-        }
-        for (size_type l=lhs.size(); carry>0; ++l) {
-            if (l+r >= result.size()) result.resize(l+r+1);
-            value = carry + result[l+r];
-            carry = value / round;
-            result[l+r] = value % round;
-        }
-    }
-}
-
 template <typename ForwardIterator1, typename ForwardIterator2,
          typename DigitT, typename RandomAccessIterator>
 RandomAccessIterator multiplies(
@@ -66,21 +40,5 @@ RandomAccessIterator multiplies(
 }
 
 }  // namespace bignumber
-
-// template <typename DigitT, DigitT Round>
-// template <typename InputIterator>
-// BigNumber<DigitT, Round>::BigNumber(first, last) {
-//     for (; first!=last; ++first)
-//         digits_.push_back(*first);
-//     std::reverse(digits_.begin(), digits_.end());
-// }
-// 
-// template <typename DigitT, DigitT Round>
-// BigNumber<DigitT, Round>&
-// BigNumber<DigitT, Round>::operator *= (const BigNumber& rhs) {
-//     BigNumber lhs(*this);
-// 
-//     return *this;
-// }
 
 #endif  // BIGNUMBER_INL_H_
