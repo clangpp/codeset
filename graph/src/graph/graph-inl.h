@@ -17,14 +17,14 @@
 namespace graph {
 
 template <typename ForwardIterator>
-void fill_max(ForwardIterator first, ForwardIterator last) {
+inline void fill_max(ForwardIterator first, ForwardIterator last) {
     typedef typename std::iterator_traits<
         ForwardIterator>::value_type value_type;
     std::fill(first, last, std::numeric_limits<value_type>::max());
 }
 
 template <typename ForwardIterator>
-void fill_min(ForwardIterator first, ForwardIterator last) {
+inline void fill_min(ForwardIterator first, ForwardIterator last) {
     typedef typename std::iterator_traits<
         ForwardIterator>::value_type value_type;
     typedef std::numeric_limits<value_type> limits;
@@ -106,7 +106,7 @@ void dijkstra(const CrossList<T>& g, vertex_type s,
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-void dijkstra_shortest(const CrossList<T>& g, vertex_type s,
+inline void dijkstra_shortest(const CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
     std::fill(prev, prev+g.column_count(), null_vertex);
     fill_max(dist, dist+g.column_count());
@@ -115,7 +115,7 @@ void dijkstra_shortest(const CrossList<T>& g, vertex_type s,
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-void dijkstra_longest(const CrossList<T>& g, vertex_type s,
+inline void dijkstra_longest(const CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
     std::fill(prev, prev+g.column_count(), null_vertex);
     fill_min(dist, dist+g.column_count());
@@ -176,7 +176,7 @@ void acyclic_dijkstra(CrossList<T>& g, vertex_type s,
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-void acyclic_dijkstra_shortest(CrossList<T>& g, vertex_type s,
+inline void acyclic_dijkstra_shortest(CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
     std::fill(prev, prev+g.column_count(), null_vertex);
     fill_max(dist, dist+g.column_count());
@@ -185,7 +185,7 @@ void acyclic_dijkstra_shortest(CrossList<T>& g, vertex_type s,
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
+inline void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist) {
     std::fill(prev, prev+g.column_count(), null_vertex);
     fill_min(dist, dist+g.column_count());
@@ -307,7 +307,7 @@ void print_acyclic(const CrossList<T>& g,
 }
 
 template <typename T>
-void print_acyclic(const CrossList<T>& g, std::ostream& out) {
+inline void print_acyclic(const CrossList<T>& g, std::ostream& out) {
 	std::ostream_iterator<std::string> prefix_iterator(out, "");
 	std::ostream_iterator<vertex_type> vertex_iterator(out, "\n");
 	print_acyclic(g, prefix_iterator, vertex_iterator);

@@ -18,12 +18,12 @@ const vertex_type null_vertex = static_cast<vertex_type>(-1);
 // fill [first, last) with maximum representable value of
 //  typename std::numeric_limits<ForwardIterator>::value_type
 template <typename ForwardIterator>
-inline void fill_max(ForwardIterator first, ForwardIterator last);
+void fill_max(ForwardIterator first, ForwardIterator last);
 
 // fill [first, last) with minimum representable value of
 //  typename std::numeric_limits<ForwardIterator>::value_type
 template <typename ForwardIterator>
-inline void fill_min(ForwardIterator first, ForwardIterator last);
+void fill_min(ForwardIterator first, ForwardIterator last);
 
 template <typename WeightT>
 struct WeightedVertex {
@@ -111,12 +111,12 @@ void dijkstra(const CrossList<T>& g, vertex_type s,
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-inline void dijkstra_shortest(const CrossList<T>& g, vertex_type s,
+void dijkstra_shortest(const CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-inline void dijkstra_longest(const CrossList<T>& g, vertex_type s,
+void dijkstra_longest(const CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
 // pre-condition: g.row_count()==g.column_count()
@@ -129,12 +129,12 @@ void acyclic_dijkstra(CrossList<T>& g, vertex_type s,
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-inline void acyclic_dijkstra_shortest(CrossList<T>& g, vertex_type s,
+void acyclic_dijkstra_shortest(CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
-inline void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
+void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
 // print acyclic digraph
