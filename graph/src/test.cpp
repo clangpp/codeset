@@ -15,6 +15,7 @@ using namespace logging;
 void test_topological_sort();
 void test_dijkstra();
 void test_utility();
+void test_print();
 
 int main() {
 	try {
@@ -22,6 +23,7 @@ int main() {
 		test_topological_sort();
 		test_dijkstra();
         test_utility();
+		test_print();
 	} catch (const exception& e) {
 		log(CRITICAL_) << e.what() << endl;
 	}
@@ -315,4 +317,25 @@ void test_utility() {
     pass = graph::make_weighted_rcompare(less<int>())(v1,v2) &&
         !graph::make_weighted_rcompare(less<int>())(v2,v1);
     log(INFO_) << "test make_weighted_rcompare: " << (pass ? "pass": "FAILED") << endl;
+}
+
+void test_print() {
+    Trace trace(INFO_, "test_print()");
+    bool pass = true;
+
+	CrossList<int> g(12, 12);
+	g.rinsert(0, 1, 1);
+	g.rinsert(0, 2, 1);
+	g.rinsert(3, 4, 1);
+	g.rinsert(1, 11, 1);
+	g.rinsert(2, 5, 1);
+	g.rinsert(4, 5, 1);
+	g.rinsert(4, 6, 1);
+	g.rinsert(11, 6, 1);
+	g.rinsert(5, 7, 1);
+	g.rinsert(7, 9, 1);
+	g.rinsert(6, 8, 1);
+	g.rinsert(8, 9, 1);
+	g.rinsert(8, 10, 1);
+	digraph::print_acyclic(g);
 }

@@ -3,6 +3,7 @@
 #define GRAPH_H_
 
 #include <functional>
+#include <iostream>
 #include <iterator>
 
 #include "../crosslist/crosslist.h"
@@ -100,6 +101,7 @@ using namespace graph;
 template <typename T, typename OutputIterator>
 OutputIterator topological_sort(CrossList<T>& g, OutputIterator result);
 
+// pre-condition: g.row_count()==g.column_count()
 // pre-condition: array prev and dist are well initialized
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2, typename BinaryPredicate>
@@ -117,6 +119,8 @@ template <typename T, typename RandomAccessIterator1,
 inline void dijkstra_longest(const CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
+// pre-condition: g.row_count()==g.column_count()
+// pre-condition: g must be acyclic digraph
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2, typename BinaryPredicate>
 void acyclic_dijkstra(CrossList<T>& g, vertex_type s,
@@ -132,6 +136,12 @@ template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2>
 inline void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
+
+// print acyclic digraph
+// pre-condition: g.row_count()==g.column_count()
+// pre-condition: g must be acyclic digraph
+template <typename T>
+void print_acyclic(const CrossList<T>& g, std::ostream& out = std::cout);
 
 }  // namespace digraph
 
