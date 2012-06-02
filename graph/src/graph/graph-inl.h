@@ -48,7 +48,7 @@ OutputIterator topological_sort(const CrossList<T>& g, OutputIterator result) {
     }
     for (size_type counter=0; counter<vertex_count; ++counter) {
         if (q.empty())
-            throw std::runtime_error("cycle detected in graph");
+            throw std::runtime_error("cycle detected in digraph");
         vertex_type v = q.front();  // pick a 0-indegree vertex
         q.pop();
         typename CrossList<T>::const_row_iterator row_iter, row_end;
@@ -216,6 +216,7 @@ void print_acyclic(const CrossList<T>& g, std::ostream& out) {
 
     // topo-sort algorithm to group vertices (signed with group_id)
     while (!topo_unsorted.empty()) {
+		bool none_sorted = true;
         for (std::list<vertex_type>::iterator vi=
             topo_unsorted.begin(); vi!=topo_unsorted.end();) {
             if (indegrees[*vi]>0) {
@@ -231,7 +232,10 @@ void print_acyclic(const CrossList<T>& g, std::ostream& out) {
                 if (group_ids[u] > max_group_id) max_group_id = group_ids[u];
             }
             topo_unsorted.erase(vi++);
+			none_sorted = false;
         }
+		if (none_sorted)
+			throw std::runtime_error("cycle detected in digraph");
     }
 
     // group vertices by group_id
