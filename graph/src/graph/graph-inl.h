@@ -192,8 +192,9 @@ void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
     acyclic_dijkstra(g, s, prev, dist, std::greater<T>());
 }
 
-template <typename T>
-void print_acyclic(const CrossList<T>& g, std::ostream& out) {
+template <typename T, typename OutputIterator1, typename OutputIterator2>
+void print_acyclic(const CrossList<T>& g,
+	OutputIterator1 prefix_string, OutputIterator2 vertex_index) {
     if (g.row_count()!=g.column_count())
         throw std::invalid_argument("not a digraph");
     size_type vertex_count = g.row_count();
@@ -300,8 +301,16 @@ void print_acyclic(const CrossList<T>& g, std::ostream& out) {
         }
         if (!line.empty() && '-'==line[line.size()-1])
             line[line.size()-1] = '>';
-        out << line << vt << std::endl;
+		*(prefix_string++) = line;
+		*(vertex_index++) = vt;
     }
+}
+
+template <typename T>
+void print_acyclic(const CrossList<T>& g, std::ostream& out) {
+	std::ostream_iterator<std::string> prefix_iterator(out, "");
+	std::ostream_iterator<vertex_type> vertex_iterator(out, "\n");
+	print_acyclic(g, prefix_iterator, vertex_iterator);
 }
 
 }  // namespace digraph

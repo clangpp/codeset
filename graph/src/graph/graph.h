@@ -140,6 +140,16 @@ inline void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
 // print acyclic digraph
 // pre-condition: g.row_count()==g.column_count()
 // pre-condition: g must be acyclic digraph
+// remarks: each OutputIterator have exactly <vertex-count> iterations
+// remarks: output iterations can be treated as:
+//     for (size_type i=0; i<vertex_count; ++i) {
+//     	*(prefix_string++) = prefix_i;
+//     	*(vertex_index++) = vertex_i;
+//     }
+template <typename T, typename OutputIterator1, typename OutputIterator2>
+void print_acyclic(const CrossList<T>& g,
+	OutputIterator1 prefix_string, OutputIterator2 vertex_index);
+
 template <typename T>
 void print_acyclic(const CrossList<T>& g, std::ostream& out = std::cout);
 
