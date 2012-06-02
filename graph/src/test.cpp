@@ -18,15 +18,15 @@ void test_utility();
 void test_print();
 
 int main() {
-	try {
+    try {
         // logging::level() = DEBUG_;
-		test_topological_sort();
-		test_dijkstra();
+        test_topological_sort();
+        test_dijkstra();
         test_utility();
-		test_print();
-	} catch (const exception& e) {
-		log(CRITICAL_) << e.what() << endl;
-	}
+        test_print();
+    } catch (const exception& e) {
+        log(CRITICAL_) << e.what() << endl;
+    }
     system("pause");
 }
 
@@ -53,7 +53,6 @@ void test_topological_sort() {
         digraph::topological_sort(g, seq.begin());
     size_t topo_check[] = {0, 1, 4, 3, 2, 6, 5};
     pass = (iter==seq.end()) && equal(seq.begin(), iter, topo_check);
-    pass &= g.empty();
     copy(seq.begin(), seq.end(), log(DEBUG_)(" "));
     log() << endl;
     log(INFO_) << "test topological_sort: " << (pass ? "pass": "FAILED") << endl;
@@ -185,7 +184,7 @@ void test_dijkstra() {
     g.rinsert(8, 10, 5);
     g.rinsert(9, 10, 6);
     digraph::acyclic_dijkstra_shortest(g, 0, prevs.begin(), dists.begin());
-	graph::vertex_type NV=graph::null_vertex;
+    graph::vertex_type NV=graph::null_vertex;
     graph::vertex_type prevs_check2[] = {0, NV, NV, 0, NV, 3, 5, 5, 6, 6, 8};
     int INF = numeric_limits<int>::max();
     int dists_check2[] = {0, INF, INF, 3, INF, 5, 9, 7, 11, 12, 16};
@@ -323,19 +322,19 @@ void test_print() {
     Trace trace(INFO_, "test_print()");
     bool pass = true;
 
-	CrossList<int> g(12, 12);
-	g.rinsert(0, 1, 1);
-	g.rinsert(0, 2, 1);
-	g.rinsert(3, 4, 1);
-	g.rinsert(1, 11, 1);
-	g.rinsert(2, 5, 1);
-	g.rinsert(4, 5, 1);
-	g.rinsert(4, 6, 1);
-	g.rinsert(11, 6, 1);
-	g.rinsert(5, 7, 1);
-	g.rinsert(7, 9, 1);
-	g.rinsert(6, 8, 1);
-	g.rinsert(8, 9, 1);
-	g.rinsert(8, 10, 1);
-	digraph::print_acyclic(g);
+    CrossList<int> g(12, 12);
+    g.rinsert(0, 1, 1);
+    g.rinsert(0, 2, 1);
+    g.rinsert(3, 4, 1);
+    g.rinsert(1, 11, 1);
+    g.rinsert(2, 5, 1);
+    g.rinsert(4, 5, 1);
+    g.rinsert(4, 6, 1);
+    g.rinsert(11, 6, 1);
+    g.rinsert(5, 7, 1);
+    g.rinsert(7, 9, 1);
+    g.rinsert(6, 8, 1);
+    g.rinsert(8, 9, 1);
+    g.rinsert(8, 10, 1);
+    digraph::print_acyclic(g);
 }

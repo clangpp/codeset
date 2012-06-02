@@ -36,28 +36,31 @@ void fill_min(ForwardIterator first, ForwardIterator last) {
 namespace digraph {
 
 template <typename T, typename OutputIterator>
-OutputIterator topological_sort(CrossList<T>& g, OutputIterator result) {
+OutputIterator topological_sort(const CrossList<T>& g, OutputIterator result) {
     if (g.row_count()!=g.column_count())
         throw std::invalid_argument("not a digraph");
+    size_type vertex_count = g.row_count();
     std::queue<vertex_type> q;
-    for (vertex_type i=0; i<g.column_count(); ++i) {
-        if (g.column_size(i)==0) q.push(i);  // enqueue node with indegree 0
+    std::vector<size_type> indegrees(vertex_count);
+    for (vertex_type v=0; v<vertex_count; ++v) {
+        indegrees[v] = g.column_size(v);
+        if (0 == indegrees[v]) q.push(v);
     }
-    for (size_type counter=0; counter!=g.column_count(); ++counter) {
+    for (size_type counter=0; counter<vertex_count; ++counter) {
         if (q.empty())
             throw std::runtime_error("cycle detected in graph");
-        vertex_type p = q.front();  // get a node with indegree 0
+        vertex_type v = q.front();  // pick a 0-indegree vertex
         q.pop();
-        typename CrossList<T>::row_iterator row_iter=g.row_begin(p);
-        typename CrossList<T>::row_iterator row_end=g.row_end(p);
-        while (row_iter!=row_end) {  // erase related edge from graph
-            vertex_type c = row_iter.column();
-            g.erase(row_iter++);
-            if (g.column_size(c)==0) q.push(c);  // enqueue node with indegree 0
+        typename CrossList<T>::const_row_iterator row_iter, row_end;
+        row_iter = g.row_begin(v), row_end = g.row_end(v);
+        for (; row_iter!=row_end; ++row_iter) {
+            vertex_type u = row_iter.column();
+            --indegrees[u];
+            if (0 == indegrees[u]) q.push(u);  // enqueue 0-indegree vertex
         }
-        *(result++) = p;
+        *(result++) = v;
     }
-	return result;
+    return result;
 }
 
 template <typename T, typename RandomAccessIterator1,
@@ -195,105 +198,105 @@ void print_acyclic(const CrossList<T>& g, std::ostream& out) {
         throw std::invalid_argument("not a digraph");
     size_type vertex_count = g.row_count();
 
-	// initialize work components
-	std::vector<size_type> indegrees(vertex_count);
-	std::vector<size_type> group_ids(vertex_count, 0);
-	std::list<vertex_type> topo_unsorted;
-	size_type max_group_id = 0;
-	std::vector<std::deque<vertex_type> > topo_groups(1);
-	std::vector<bool> topo_grouped(vertex_count, false);
-	for (vertex_type v=0; v<vertex_count; ++v) {
-		indegrees[v] = g.column_size(v);
-		topo_unsorted.push_back(v);
-		if (0 == indegrees[v]) {
-			topo_groups[0].push_back(v);
-			topo_grouped[v] = true;
-		}
-	}
+    // initialize work components
+    std::vector<size_type> indegrees(vertex_count);
+    std::vector<size_type> group_ids(vertex_count, 0);
+    std::list<vertex_type> topo_unsorted;
+    size_type max_group_id = 0;
+    std::vector<std::deque<vertex_type> > topo_groups(1);
+    std::vector<bool> topo_grouped(vertex_count, false);
+    for (vertex_type v=0; v<vertex_count; ++v) {
+        indegrees[v] = g.column_size(v);
+        topo_unsorted.push_back(v);
+        if (0 == indegrees[v]) {
+            topo_groups[0].push_back(v);
+            topo_grouped[v] = true;
+        }
+    }
 
-	// topo-sort algorithm to group vertices (signed with group_id)
-	while (!topo_unsorted.empty()) {
-		for (std::list<vertex_type>::iterator vi=
-			topo_unsorted.begin(); vi!=topo_unsorted.end();) {
-			if (indegrees[*vi]>0) {
-				++vi;
-				continue;
-			}
-			typename CrossList<T>::const_row_iterator row_iter, row_end;
-			row_iter = g.row_begin(*vi), row_end = g.row_end(*vi);
-			for (; row_iter!=row_end; ++row_iter) {
-				vertex_type u = row_iter.column();
-				--indegrees[u];
-				group_ids[u] = std::max(group_ids[u], group_ids[*vi]+1);
-				if (group_ids[u] > max_group_id) max_group_id = group_ids[u];
-			}
-			topo_unsorted.erase(vi++);
-		}
-	}
+    // topo-sort algorithm to group vertices (signed with group_id)
+    while (!topo_unsorted.empty()) {
+        for (std::list<vertex_type>::iterator vi=
+            topo_unsorted.begin(); vi!=topo_unsorted.end();) {
+            if (indegrees[*vi]>0) {
+                ++vi;
+                continue;
+            }
+            typename CrossList<T>::const_row_iterator row_iter, row_end;
+            row_iter = g.row_begin(*vi), row_end = g.row_end(*vi);
+            for (; row_iter!=row_end; ++row_iter) {
+                vertex_type u = row_iter.column();
+                --indegrees[u];
+                group_ids[u] = std::max(group_ids[u], group_ids[*vi]+1);
+                if (group_ids[u] > max_group_id) max_group_id = group_ids[u];
+            }
+            topo_unsorted.erase(vi++);
+        }
+    }
 
-	// group vertices by group_id
-	std::vector<std::deque<vertex_type> > inlinks(vertex_count);
-	topo_groups.resize(max_group_id+1);
-	for (size_type gid=0; gid<topo_groups.size(); ++gid) {
-		for (size_type i=0; i<topo_groups[gid].size(); ++i) {
-			vertex_type v = topo_groups[gid][i];
-			typename CrossList<T>::const_row_iterator row_iter, row_end;
-			row_iter = g.row_begin(v), row_end = g.row_end(v);
-			for (; row_iter!=row_end; ++row_iter) {
-				vertex_type u = row_iter.column();
-				inlinks[u].push_back(v);
-				if (topo_grouped[u]) continue;
-				topo_groups[group_ids[u]].push_front(u);
-				topo_grouped[u] = true;
-			}
-		}
-	}
+    // group vertices by group_id
+    std::vector<std::deque<vertex_type> > inlinks(vertex_count);
+    topo_groups.resize(max_group_id+1);
+    for (size_type gid=0; gid<topo_groups.size(); ++gid) {
+        for (size_type i=0; i<topo_groups[gid].size(); ++i) {
+            vertex_type v = topo_groups[gid][i];
+            typename CrossList<T>::const_row_iterator row_iter, row_end;
+            row_iter = g.row_begin(v), row_end = g.row_end(v);
+            for (; row_iter!=row_end; ++row_iter) {
+                vertex_type u = row_iter.column();
+                inlinks[u].push_back(v);
+                if (topo_grouped[u]) continue;
+                topo_groups[group_ids[u]].push_front(u);
+                topo_grouped[u] = true;
+            }
+        }
+    }
 
-	// place vertex coordinates
-	std::vector<size_type> outdegrees(vertex_count);
-	for (vertex_type v=0; v<vertex_count; ++v)
-		outdegrees[v] = g.row_size(v);
-	std::vector<vertex_type> ordered_vertices;
-	std::vector<size_type> column_orders;
-	for (size_type gid=0; gid<topo_groups.size(); ++gid) {
-		for (size_type i=0; i<topo_groups[gid].size(); ++i) {
-			ordered_vertices.push_back(topo_groups[gid][i]);
-			if (!column_orders.empty() &&
-				0==outdegrees[ordered_vertices[column_orders.back()]]) {
-				column_orders.pop_back();
-			}
-			column_orders.push_back(ordered_vertices.size()-1);
-		}
-	}
+    // place vertex coordinates
+    std::vector<size_type> outdegrees(vertex_count);
+    for (vertex_type v=0; v<vertex_count; ++v)
+        outdegrees[v] = g.row_size(v);
+    std::vector<vertex_type> ordered_vertices;
+    std::vector<size_type> column_orders;
+    for (size_type gid=0; gid<topo_groups.size(); ++gid) {
+        for (size_type i=0; i<topo_groups[gid].size(); ++i) {
+            ordered_vertices.push_back(topo_groups[gid][i]);
+            if (!column_orders.empty() &&
+                0==outdegrees[ordered_vertices[column_orders.back()]]) {
+                column_orders.pop_back();
+            }
+            column_orders.push_back(ordered_vertices.size()-1);
+        }
+    }
 
-	// draw arrows between vertices
-	for (size_type row=0; row<ordered_vertices.size(); ++row) {
-		vertex_type vt = ordered_vertices[row];
-		std::string line;
-		for (size_type col=0; col<column_orders.size() &&
-				column_orders[col]<row; ++col) {
-			vertex_type vs = ordered_vertices[column_orders[col]];
-			std::string token;
-			bool cont_line = !line.empty() && '-'==line.back();
+    // draw arrows between vertices
+    for (size_type row=0; row<ordered_vertices.size(); ++row) {
+        vertex_type vt = ordered_vertices[row];
+        std::string line;
+        for (size_type col=0; col<column_orders.size() &&
+                column_orders[col]<row; ++col) {
+            vertex_type vs = ordered_vertices[column_orders[col]];
+            std::string token;
+            bool cont_line = !line.empty() && '-'==line.back();
 
-			// vs arrow to vt
-			if (!inlinks[vt].empty() && vs==inlinks[vt].front()) {
-				inlinks[vt].pop_front();
-				--outdegrees[vs];
-				token = (0==outdegrees[vs] ? "`---" : "|---");
-				if (cont_line) line.back() = '>';
-			} else {  // vs doesn't arrow to vt
-				token = cont_line ? "----" : "    ";
-				if (outdegrees[vs] > 0) token[0] = '|';
-				// if (cont_line && '|'==token[0]) {  // jumping signs
-				// 	token[1] = '`', line.back() = '\'';
-				// }
-			}
-			line.append(token);
-		}
-		if (!line.empty() && '-'==line.back()) line.back() = '>';
-		out << line << vt << std::endl;
-	}
+            // vs arrow to vt
+            if (!inlinks[vt].empty() && vs==inlinks[vt].front()) {
+                inlinks[vt].pop_front();
+                --outdegrees[vs];
+                token = (0==outdegrees[vs] ? "`---" : "|---");
+                if (cont_line) line.back() = '>';
+            } else {  // vs doesn't arrow to vt
+                token = cont_line ? "----" : "    ";
+                if (outdegrees[vs] > 0) token[0] = '|';
+                // if (cont_line && '|'==token[0]) {  // jumping signs
+                //     token[1] = '`', line.back() = '\'';
+                // }
+            }
+            line.append(token);
+        }
+        if (!line.empty() && '-'==line.back()) line.back() = '>';
+        out << line << vt << std::endl;
+    }
 }
 
 }  // namespace digraph

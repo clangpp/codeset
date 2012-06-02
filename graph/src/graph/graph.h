@@ -46,7 +46,7 @@ struct WeightedCompare:
     typedef typename WeightCompare::first_argument_type weight_type;
     WeightCompare weight_comp;
     WeightedCompare(WeightCompare w_comp=WeightCompare()):
-		weight_comp(w_comp) {}
+        weight_comp(w_comp) {}
     bool operator () (const WeightedVertex<weight_type>& lhs,
             const WeightedVertex<weight_type>& rhs) const {
         bool result = false;
@@ -64,7 +64,7 @@ struct WeightedReverseCompare:
     typedef typename WeightCompare::first_argument_type weight_type;
     WeightCompare weight_comp;
     WeightedReverseCompare(WeightCompare w_comp=WeightCompare()):
-		weight_comp(w_comp) {}
+        weight_comp(w_comp) {}
     bool operator () (const WeightedVertex<weight_type>& lhs,
             const WeightedVertex<weight_type>& rhs) const {
         bool result = false;
@@ -99,7 +99,7 @@ namespace digraph {
 using namespace graph;
 
 template <typename T, typename OutputIterator>
-OutputIterator topological_sort(CrossList<T>& g, OutputIterator result);
+OutputIterator topological_sort(const CrossList<T>& g, OutputIterator result);
 
 // pre-condition: g.row_count()==g.column_count()
 // pre-condition: array prev and dist are well initialized
