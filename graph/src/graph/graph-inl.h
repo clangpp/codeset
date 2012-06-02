@@ -277,24 +277,25 @@ void print_acyclic(const CrossList<T>& g, std::ostream& out) {
                 column_orders[col]<row; ++col) {
             vertex_type vs = ordered_vertices[column_orders[col]];
             std::string token;
-            bool cont_line = !line.empty() && '-'==line.back();
+            bool cont_line = !line.empty() && '-'==line[line.size()-1];
 
             // vs arrow to vt
             if (!inlinks[vt].empty() && vs==inlinks[vt].front()) {
                 inlinks[vt].pop_front();
                 --outdegrees[vs];
                 token = (0==outdegrees[vs] ? "`---" : "|---");
-                if (cont_line) line.back() = '>';
+                if (cont_line) line[line.size()-1] = '>';
             } else {  // vs doesn't arrow to vt
                 token = cont_line ? "----" : "    ";
                 if (outdegrees[vs] > 0) token[0] = '|';
                 // if (cont_line && '|'==token[0]) {  // jumping signs
-                //     token[1] = '`', line.back() = '\'';
+                //     token[1] = '`', line[line.size()-1] = '\'';
                 // }
             }
             line.append(token);
         }
-        if (!line.empty() && '-'==line.back()) line.back() = '>';
+        if (!line.empty() && '-'==line[line.size()-1])
+            line[line.size()-1] = '>';
         out << line << vt << std::endl;
     }
 }
