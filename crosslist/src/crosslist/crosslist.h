@@ -303,218 +303,218 @@ public:  // iterator observers
     }
 
 public:  // operation interface
-	explicit CrossList(size_type row_count=0, size_type column_count=0,
-			const value_type& default_value=value_type());
-	CrossList(const CrossList& other);
-	virtual ~CrossList();
-	CrossList& operator = (const CrossList& rhs);
-	bool operator == (const CrossList& rhs) const;
+    explicit CrossList(size_type row_count=0, size_type column_count=0,
+            const value_type& default_value=value_type());
+    CrossList(const CrossList& other);
+    virtual ~CrossList();
+    CrossList& operator = (const CrossList& rhs);
+    bool operator == (const CrossList& rhs) const;
     bool operator != (const CrossList& rhs) const { return !(*this==rhs); }
-	void transpose();  // transpose as matrix
+    void transpose();  // transpose as matrix
 
-	// insert node at coordinate (row_index,col_index)
-	// true if insert successfully, false if node already exist
-	// (look for node from left to right, from up to down) !!!faster for head insertion!!!
-	bool insert(
+    // insert node at coordinate (row_index,col_index)
+    // true if insert successfully, false if node already exist
+    // (look for node from left to right, from up to down) !!!faster for head insertion!!!
+    bool insert(
             size_type row_index, size_type col_index, const_reference value);
 
-	// insert node at coordinate (row_index,col_index)
-	// true if insert successfully, false if node already exist
-	// (look for node from right to left, from down to up) !!!faster for tail insertion!!!
-	bool rinsert(
+    // insert node at coordinate (row_index,col_index)
+    // true if insert successfully, false if node already exist
+    // (look for node from right to left, from down to up) !!!faster for tail insertion!!!
+    bool rinsert(
             size_type row_index, size_type col_index, const_reference value);
 
-	// erase node of coordinate (row_index,col_index)
-	// true if erase successfully, false if node not exist
-	// (look for node from left to right, from up to down) !!!faster for head erase!!!
-	bool erase(size_type row_index, size_type col_index);
+    // erase node of coordinate (row_index,col_index)
+    // true if erase successfully, false if node not exist
+    // (look for node from left to right, from up to down) !!!faster for head erase!!!
+    bool erase(size_type row_index, size_type col_index);
 
-	// erase node of coordinate (row_index,col_index)
-	// true if erase successfully, false if node not exist
-	// (look for node from right to left, from down to up) !!!faster for tail erase!!!
-	bool rerase(size_type row_index, size_type col_index);
+    // erase node of coordinate (row_index,col_index)
+    // true if erase successfully, false if node not exist
+    // (look for node from right to left, from down to up) !!!faster for tail erase!!!
+    bool rerase(size_type row_index, size_type col_index);
 
     // Iterator can be iterator, row_iterator or column_iterator
     // Iterator cannot be reverse_iterator, reverse_row_iterator or reverse_column_iterator
-	template <typename Iterator>
-	void erase(Iterator iter);
+    template <typename Iterator>
+    void erase(Iterator iter);
 
     // note: name erase_range to avoid confict with erase(size_type, size_type)
     // Iterator can be iterator, row_iterator or column_iterator
     // Iterator cannot be reverse_iterator, reverse_row_iterator or reverse_column_iterator
-	template <typename Iterator>
-	void erase_range(Iterator first, Iterator last);
+    template <typename Iterator>
+    void erase_range(Iterator first, Iterator last);
 
-	// get value reference of coordinate (row_index,col_index), if not exist, create one
-	// (look for node from left to right, from up to down) !!!faster for head search!!!
-	reference at(size_type row_index, size_type col_index);
+    // get value reference of coordinate (row_index,col_index), if not exist, create one
+    // (look for node from left to right, from up to down) !!!faster for head search!!!
+    reference at(size_type row_index, size_type col_index);
 
-	// get value reference of coordinate (row_index,col_index), if not exist, throw an exception
-	// (look for node from left to right, from up to down) !!!faster for head search!!!
-	const_reference at(size_type row_index, size_type col_index) const;
+    // get value reference of coordinate (row_index,col_index), if not exist, throw an exception
+    // (look for node from left to right, from up to down) !!!faster for head search!!!
+    const_reference at(size_type row_index, size_type col_index) const;
 
-	// get value reference of coordinate (row_index,col_index), if not exist, create one
-	// (look for node from right to left, from down to up) !!!faster for head search!!!
-	reference rat(size_type row_index, size_type col_index);
+    // get value reference of coordinate (row_index,col_index), if not exist, create one
+    // (look for node from right to left, from down to up) !!!faster for head search!!!
+    reference rat(size_type row_index, size_type col_index);
 
-	// get value reference of coordinate (row_index,col_index), if not exist, throw an exception
-	// (look for node from right to left, from down to up) !!!faster for head search!!!
-	const_reference rat(size_type row_index, size_type col_index) const;
+    // get value reference of coordinate (row_index,col_index), if not exist, throw an exception
+    // (look for node from right to left, from down to up) !!!faster for head search!!!
+    const_reference rat(size_type row_index, size_type col_index) const;
 
-	// get value reference of coordinate (row_index,col_index), if not exist, create one
-	// (look for node from left to right, from up to down) !!!faster for head search!!!
-	// virtual interface for optimization of derived class
-	virtual reference operator () (size_type row_index, size_type col_index) {
-		return at(row_index,col_index);
-	}
+    // get value reference of coordinate (row_index,col_index), if not exist, create one
+    // (look for node from left to right, from up to down) !!!faster for head search!!!
+    // virtual interface for optimization of derived class
+    virtual reference operator () (size_type row_index, size_type col_index) {
+        return at(row_index,col_index);
+    }
 
-	// get value reference of coordinate (row_index,col_index), if not exist, throw an exception
-	// (look for node from left to right, from up to down) !!!faster for head search!!!
-	// virtual interface for optimization of derived class
-	virtual const_reference operator () (size_type row_index, size_type col_index) const {
-		return at(row_index,col_index);
-	}
+    // get value reference of coordinate (row_index,col_index), if not exist, throw an exception
+    // (look for node from left to right, from up to down) !!!faster for head search!!!
+    // virtual interface for optimization of derived class
+    virtual const_reference operator () (size_type row_index, size_type col_index) const {
+        return at(row_index,col_index);
+    }
 
-	// get value of coordinate (row_index,col_index), if not exist, return default value
-	// (look for node from left to right, from up to down) !!!faster for head search!!!
-	value_type get(size_type row_index, size_type col_index) const;
+    // get value of coordinate (row_index,col_index), if not exist, return default value
+    // (look for node from left to right, from up to down) !!!faster for head search!!!
+    value_type get(size_type row_index, size_type col_index) const;
 
-	// get value of coordinate (row_index,col_index), if not exist, return default value
-	// (look for node from right to left, from down to up) !!!faster for tail search!!!
-	value_type rget(size_type row_index, size_type col_index) const;
+    // get value of coordinate (row_index,col_index), if not exist, return default value
+    // (look for node from right to left, from down to up) !!!faster for tail search!!!
+    value_type rget(size_type row_index, size_type col_index) const;
 
-	// set value of coordinate (row_index,col_index) to value, if not exist, create one
-	// (look for node from left to right, from up to down) !!!faster for head insertion!!!
-	void set(size_type row_index, size_type col_index, const_reference value);
+    // set value of coordinate (row_index,col_index) to value, if not exist, create one
+    // (look for node from left to right, from up to down) !!!faster for head insertion!!!
+    void set(size_type row_index, size_type col_index, const_reference value);
 
-	// set value of coordinate (row_index,col_index) to value, if not exist, create one
-	// (look for node from right to left, from down to up) !!!faster for tail insertion!!!
-	void rset(size_type row_index, size_type col_index, const_reference value);
+    // set value of coordinate (row_index,col_index) to value, if not exist, create one
+    // (look for node from right to left, from down to up) !!!faster for tail insertion!!!
+    void rset(size_type row_index, size_type col_index, const_reference value);
 
-	// whether a node of coordinate (row_index,col_index) exist
-	// (look for node from left to right, from up to down) !!!faster for head search!!!
-	bool exist(size_type row_index, size_type col_index) const;
+    // whether a node of coordinate (row_index,col_index) exist
+    // (look for node from left to right, from up to down) !!!faster for head search!!!
+    bool exist(size_type row_index, size_type col_index) const;
 
-	// whether a node of coordinate (row_index,col_index) exist
-	// (look for node from right to left, from down to up) !!!faster for tail search!!!
-	bool rexist(size_type row_index, size_type col_index) const;
+    // whether a node of coordinate (row_index,col_index) exist
+    // (look for node from right to left, from down to up) !!!faster for tail search!!!
+    bool rexist(size_type row_index, size_type col_index) const;
 
-	bool empty() const { return size()==0; }
-	void clear() { erase_range(begin(), end()); }  // empty the cross list
+    bool empty() const { return size()==0; }
+    void clear() { erase_range(begin(), end()); }  // empty the cross list
 
-	// reset maximum nodes that cross list can contains
-	void reserve(size_type row_count, size_type column_count);
+    // reset maximum nodes that cross list can contains
+    void reserve(size_type row_count, size_type column_count);
 
-	// reset maximum rows that cross list can contains
-	void row_reserve(size_type new_count);
+    // reset maximum rows that cross list can contains
+    void row_reserve(size_type new_count);
 
-	// reset maximum columns that cross list can contains
-	void column_reserve(size_type new_count);
+    // reset maximum columns that cross list can contains
+    void column_reserve(size_type new_count);
 
-	// how many nodes in cross list
-	size_type size() const { return entire_size_; }
+    // how many nodes in cross list
+    size_type size() const { return entire_size_; }
 
-	// how many rows in cross list
-	size_type row_count() const { return row_sizes_.size(); }
+    // how many rows in cross list
+    size_type row_count() const { return row_sizes_.size(); }
 
-	// how many columns in cross list
-	size_type column_count() const { return column_sizes_.size(); }
+    // how many columns in cross list
+    size_type column_count() const { return column_sizes_.size(); }
 
-	// how many nodes in row
-	size_type row_size(size_type row_index) const;
+    // how many nodes in row
+    size_type row_size(size_type row_index) const;
 
-	// how many nodes in column
-	size_type column_size(size_type col_index) const;
-	
+    // how many nodes in column
+    size_type column_size(size_type col_index) const;
+    
 protected:  // internal operations (level -1)
-	// fill null pointer range [first,last) with new allocated default header
-	void fill_headers(header_iterator first, header_iterator last);
+    // fill null pointer range [first,last) with new allocated default header
+    void fill_headers(header_iterator first, header_iterator last);
 
-	// set non-null pointer range [firs,last) to null pointers, delete original nodes
-	void empty_headers(header_iterator first, header_iterator last);
+    // set non-null pointer range [firs,last) to null pointers, delete original nodes
+    void empty_headers(header_iterator first, header_iterator last);
 
-	// set fields of nodes in range [first,last) to header's default state
-	void reset_headers(header_iterator first, header_iterator last);
+    // set fields of nodes in range [first,last) to header's default state
+    void reset_headers(header_iterator first, header_iterator last);
 
-	// check if a row index is in legal range
-	bool is_valid_row(size_type row_index) const {
+    // check if a row index is in legal range
+    bool is_valid_row(size_type row_index) const {
         return row_index < row_count();
     }
 
-	// check if a column index is in legal range
-	bool is_valid_column(size_type col_index) const {
+    // check if a column index is in legal range
+    bool is_valid_column(size_type col_index) const {
         return col_index < column_count();
     }
 
-	// get last internal row index of headers_
-	// precondition: assume !headers_.empty()==true
-	size_type last_internal_row() const {
+    // get last internal row index of headers_
+    // precondition: assume !headers_.empty()==true
+    size_type last_internal_row() const {
         return row_count()>0 ? row_count()-1 : 0;}
 
-	// look up node (row_index,col_index), if not exist, return right and down side nodes
-	// precondition: row_index and col_index are both legal
-	std::pair<node*,node*> locate(
+    // look up node (row_index,col_index), if not exist, return right and down side nodes
+    // precondition: row_index and col_index are both legal
+    std::pair<node*,node*> locate(
             size_type row_index,size_type col_index) const;
 
-	// look up node (row_index,col_index), if not exist, return left and up side nodes
-	// precondition: row_index and col_index are both legal
-	std::pair<node*,node*> rlocate(
+    // look up node (row_index,col_index), if not exist, return left and up side nodes
+    // precondition: row_index and col_index are both legal
+    std::pair<node*,node*> rlocate(
             size_type row_index,size_type col_index) const;
 
-	// check if ptrs denote a node at (row_index,col_index)
-	bool has_node_at(const std::pair<node*,node*>& ptrs,
-			size_type row_index, size_type col_index) const {
-		return ptrs.first==ptrs.second &&
-			ptrs.first->column==col_index && ptrs.second->row==row_index;
-	}
+    // check if ptrs denote a node at (row_index,col_index)
+    bool has_node_at(const std::pair<node*,node*>& ptrs,
+            size_type row_index, size_type col_index) const {
+        return ptrs.first==ptrs.second &&
+            ptrs.first->column==col_index && ptrs.second->row==row_index;
+    }
 
-	// allocate a node, with pointer fields uninitialized (depend on node's constructor)
-	virtual node* new_node(const_reference value,
+    // allocate a node, with pointer fields uninitialized (depend on node's constructor)
+    virtual node* new_node(const_reference value,
             size_type row_index, size_type col_index) {
-		return new node(value, row_index, col_index);
-	}
+        return new node(value, row_index, col_index);
+    }
 
-	// insert node to left side of ptrs->first and up side of ptrs->second
-	virtual void insert_node_before(
+    // insert node to left side of ptrs->first and up side of ptrs->second
+    virtual void insert_node_before(
             node* new_node, const std::pair<node*,node*>& ptrs);
 
-	// insert node to right side of ptrs->first and down side of ptrs->second
-	virtual void insert_node_after(
+    // insert node to right side of ptrs->first and down side of ptrs->second
+    virtual void insert_node_after(
             node* new_node, const std::pair<node*,node*>& ptrs);
 
-	// precondition: node is in cross list and not headers
-	virtual void erase_node(node* p);
+    // precondition: node is in cross list and not headers
+    virtual void erase_node(node* p);
 
 protected:  // internal operations (level -2)
-	// allocate a header node, fill its fields with header's default value
-	node* new_header();
+    // allocate a header node, fill its fields with header's default value
+    node* new_header();
 
-	// reset header node's fields to header's default value
-	void reset_header(node* p);
+    // reset header node's fields to header's default value
+    void reset_header(node* p);
 
-	// deallocate a node, release memory space
-	virtual void delete_node(node* p) { delete p; }
+    // deallocate a node, release memory space
+    virtual void delete_node(node* p) { delete p; }
 
-	// attach node 'new_node' on left side of node 'pos'
-	void attach_node_left_of(node* new_node, node* pos);
+    // attach node 'new_node' on left side of node 'pos'
+    void attach_node_left_of(node* new_node, node* pos);
 
-	// attach node 'new_node' on right side of node 'pos'
-	void attach_node_right_of(node* new_node, node* pos);
+    // attach node 'new_node' on right side of node 'pos'
+    void attach_node_right_of(node* new_node, node* pos);
 
-	// attach node 'new_node' on up side of node 'pos'
-	void attach_node_up_of(node* new_node, node* pos);
+    // attach node 'new_node' on up side of node 'pos'
+    void attach_node_up_of(node* new_node, node* pos);
 
-	// attach node 'new_node' on down side of node 'pos'
-	void attach_node_down_of(node* new_node, node* pos);
+    // attach node 'new_node' on down side of node 'pos'
+    void attach_node_down_of(node* new_node, node* pos);
 
-	// detach node from its neighbours
-	void detach_node(node* p);
+    // detach node from its neighbours
+    void detach_node(node* p);
 
-	// increase records of node by 1
-	void increase_record(node* p);
+    // increase records of node by 1
+    void increase_record(node* p);
 
-	// decrease records of node by 1
-	void decrease_record(node* p);
+    // decrease records of node by 1
+    void decrease_record(node* p);
 
 protected:  // data members
     headers_type headers_;  // headers

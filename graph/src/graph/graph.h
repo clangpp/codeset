@@ -36,11 +36,11 @@ OutputIterator topological_sort(const CrossList<T>& g, OutputIterator result);
 
 template <typename T, typename OutputIterator>
 OutputIterator topological_sort_grouped(
-	const CrossList<T>& g, OutputIterator result);
+    const CrossList<T>& g, OutputIterator result);
 
 template <typename T, typename OutputIterator>
 OutputIterator topological_sort_dfs(
-	const CrossList<T>& g, OutputIterator result);
+    const CrossList<T>& g, OutputIterator result);
 
 // pre-condition: g.row_count()==g.column_count()
 // pre-condition: array prev and dist are well initialized
@@ -89,10 +89,10 @@ void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
 //         *(vertex_index++) = *(topo_first++);
 //     }
 template <typename T, typename RandomAccessIterator,
-	typename OutputIterator1, typename OutputIterator2>
+    typename OutputIterator1, typename OutputIterator2>
 void print_topological(const CrossList<T>& g,
-	RandomAccessIterator topo_first, RandomAccessIterator topo_last,
-	OutputIterator1 prefix_string, OutputIterator2 vertex_index);
+    RandomAccessIterator topo_first, RandomAccessIterator topo_last,
+    OutputIterator1 prefix_string, OutputIterator2 vertex_index);
 
 // print acyclic digraph to output iterators
 // pre-condition: g.row_count()==g.column_count()

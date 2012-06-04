@@ -321,7 +321,6 @@ void test_utility() {
 
 void test_print() {
     Trace trace(INFO_, "test_print()");
-    bool pass = true;
 
     CrossList<int> g(12, 12);
     g.rinsert(0, 1, 1);
@@ -339,43 +338,40 @@ void test_print() {
     g.rinsert(8, 10, 1);
     digraph::print_acyclic(g);
 
-	g.clear();
-	g.reserve(19, 19);
-	g.rinsert(0, 7, 1);
-	g.rinsert(1, 4, 1);
-	g.rinsert(1, 5, 1);
-	g.rinsert(2, 4, 1);
-	g.rinsert(2, 6, 1);
-	g.rinsert(3, 7, 1);
-	g.rinsert(4, 8, 1);
-	g.rinsert(4, 9, 1);
-	g.rinsert(5, 8, 1);
-	g.rinsert(5, 10, 1);
-	g.rinsert(6, 8, 1);
-	g.rinsert(6, 14, 1);
-	g.rinsert(6, 15, 1);
-	g.rinsert(7, 15, 1);
-	g.rinsert(8, 11, 1);
-	g.rinsert(8, 12, 1);
-	g.rinsert(9, 13, 1);
-	g.rinsert(10, 11, 1);
-	g.rinsert(10, 14, 1);
-	g.rinsert(11, 16, 1);
-	g.rinsert(12, 18, 1);
-	g.rinsert(13, 17, 1);
-	g.rinsert(14, 16, 1);
-	g.rinsert(14, 18, 1);
+    g.clear();
+    g.reserve(22, 22);
+    g.rinsert(1, 2, 1);
+    g.rinsert(1, 3, 1);
+    g.rinsert(2, 4, 1);
+    g.rinsert(2, 5, 1);
+    g.rinsert(3, 5, 1);
+    g.rinsert(3, 6, 1);
+    g.rinsert(5, 7, 1);
+    g.rinsert(6, 13, 1);
+    g.rinsert(8, 9, 1);
+    g.rinsert(8, 10, 1);
+    g.rinsert(8, 11, 1);
+    g.rinsert(9, 12, 1);
+    g.rinsert(11, 14, 1);
+    g.rinsert(11, 15, 1);
+    g.rinsert(12, 13, 1);
+    g.rinsert(13, 17, 1);
+    g.rinsert(13, 18, 1);
+    g.rinsert(14, 16, 1);
+    g.rinsert(15, 16, 1);
+    g.rinsert(18, 19, 1);
+    g.rinsert(18, 20, 1);
 
-	vector<string> vertex_names(g.row_count());
-	for (size_t i=0; i<vertex_names.size(); ++i) {
-		stringstream ss;
-		ss << "my vertex " << i;
-		vertex_names[i] = ss.str();
-	}
+    vector<string> vertex_names(g.row_count());
+    for (size_t i=0; i<vertex_names.size(); ++i) {
+        stringstream ss;
+        ss << "my vertex " << i;
+        vertex_names[i] = ss.str();
+    }
 
-	vector<string> prefixs(g.row_count());
-	vector<graph::vertex_type> vertices(g.row_count());
-	digraph::print_acyclic(g, prefixs.begin(), vertices.begin());
-	for (size_t i=0; i<prefixs.size(); ++i)
-		cout << prefixs[i] << vertex_names[vertices[i]] << endl;
+    vector<string> prefixs(g.row_count());
+    vector<graph::vertex_type> vertices(g.row_count());
+    digraph::print_acyclic(g, prefixs.begin(), vertices.begin());
+    for (size_t i=0; i<prefixs.size(); ++i)
+        cout << prefixs[i] << vertex_names[vertices[i]] << endl;
 }

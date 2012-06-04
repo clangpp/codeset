@@ -10,6 +10,7 @@
 #include <limits>
 #include <list>
 #include <queue>
+#include <stack>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -56,8 +57,8 @@ struct WeightedCompare:
     bool operator () (const WeightedVertex<weight_type>& lhs,
             const WeightedVertex<weight_type>& rhs) const {
         bool result = false;
-        if (result=weight_comp(lhs.weight, rhs.weight)) return result;
-        if (result=weight_comp(rhs.weight, lhs.weight)) return !result;
+        if ((result=weight_comp(lhs.weight, rhs.weight))) return result;
+        if ((result=weight_comp(rhs.weight, lhs.weight))) return !result;
         return lhs.vertex < rhs.vertex;
     }
 };
@@ -74,8 +75,8 @@ struct WeightedReverseCompare:
     bool operator () (const WeightedVertex<weight_type>& lhs,
             const WeightedVertex<weight_type>& rhs) const {
         bool result = false;
-        if (result=weight_comp(rhs.weight, lhs.weight)) return result;
-        if (result=weight_comp(lhs.weight, rhs.weight)) return !result;
+        if ((result=weight_comp(rhs.weight, lhs.weight))) return result;
+        if ((result=weight_comp(lhs.weight, rhs.weight))) return !result;
         return lhs.vertex < rhs.vertex;
     }
 };
@@ -132,7 +133,7 @@ OutputIterator topological_sort(const CrossList<T>& g, OutputIterator result) {
 
 template <typename T, typename OutputIterator>
 OutputIterator topological_sort_grouped(
-	const CrossList<T>& g, OutputIterator result) {
+    const CrossList<T>& g, OutputIterator result) {
     if (g.row_count()!=g.column_count())
         throw std::invalid_argument("not a digraph");
     size_type vertex_count = g.row_count();
@@ -195,19 +196,87 @@ OutputIterator topological_sort_grouped(
         }
     }
 
-	// output topological sequences
+    // output topological sequences
     for (size_type gid=0; gid<topo_groups.size(); ++gid) {
         for (size_type i=0; i<topo_groups[gid].size(); ++i)
             *(result++) = topo_groups[gid][i];
     }
-	return result;
+    return result;
 }
 
 template <typename T, typename OutputIterator>
 OutputIterator topological_sort_dfs(
-	const CrossList<T>& g, OutputIterator result) {
-	// TBD.
-	return result;
+    const CrossList<T>& g, OutputIterator result) {
+    if (g.row_count()!=g.column_count())
+        throw std::invalid_argument("not a digraph");
+    size_type vertex_count = g.row_count();
+
+    // prepare components
+    typedef typename CrossList<T>::const_row_iterator const_row_iterator;
+    std::stack<std::pair<const_row_iterator, const_row_iterator> > dfs_stack;
+    std::vector<bool> visited(vertex_count, false);
+    std::deque<vertex_type> zero_outdegreed;
+    for (vertex_type next_v=vertex_count; next_v>0; --next_v) {
+        vertex_type v = next_v-1;
+        if (g.column_size(v)==0) {  // 0-indegree vertex
+            dfs_stack.push(std::make_pair(g.row_begin(v), g.row_end(v)));
+            visited[v] = true;
+            if (g.row_size(v)==0)  // 0-outdegree vertex
+                zero_outdegreed.push_front(v);
+        }
+    }
+
+    // make every vertex's in-link list, in DFS order
+    std::vector<std::deque<vertex_type> > inlinks(vertex_count);
+    while (!dfs_stack.empty()) {
+        const_row_iterator& iter = dfs_stack.top().first;
+        const_row_iterator& end = dfs_stack.top().second;
+        if (iter == end) {  // not an edge
+            dfs_stack.pop();
+            continue;
+        }
+        vertex_type vs=iter.row(), vt=iter.column();
+        ++iter;
+        inlinks[vt].push_back(vs);
+        if (visited[vt]) continue;  // skip visited vertex
+        visited[vt] = true;
+        if (g.row_size(vt)==0)  // 0-outdegree vertex
+            zero_outdegreed.push_back(vt);
+        dfs_stack.push(std::make_pair(g.row_begin(vt), g.row_end(vt)));
+    }
+
+    // sign vertices with order numbers, in DFS order
+    size_type global_order = 0;
+    std::vector<size_type> vertex_orders(vertex_count, global_order);
+    for (size_type i=0; i<zero_outdegreed.size(); ++i) {
+        std::stack<std::deque<vertex_type>*> inlink_stack;
+        inlink_stack.push(&inlinks[zero_outdegreed[i]]);
+        while (!inlink_stack.empty()) {
+            std::deque<vertex_type>* inlink = inlink_stack.top();
+            if (!inlink->empty()) {
+                vertex_type v = inlink->front();
+                inlink_stack.push(&inlinks[v]);
+                continue;
+            }
+            vertex_type v = inlink - &inlinks[0];
+            if (0 == vertex_orders[v])
+                vertex_orders[v] = ++global_order;
+            inlink_stack.pop();
+            if (!inlink_stack.empty())
+                inlink_stack.top()->pop_front();
+        }
+    }
+
+    // sort vertex by signed order numbers
+    std::vector<std::pair<size_type, vertex_type> > sorting(vertex_count);
+    for (vertex_type v=0; v<vertex_count; ++v)
+        sorting[v] = std::make_pair(vertex_orders[v], v);
+    std::sort(sorting.begin(), sorting.end());
+
+    // return ordered vertices
+    for (size_type i=0; i<vertex_count; ++i)
+        *(result++) = sorting[i].second;
+    return result;
 }
 
 template <typename T, typename RandomAccessIterator1,
@@ -340,36 +409,36 @@ inline void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
 }
 
 template <typename T, typename RandomAccessIterator,
-	typename OutputIterator1, typename OutputIterator2>
+    typename OutputIterator1, typename OutputIterator2>
 void print_topological(const CrossList<T>& g,
-	RandomAccessIterator topo_first, RandomAccessIterator topo_last,
-	OutputIterator1 prefix_string, OutputIterator2 vertex_index) {
-	size_type vertex_count = g.column_count();
-	size_type topo_count = static_cast<size_type>(topo_last-topo_first);
+    RandomAccessIterator topo_first, RandomAccessIterator topo_last,
+    OutputIterator1 prefix_string, OutputIterator2 vertex_index) {
+    size_type vertex_count = g.column_count();
+    size_type topo_count = static_cast<size_type>(topo_last-topo_first);
 
-	// place vertex coordinates
+    // place vertex coordinates
     std::vector<size_type> column_orders;
-	for (size_type i=0; i<topo_count; ++i) {
-		if (!column_orders.empty() &&
-			0==g.row_size(topo_first[column_orders.back()])) {
-			column_orders.pop_back();
-		}
-		column_orders.push_back(i);
-	}
+    for (size_type i=0; i<topo_count; ++i) {
+        if (!column_orders.empty() &&
+            0==g.row_size(topo_first[column_orders.back()])) {
+            column_orders.pop_back();
+        }
+        column_orders.push_back(i);
+    }
 
-	// initialize vertex degrees information
-	std::vector<size_type> outdegrees(vertex_count);
-	std::vector<std::list<vertex_type> > inlinks(vertex_count);
-	for (size_type i=0; i<topo_count; ++i) {
-		vertex_type v = topo_first[i];
-		outdegrees[v] = g.row_size(v);
-		typename CrossList<T>::const_row_iterator row_iter, row_end;
-		row_iter = g.row_begin(v), row_end = g.row_end(v);
-		for (; row_iter!=row_end; ++row_iter)
-			inlinks[row_iter.column()].push_back(v);
-	}
+    // initialize vertex degrees information
+    std::vector<size_type> outdegrees(vertex_count);
+    std::vector<std::list<vertex_type> > inlinks(vertex_count);
+    for (size_type i=0; i<topo_count; ++i) {
+        vertex_type v = topo_first[i];
+        outdegrees[v] = g.row_size(v);
+        typename CrossList<T>::const_row_iterator row_iter, row_end;
+        row_iter = g.row_begin(v), row_end = g.row_end(v);
+        for (; row_iter!=row_end; ++row_iter)
+            inlinks[row_iter.column()].push_back(v);
+    }
 
-	// draw arrows and output results
+    // draw arrows and output results
     for (size_type row=0; row<topo_count; ++row) {
         vertex_type vt = topo_first[row];
         std::string line;
@@ -396,8 +465,8 @@ void print_topological(const CrossList<T>& g,
         }
         if (!line.empty() && '-'==line[line.size()-1])
             line[line.size()-1] = '>';
-		*(prefix_string++) = line;
-		*(vertex_index++) = vt;
+        *(prefix_string++) = line;
+        *(vertex_index++) = vt;
     }
 }
 
@@ -405,9 +474,11 @@ template <typename T, typename OutputIterator1, typename OutputIterator2>
 inline void print_acyclic(const CrossList<T>& g,
     OutputIterator1 prefix_string, OutputIterator2 vertex_index) {
     std::vector<vertex_type> topo_vertices(g.column_count());
-	topological_sort_grouped(g, topo_vertices.begin());
-	print_topological(g, topo_vertices.begin(),
-		topo_vertices.end(), prefix_string, vertex_index);
+    // topological_sort(g, topo_vertices.begin());
+    // topological_sort_grouped(g, topo_vertices.begin());
+    topological_sort_dfs(g, topo_vertices.begin());
+    print_topological(g, topo_vertices.begin(),
+            topo_vertices.end(), prefix_string, vertex_index);
 }
 
 template <typename T>
