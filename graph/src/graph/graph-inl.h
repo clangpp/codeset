@@ -130,6 +130,86 @@ OutputIterator topological_sort(const CrossList<T>& g, OutputIterator result) {
     return result;
 }
 
+template <typename T, typename OutputIterator>
+OutputIterator topological_sort_grouped(
+	const CrossList<T>& g, OutputIterator result) {
+    if (g.row_count()!=g.column_count())
+        throw std::invalid_argument("not a digraph");
+    size_type vertex_count = g.row_count();
+
+    // initialize work components
+    std::vector<size_type> indegrees(vertex_count);
+    std::vector<size_type> group_ids(vertex_count, 0);
+    std::list<vertex_type> topo_unsorted;
+    size_type max_group_id = 0;
+    std::vector<std::deque<vertex_type> > topo_groups(1);
+    std::vector<bool> topo_grouped(vertex_count, false);
+    for (vertex_type v=0; v<vertex_count; ++v) {
+        indegrees[v] = g.column_size(v);
+        topo_unsorted.push_back(v);
+        if (0 == indegrees[v]) {
+            topo_groups[0].push_back(v);
+            topo_grouped[v] = true;
+        }
+    }
+
+    // topo-sort algorithm to group vertices (signed with group_id)
+    while (!topo_unsorted.empty()) {
+        bool none_sorted = true;
+        for (std::list<vertex_type>::iterator vi=
+            topo_unsorted.begin(); vi!=topo_unsorted.end();) {
+            if (indegrees[*vi]>0) {
+                ++vi;
+                continue;
+            }
+            typename CrossList<T>::const_row_iterator row_iter, row_end;
+            row_iter = g.row_begin(*vi), row_end = g.row_end(*vi);
+            for (; row_iter!=row_end; ++row_iter) {
+                vertex_type u = row_iter.column();
+                --indegrees[u];
+                group_ids[u] = std::max(group_ids[u], group_ids[*vi]+1);
+                if (group_ids[u] > max_group_id) max_group_id = group_ids[u];
+            }
+            topo_unsorted.erase(vi++);
+            none_sorted = false;
+        }
+        if (none_sorted)
+            throw std::runtime_error("cycle detected in digraph");
+    }
+
+    // group vertices by group_id
+    std::vector<std::deque<vertex_type> > inlinks(vertex_count);
+    topo_groups.resize(max_group_id+1);
+    for (size_type gid=0; gid<topo_groups.size(); ++gid) {
+        for (size_type i=0; i<topo_groups[gid].size(); ++i) {
+            vertex_type v = topo_groups[gid][i];
+            typename CrossList<T>::const_row_iterator row_iter, row_end;
+            row_iter = g.row_begin(v), row_end = g.row_end(v);
+            for (; row_iter!=row_end; ++row_iter) {
+                vertex_type u = row_iter.column();
+                inlinks[u].push_back(v);
+                if (topo_grouped[u]) continue;
+                topo_groups[group_ids[u]].push_front(u);
+                topo_grouped[u] = true;
+            }
+        }
+    }
+
+	// output topological sequences
+    for (size_type gid=0; gid<topo_groups.size(); ++gid) {
+        for (size_type i=0; i<topo_groups[gid].size(); ++i)
+            *(result++) = topo_groups[gid][i];
+    }
+	return result;
+}
+
+template <typename T, typename OutputIterator>
+OutputIterator topological_sort_dfs(
+	const CrossList<T>& g, OutputIterator result) {
+	// TBD.
+	return result;
+}
+
 template <typename T, typename RandomAccessIterator1,
          typename RandomAccessIterator2, typename BinaryPredicate>
 void dijkstra(const CrossList<T>& g, vertex_type s,
@@ -259,95 +339,43 @@ inline void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
     acyclic_dijkstra(g, s, prev, dist, std::greater<T>());
 }
 
-template <typename T, typename OutputIterator1, typename OutputIterator2>
-void print_acyclic(const CrossList<T>& g,
+template <typename T, typename RandomAccessIterator,
+	typename OutputIterator1, typename OutputIterator2>
+void print_topological(const CrossList<T>& g,
+	RandomAccessIterator topo_first, RandomAccessIterator topo_last,
 	OutputIterator1 prefix_string, OutputIterator2 vertex_index) {
-    if (g.row_count()!=g.column_count())
-        throw std::invalid_argument("not a digraph");
-    size_type vertex_count = g.row_count();
+	size_type vertex_count = g.column_count();
+	size_type topo_count = static_cast<size_type>(topo_last-topo_first);
 
-    // initialize work components
-    std::vector<size_type> indegrees(vertex_count);
-    std::vector<size_type> group_ids(vertex_count, 0);
-    std::list<vertex_type> topo_unsorted;
-    size_type max_group_id = 0;
-    std::vector<std::deque<vertex_type> > topo_groups(1);
-    std::vector<bool> topo_grouped(vertex_count, false);
-    for (vertex_type v=0; v<vertex_count; ++v) {
-        indegrees[v] = g.column_size(v);
-        topo_unsorted.push_back(v);
-        if (0 == indegrees[v]) {
-            topo_groups[0].push_back(v);
-            topo_grouped[v] = true;
-        }
-    }
-
-    // topo-sort algorithm to group vertices (signed with group_id)
-    while (!topo_unsorted.empty()) {
-		bool none_sorted = true;
-        for (std::list<vertex_type>::iterator vi=
-            topo_unsorted.begin(); vi!=topo_unsorted.end();) {
-            if (indegrees[*vi]>0) {
-                ++vi;
-                continue;
-            }
-            typename CrossList<T>::const_row_iterator row_iter, row_end;
-            row_iter = g.row_begin(*vi), row_end = g.row_end(*vi);
-            for (; row_iter!=row_end; ++row_iter) {
-                vertex_type u = row_iter.column();
-                --indegrees[u];
-                group_ids[u] = std::max(group_ids[u], group_ids[*vi]+1);
-                if (group_ids[u] > max_group_id) max_group_id = group_ids[u];
-            }
-            topo_unsorted.erase(vi++);
-			none_sorted = false;
-        }
-		if (none_sorted)
-			throw std::runtime_error("cycle detected in digraph");
-    }
-
-    // group vertices by group_id
-    std::vector<std::deque<vertex_type> > inlinks(vertex_count);
-    topo_groups.resize(max_group_id+1);
-    for (size_type gid=0; gid<topo_groups.size(); ++gid) {
-        for (size_type i=0; i<topo_groups[gid].size(); ++i) {
-            vertex_type v = topo_groups[gid][i];
-            typename CrossList<T>::const_row_iterator row_iter, row_end;
-            row_iter = g.row_begin(v), row_end = g.row_end(v);
-            for (; row_iter!=row_end; ++row_iter) {
-                vertex_type u = row_iter.column();
-                inlinks[u].push_back(v);
-                if (topo_grouped[u]) continue;
-                topo_groups[group_ids[u]].push_front(u);
-                topo_grouped[u] = true;
-            }
-        }
-    }
-
-    // place vertex coordinates
-    std::vector<size_type> outdegrees(vertex_count);
-    for (vertex_type v=0; v<vertex_count; ++v)
-        outdegrees[v] = g.row_size(v);
-    std::vector<vertex_type> ordered_vertices;
+	// place vertex coordinates
     std::vector<size_type> column_orders;
-    for (size_type gid=0; gid<topo_groups.size(); ++gid) {
-        for (size_type i=0; i<topo_groups[gid].size(); ++i) {
-            ordered_vertices.push_back(topo_groups[gid][i]);
-            if (!column_orders.empty() &&
-                0==outdegrees[ordered_vertices[column_orders.back()]]) {
-                column_orders.pop_back();
-            }
-            column_orders.push_back(ordered_vertices.size()-1);
-        }
-    }
+	for (size_type i=0; i<topo_count; ++i) {
+		if (!column_orders.empty() &&
+			0==g.row_size(topo_first[column_orders.back()])) {
+			column_orders.pop_back();
+		}
+		column_orders.push_back(i);
+	}
 
-    // draw arrows between vertices
-    for (size_type row=0; row<ordered_vertices.size(); ++row) {
-        vertex_type vt = ordered_vertices[row];
+	// initialize vertex degrees information
+	std::vector<size_type> outdegrees(vertex_count);
+	std::vector<std::list<vertex_type> > inlinks(vertex_count);
+	for (size_type i=0; i<topo_count; ++i) {
+		vertex_type v = topo_first[i];
+		outdegrees[v] = g.row_size(v);
+		typename CrossList<T>::const_row_iterator row_iter, row_end;
+		row_iter = g.row_begin(v), row_end = g.row_end(v);
+		for (; row_iter!=row_end; ++row_iter)
+			inlinks[row_iter.column()].push_back(v);
+	}
+
+	// draw arrows and output results
+    for (size_type row=0; row<topo_count; ++row) {
+        vertex_type vt = topo_first[row];
         std::string line;
         for (size_type col=0; col<column_orders.size() &&
                 column_orders[col]<row; ++col) {
-            vertex_type vs = ordered_vertices[column_orders[col]];
+            vertex_type vs = topo_first[column_orders[col]];
             std::string token;
             bool cont_line = !line.empty() && '-'==line[line.size()-1];
 
@@ -373,11 +401,20 @@ void print_acyclic(const CrossList<T>& g,
     }
 }
 
+template <typename T, typename OutputIterator1, typename OutputIterator2>
+inline void print_acyclic(const CrossList<T>& g,
+    OutputIterator1 prefix_string, OutputIterator2 vertex_index) {
+    std::vector<vertex_type> topo_vertices(g.column_count());
+	topological_sort_grouped(g, topo_vertices.begin());
+	print_topological(g, topo_vertices.begin(),
+		topo_vertices.end(), prefix_string, vertex_index);
+}
+
 template <typename T>
 inline void print_acyclic(const CrossList<T>& g, std::ostream& out) {
-	std::ostream_iterator<std::string> prefix_iterator(out, "");
-	std::ostream_iterator<vertex_type> vertex_iterator(out, "\n");
-	print_acyclic(g, prefix_iterator, vertex_iterator);
+    std::ostream_iterator<std::string> prefix_iterator(out, "");
+    std::ostream_iterator<vertex_type> vertex_iterator(out, "\n");
+    print_acyclic(g, prefix_iterator, vertex_iterator);
 }
 
 }  // namespace digraph

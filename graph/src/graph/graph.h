@@ -34,6 +34,14 @@ using namespace graph;
 template <typename T, typename OutputIterator>
 OutputIterator topological_sort(const CrossList<T>& g, OutputIterator result);
 
+template <typename T, typename OutputIterator>
+OutputIterator topological_sort_grouped(
+	const CrossList<T>& g, OutputIterator result);
+
+template <typename T, typename OutputIterator>
+OutputIterator topological_sort_dfs(
+	const CrossList<T>& g, OutputIterator result);
+
 // pre-condition: g.row_count()==g.column_count()
 // pre-condition: array prev and dist are well initialized
 template <typename T, typename RandomAccessIterator1,
@@ -70,19 +78,35 @@ template <typename T, typename RandomAccessIterator1,
 void acyclic_dijkstra_longest(CrossList<T>& g, vertex_type s,
         RandomAccessIterator1 prev, RandomAccessIterator2 dist);
 
-// print acyclic digraph
-// pre-condition: g.row_count()==g.column_count()
-// pre-condition: g must be acyclic digraph
-// remarks: each OutputIterator have exactly <vertex-count> iterations
+// print a topological sortable subset in digraph
+// pre-condition: [topo_first, topo_last) are
+//     topological ordered vertex indices in digraph g
+// remarks: let topo_count = std::distance(topo_first, topo_last)
+// remarks: each OutputIterator have exactly <topo_count> iterations
 // remarks: output iterations can be treated as:
-//     for (size_type i=0; i<vertex_count; ++i) {
-//     	*(prefix_string++) = prefix_i;
-//     	*(vertex_index++) = vertex_i;
+//     for (size_type i=0; i<topo_count; ++i) {
+//         *(prefix_string++) = prefix_i;
+//         *(vertex_index++) = *(topo_first++);
 //     }
-template <typename T, typename OutputIterator1, typename OutputIterator2>
-void print_acyclic(const CrossList<T>& g,
+template <typename T, typename RandomAccessIterator,
+	typename OutputIterator1, typename OutputIterator2>
+void print_topological(const CrossList<T>& g,
+	RandomAccessIterator topo_first, RandomAccessIterator topo_last,
 	OutputIterator1 prefix_string, OutputIterator2 vertex_index);
 
+// print acyclic digraph to output iterators
+// pre-condition: g.row_count()==g.column_count()
+// pre-condition: g must be acyclic digraph (topological sortable)
+// remarks: topological sort all vertices in digraph g,
+//     then call print_topological() to print them to output iterators
+template <typename T, typename OutputIterator1, typename OutputIterator2>
+void print_acyclic(const CrossList<T>& g,
+    OutputIterator1 prefix_string, OutputIterator2 vertex_index);
+
+// print acyclic digraph to std::ostream
+// pre-condition: the same as its output iterator version
+// remarks: a wrapper of its output iterator version,
+//     set output iterators to std::ostream_iterator
 template <typename T>
 void print_acyclic(const CrossList<T>& g, std::ostream& out = std::cout);
 
