@@ -140,9 +140,9 @@ OutputIterator topological_sort_grouped(
 
     // initialize work components
     std::vector<size_type> indegrees(vertex_count);
-    std::vector<size_type> group_ids(vertex_count, 0);
-    std::list<vertex_type> topo_unsorted;
     size_type max_group_id = 0;
+    std::vector<size_type> group_ids(vertex_count, max_group_id);
+    std::list<vertex_type> topo_unsorted;
     std::vector<std::deque<vertex_type> > topo_groups(1);
     std::vector<bool> topo_grouped(vertex_count, false);
     for (vertex_type v=0; v<vertex_count; ++v) {
@@ -212,22 +212,25 @@ OutputIterator topological_sort_dfs(
     size_type vertex_count = g.row_count();
 
     // prepare components
-    typedef typename CrossList<T>::const_row_iterator const_row_iterator;
-    std::stack<std::pair<const_row_iterator, const_row_iterator> > dfs_stack;
-    std::vector<bool> visited(vertex_count, false);
-    std::deque<vertex_type> zero_outdegreed;
-    for (vertex_type next_v=vertex_count; next_v>0; --next_v) {
-        vertex_type v = next_v-1;
-        if (g.column_size(v)==0) {  // 0-indegree vertex
-            dfs_stack.push(std::make_pair(g.row_begin(v), g.row_end(v)));
-            visited[v] = true;
-            if (g.row_size(v)==0)  // 0-outdegree vertex
-                zero_outdegreed.push_front(v);
-        }
-    }
+	std::deque<vertex_type> head_vertices, tail_vertices;
+	for (vertex_type v=0; v<vertex_count; ++v) {
+		if (g.column_size(v)==0) {  // 0-indegree vertex
+			head_vertices.push_back(v);
+			if (g.row_size(v)==0)  // 0-outdegree vertex
+				tail_vertices.push_back(v);
+		}
+	}
 
     // make every vertex's in-link list, in DFS order
     std::vector<std::deque<vertex_type> > inlinks(vertex_count);
+    typedef typename CrossList<T>::const_row_iterator const_row_iterator;
+    std::stack<std::pair<const_row_iterator, const_row_iterator> > dfs_stack;
+    std::vector<bool> visited(vertex_count, false);
+	for (; !head_vertices.empty(); head_vertices.pop_back()) {
+		vertex_type v = head_vertices.back();
+		dfs_stack.push(std::make_pair(g.row_begin(v), g.row_end(v)));
+		visited[v] = true;
+	}
     while (!dfs_stack.empty()) {
         const_row_iterator& iter = dfs_stack.top().first;
         const_row_iterator& end = dfs_stack.top().second;
@@ -241,31 +244,29 @@ OutputIterator topological_sort_dfs(
         if (visited[vt]) continue;  // skip visited vertex
         visited[vt] = true;
         if (g.row_size(vt)==0)  // 0-outdegree vertex
-            zero_outdegreed.push_back(vt);
+			tail_vertices.push_back(vt);
         dfs_stack.push(std::make_pair(g.row_begin(vt), g.row_end(vt)));
     }
 
     // sign vertices with order numbers, in DFS order
+	std::stack<std::deque<vertex_type>*> inlink_stack;
+	for (; !tail_vertices.empty(); tail_vertices.pop_back())
+		inlink_stack.push(&inlinks[tail_vertices.back()]);
     size_type global_order = 0;
-    std::vector<size_type> vertex_orders(vertex_count, global_order);
-    for (size_type i=0; i<zero_outdegreed.size(); ++i) {
-        std::stack<std::deque<vertex_type>*> inlink_stack;
-        inlink_stack.push(&inlinks[zero_outdegreed[i]]);
-        while (!inlink_stack.empty()) {
-            std::deque<vertex_type>* inlink = inlink_stack.top();
-            if (!inlink->empty()) {
-                vertex_type v = inlink->front();
-                inlink_stack.push(&inlinks[v]);
-                continue;
-            }
+    std::vector<size_type> vertex_orders(vertex_count, 0);
+	while (!inlink_stack.empty()) {
+		std::deque<vertex_type>* inlink = inlink_stack.top();
+		if (inlink->empty()) {
             vertex_type v = inlink - &inlinks[0];
-            if (0 == vertex_orders[v])
-                vertex_orders[v] = ++global_order;
-            inlink_stack.pop();
-            if (!inlink_stack.empty())
-                inlink_stack.top()->pop_front();
-        }
-    }
+			vertex_orders[v] = ++global_order;
+			inlink_stack.pop();
+		} else {
+			vertex_type v = inlink->front();
+			if (0==vertex_orders[v])
+				inlink_stack.push(&inlinks[v]);
+			inlink->pop_front();
+		}
+	}
 
     // sort vertex by signed order numbers
     std::vector<std::pair<size_type, vertex_type> > sorting(vertex_count);
