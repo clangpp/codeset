@@ -343,60 +343,73 @@ void traverse_inorder_tricky(NodePtrT root, UnaryFunction op) {
             curr = curr->left;
         } else {
             curr = s.top();
-            op(curr->value);  // visit before poped
+            op(curr->value);  // visit before popped
             s.pop();
             curr = curr->right;
         }
     }
 }
 
-template <typename NodePtrT, typename UnaryFunction>
-void traverse_postorder_tricky(NodePtrT root, UnaryFunction op) {
-    std::stack<std::pair<NodePtrT, NodePtrT> > s;
-	const NodePtrT RIGHT_VISITED_FLAG = NULL;
-    NodePtrT curr=root;
-    while (!s.empty() || curr!=NULL) {
-        if (curr!=NULL) {
-            s.push(make_pair(curr, curr->right));
-            curr = curr->left;
-            continue;
-        }
-
-        NodePtrT self = s.top().first;
-        NodePtrT right = s.top().second;
-        s.pop();
-        if (RIGHT_VISITED_FLAG==right) {
-            op(self->value);  // visit after right subtree visited
-            continue;
-        }
-
-        s.push(make_pair(self, RIGHT_VISITED_FLAG));
-        s.push(make_pair(right, right->right));
-        curr = right->left;
-    }
-}
-
-// TBD: test, but not completed.
 // template <typename NodePtrT, typename UnaryFunction>
 // void traverse_postorder_tricky(NodePtrT root, UnaryFunction op) {
-//     std::stack<NodePtrT> s;
-//     NodePtrT curr=root, parent=NULL;
-// 	while (!s.empty() || curr!=NULL) {
-// 		while (curr!=NULL) {
-// 			s.push(curr);
-// 			curr = curr->left;
-// 		}
+//     std::stack<std::pair<NodePtrT, NodePtrT> > s;
+//     const NodePtrT RIGHT_VISITED_FLAG = NULL;
+//     NodePtrT curr=root;
+//     while (!s.empty() || curr!=NULL) {
+//         if (curr!=NULL) {
+//             s.push(make_pair(curr, curr->right));
+//             curr = curr->left;
+//             continue;
+//         }
 
-// 		parent = s.top();
-// 		s.pop();
+//         NodePtrT self = s.top().first;
+//         NodePtrT right = s.top().second;
+//         s.pop();
+//         if (RIGHT_VISITED_FLAG==right) {
+//             op(self->value);  // visit after right subtree visited
+//             continue;
+//         }
 
-// 		curr = parent->left;
-// 		if (curr!=NULL) op(curr->value);
-
-// 		curr = parent->right;
-// 	}
-// 	if (root!=NULL) op(root->value);
+//         s.push(make_pair(self, RIGHT_VISITED_FLAG));
+//         s.push(make_pair(right, right->right));
+//         curr = right->left;
+//     }
 // }
+
+// This is Wu Lihua's original idea (2012.08.06), I implement it in a way.
+// Basic idea: every left node, is acccessed through its parent.
+// Additional work: every right node (root node included), has to be
+//    accessed in other ways, I choose a separate stack.
+template <typename NodePtrT, typename UnaryFunction>
+void traverse_postorder_tricky(NodePtrT root, UnaryFunction op) {
+    std::stack<NodePtrT> s, s_rtrace;
+    NodePtrT curr=root;
+    while (!s.empty() || curr!=NULL) {
+        while (curr!=NULL) {  // go deepest into left direction
+            s.push(curr);
+            curr = curr->left;
+        }
+
+        NodePtrT parent = s.top();  // pop a left node
+        s.pop();
+
+        curr = parent->left;  // access its left child
+        if (curr!=NULL) op(curr->value);
+
+        curr = parent->right;  // curr turn to right subtree
+
+        s_rtrace.push(parent);  // record every popped node into another stack
+        if (NULL==curr) {  // access right direction path, in reverse order
+            NodePtrT sentry = s.empty() ? NULL : s.top();
+            while (!s_rtrace.empty()) {
+                NodePtrT trace = s_rtrace.top();
+                s_rtrace.pop();
+                if (sentry!=NULL && trace==sentry->left) break;
+                op(trace->value);
+            }
+        }
+    }
+}
 
 template <typename NodeT>
 ssize_type height(const NodeT* root) {
@@ -456,7 +469,7 @@ NodeT* insert(NodeT*& root, NodeT* new_node, BinaryPredicate pred) {
 
 template <typename NodeT>
 NodeT* insert(NodeT*& root, NodeT* new_node) {
-	return insert(root, new_node, std::less<typename NodeT::value_type>());
+    return insert(root, new_node, std::less<typename NodeT::value_type>());
 }
 
 namespace avl {  // AVL tree algorithm
@@ -529,8 +542,8 @@ AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node, BinaryPredicate pred) {
 
 template <typename AVLNodeT>
 AVLNodeT* insert(AVLNodeT*& root, AVLNodeT* new_node) {
-	return avl::insert(root, new_node,
-			std::less<typename AVLNodeT::value_type>());
+    return avl::insert(root, new_node,
+            std::less<typename AVLNodeT::value_type>());
 }
 
 }  // namespace avl
