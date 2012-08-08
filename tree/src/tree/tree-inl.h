@@ -353,6 +353,7 @@ void traverse_inorder_tricky(NodePtrT root, UnaryFunction op) {
 template <typename NodePtrT, typename UnaryFunction>
 void traverse_postorder_tricky(NodePtrT root, UnaryFunction op) {
     std::stack<std::pair<NodePtrT, NodePtrT> > s;
+	const NodePtrT RIGHT_VISITED_FLAG = NULL;
     NodePtrT curr=root;
     while (!s.empty() || curr!=NULL) {
         if (curr!=NULL) {
@@ -363,18 +364,39 @@ void traverse_postorder_tricky(NodePtrT root, UnaryFunction op) {
 
         NodePtrT self = s.top().first;
         NodePtrT right = s.top().second;
-        const NodePtrT right_visited_flag = NULL;
         s.pop();
-        if (right_visited_flag==right) {
+        if (RIGHT_VISITED_FLAG==right) {
             op(self->value);  // visit after right subtree visited
             continue;
         }
 
-        s.push(make_pair(self, right_visited_flag));
+        s.push(make_pair(self, RIGHT_VISITED_FLAG));
         s.push(make_pair(right, right->right));
         curr = right->left;
     }
 }
+
+// TBD: test, but not completed.
+// template <typename NodePtrT, typename UnaryFunction>
+// void traverse_postorder_tricky(NodePtrT root, UnaryFunction op) {
+//     std::stack<NodePtrT> s;
+//     NodePtrT curr=root, parent=NULL;
+// 	while (!s.empty() || curr!=NULL) {
+// 		while (curr!=NULL) {
+// 			s.push(curr);
+// 			curr = curr->left;
+// 		}
+
+// 		parent = s.top();
+// 		s.pop();
+
+// 		curr = parent->left;
+// 		if (curr!=NULL) op(curr->value);
+
+// 		curr = parent->right;
+// 	}
+// 	if (root!=NULL) op(root->value);
+// }
 
 template <typename NodeT>
 ssize_type height(const NodeT* root) {
