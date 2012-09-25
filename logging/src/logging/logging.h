@@ -57,7 +57,7 @@ inline std::ostream& operator << (std::ostream& os, Level level) {
 // get current timestamp string in format YYYY-MM-DD HH:MM:SS
 inline std::string current_timestamp() {
     std::time_t t = std::time(0);
-    char str[50]={0};  // string buffer, size should be enough
+    char str[50]={0};  // string buffer, size should be big enough
     strftime(str, 50, "%Y-%m-%d %H:%M:%S", localtime(&t));
     return str;
 }
