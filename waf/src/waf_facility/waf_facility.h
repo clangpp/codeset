@@ -110,7 +110,7 @@ public:
         const_iterator(const FreqVector* pfreq_vec, size_type pos):
             base(pfreq_vec, pos) {}
         const_iterator(): base() {}
-        const_iterator(const base& iter): base(iter.pfreq_vec_, iter.pos_) {}
+        const_iterator(const base& iter): base(iter) {}
     public:
         size_type operator * () const { return (*pfreq_vec_)[pos_]; }
         const_iterator operator + (difference_type n) const {
@@ -128,7 +128,7 @@ public:
     public:
         iterator(FreqVector* pfreq_vec, size_type pos): base(pfreq_vec, pos) {}
         iterator(): base() {}
-        iterator(const base& iter): base(iter.pfreq_vec_, iter.pos_) {}
+        iterator(const base& iter): base(iter) {}
     public:
         size_type& operator * () { return (*base::pfreq_vec_)[base::pos_]; }
         iterator operator + (difference_type n) const {

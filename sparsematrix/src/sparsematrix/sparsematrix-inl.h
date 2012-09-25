@@ -90,7 +90,7 @@ void SparseMatrix<T>::transpose() {
 
 template <typename T>
 bool SparseMatrix<T>::ierase(size_type row_index, size_type col_index) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index))
+	if (!is_valid_row(row_index) || !is_valid_column(col_index))
 		throw std::out_of_range("SparseMatrix<T>::rerase(size_type,size_type): row_index or col_index illegal");
 	node* p=ilocate(row_index,col_index);
 	if (NULL==p) return false;
@@ -101,7 +101,7 @@ bool SparseMatrix<T>::ierase(size_type row_index, size_type col_index) {
 template <typename T>
 typename SparseMatrix<T>::reference
     SparseMatrix<T>::iat(size_type row_index, size_type col_index) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index))
+	if (!is_valid_row(row_index) || !is_valid_column(col_index))
 		throw std::out_of_range("SparseMatrix<T>::iat(size_type,size_type): row_index or col_index illegal");
 		
 	node* p=ilocate(row_index,col_index);
@@ -115,7 +115,7 @@ typename SparseMatrix<T>::reference
 template <typename T>
 typename SparseMatrix<T>::const_reference
     SparseMatrix<T>::iat(size_type row_index, size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "SparseMatrix<T>::iat(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -132,7 +132,7 @@ typename SparseMatrix<T>::const_reference
 template <typename T>
 typename SparseMatrix<T>::value_type
     SparseMatrix<T>::iget(size_type row_index, size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "SparseMatrix<T>::iget(size_type,size_type) const: row_index or col_index illegal");
     }
@@ -144,7 +144,7 @@ typename SparseMatrix<T>::value_type
 template <typename T>
 void SparseMatrix<T>::iset(
         size_type row_index, size_type col_index, const_reference value) {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "SparseMatrix<T>::iset(size_type,size_type,const_reference): row_index or col_index illegal");
     }
@@ -159,7 +159,7 @@ void SparseMatrix<T>::iset(
 
 template <typename T>
 bool SparseMatrix<T>::iexist(size_type row_index,size_type col_index) const {
-	if (!is_legal_row(row_index) || !is_legal_column(col_index)) {
+	if (!is_valid_row(row_index) || !is_valid_column(col_index)) {
 		throw std::out_of_range(
                 "SparseMatrix<T>::iexist(size_type,size_type) const: row_index or col_index illegal");
     }
