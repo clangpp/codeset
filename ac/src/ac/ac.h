@@ -235,7 +235,9 @@ public:
 			node_pointer_traits<node_pointer>::child_iterator child_iterator;
         typedef std::vector<typename TrieMap::character_type> key_type;
         typedef typename TrieMap::mapped_type value_type;
-		template <typename NodePointer2> friend class basic_iterator;
+		// template <typename NodePointer2> friend class basic_iterator;  // compile error in vs2005
+		friend class basic_iterator<typename TrieMap::node_pointer>;
+		friend class basic_iterator<typename TrieMap::const_node_pointer>;
 	public:
 		basic_iterator(node_pointer p, child_iterator pos):
 			parent_(p), position_(pos) {}
