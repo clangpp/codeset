@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <string>
 #include <set>
 #include <stdexcept>
@@ -12,9 +13,11 @@
 
 #include "../configure/configure.h"
 #include "../logging/logging.h"
+#include "../serialization/serialization.h"
 #include "../timing/timing.h"
 
 using namespace logging;
+using namespace serialization::sparsematrix;
 using namespace std;
 
 // internal facility
@@ -183,7 +186,7 @@ int run_term_to_termid(int argc, char* argv[]) {
         return 0;
 
     } catch (const std::exception& e) {
-		log(ERROR_)
+        log(ERROR_)
             << "operation terminated with exception: " << e.what()
             << ", cost " << timing::duration() << " seconds" << endl;
         return -1;
@@ -290,7 +293,7 @@ int run_termid_frequency(int argc, char* argv[]) {
         return 0;
 
     } catch (const std::exception& e) {
-		log(ERROR_)
+        log(ERROR_)
             << "operation terminated with exception: " << e.what()
             << ", cost " << timing::duration() << " seconds" << endl;
         return -1;
@@ -414,7 +417,7 @@ int run_co_occurrence(int argc, char* argv[]) {
         return 0;
 
     } catch (const std::exception& e) {
-		log(ERROR_)
+        log(ERROR_)
             << "operation terminated with exception: " << e.what()
             << ", cost " << timing::duration() << " seconds" << endl;
         return -1;
@@ -526,7 +529,7 @@ int run_word_activation_force(int argc, char* argv[]) {
         return 0;
 
     } catch (const std::exception& e) {
-		log(ERROR_)
+        log(ERROR_)
             << "operation terminated with exception: " << e.what()
             << ", cost " << timing::duration() << " seconds" << endl;
         return -1;
@@ -667,7 +670,7 @@ int run_affinity_measure(int argc, char* argv[]) {
                     return -1;
                 }
 
-                if (""==care_term_dict_file) {
+                if (""!=care_term_dict_file) {
                     log(WARNING_) << "care term dict '"
                         << care_term_dict_file << "' ignored" << endl;
                 }
@@ -691,7 +694,200 @@ int run_affinity_measure(int argc, char* argv[]) {
         return 0;
 
     } catch (const std::exception& e) {
-		log(ERROR_)
+        log(ERROR_)
+            << "operation terminated with exception: " << e.what()
+            << ", cost " << timing::duration() << " seconds" << endl;
+        return -1;
+    }
+}
+
+template <typename T>
+void filter_matrix(CrossList<T>& mat, const waf::TermSet& termset);
+
+enum AnalyzeMethod {ANAL_PAIR, ANAL_INLINK, ANAL_OUTLINK};
+
+template <typename T>
+void analyze_matrix(
+        const CrossList<T>& mat, const waf::TermSet& termset,
+        bool term_mapping, waf::size_type result_count,
+        AnalyzeMethod analyze_method, ostream& os);
+
+int run_analyze_matrix(int argc, char* argv[]) {
+    configure::read(argc, argv);
+    if (configure::search("config-file")) {
+        configure::read("config-file");
+        configure::read(argc, argv);
+    }
+
+    enum MatrixToken {MAT_NONE, MAT_WAF, MAT_AFFINITY};
+    MatrixToken matrix_token = MAT_NONE;
+    string waf_matrix_file =
+        configure::default_get<string>("waf-matrix", "");
+    if (waf_matrix_file!="") matrix_token = MAT_WAF;
+    string affinity_matrix_file =
+        configure::default_get<string>("affinity-matrix", "");
+    if (affinity_matrix_file!="") {
+        if (MAT_WAF==matrix_token) {
+            cerr << "WARNINg: waf-matrix file '" << waf_matrix_file
+                << "' specified by '--waf-matrix' is ignored" << endl;
+        }
+        matrix_token = MAT_AFFINITY;
+    }
+    if (MAT_NONE==matrix_token) {
+        cerr << "at least one of '--waf-matrix', '--affinity-matrix' should be specified (input)" << endl;
+        return -1;
+    }
+
+    string pair_result_file =
+        configure::default_get<string>("pair-result", "");
+    string inlink_result_file =
+        configure::default_get<string>("inlink-result", "");
+    string outlink_result_file = 
+        configure::default_get<string>("outlink-result", "");
+    if (pair_result_file=="" &&
+            inlink_result_file=="" && outlink_result_file=="") {
+        cerr << "at least one of '--pair-result', '--inlink-result', '--outlink-result' should be specified (output)" << endl;
+        return -1;
+    }
+
+    string term_dict_file =
+        configure::default_get<string>("term-dict", "");
+    waf::size_type result_count =
+        configure::default_get<waf::size_type>("result-count",
+                std::numeric_limits<waf::size_type>::max());
+
+    ofstream flog;
+    if (!waf_internal::resolve_log_option(flog)) return -1;
+
+    try {
+        timing::start();
+        log(INFO_) << "operation started" << endl;
+
+        waf::TermSet termset;
+        bool term_filter = false;
+        bool term_mapping = false;
+        if (term_dict_file!="") {
+            ifstream fin(term_dict_file.c_str());
+            if (!fin) {
+                log(ERROR_) << "fail to open term dict file '"
+                    << term_dict_file << "'" << endl;
+                return -1;
+            }
+            fin >> termset;
+            term_filter = true;
+            term_mapping = true;
+        }
+
+        switch (matrix_token) {
+        case MAT_WAF:
+            {
+                ifstream fin(waf_matrix_file.c_str());
+                if (!fin) {
+                    log(ERROR_) << "fail to open matrix file '"
+                        << waf_matrix_file << "'" << endl;
+                    return -1;
+                }
+                CrossList<waf::force_type> waf_mat;
+                fin >> waf_mat;
+
+                if (term_filter) filter_matrix(waf_mat, termset);
+
+                if (pair_result_file!="") {
+                    ofstream fout(pair_result_file.c_str());
+                    if (!fout) {
+                        log(ERROR_) << "fail to open result file '"
+                            << pair_result_file << "'" << endl;
+                        return -1;
+                    }
+                    log(INFO_) << "analyzing word-activation-force matrix" << endl;
+                    analyze_matrix(waf_mat, termset,
+                            term_mapping, result_count, ANAL_PAIR, fout);
+                }
+                if (inlink_result_file!="") {
+                    ofstream fout(inlink_result_file.c_str());
+                    if (!fout) {
+                        log(ERROR_) << "fail to open result file '"
+                            << inlink_result_file << "'" << endl;
+                        return -1;
+                    }
+                    log(INFO_) << "analyzing word-activation-force matrix" << endl;
+                    analyze_matrix(waf_mat, termset,
+                            term_mapping, result_count, ANAL_INLINK, fout);
+                }
+                if (outlink_result_file!="") {
+                    ofstream fout(outlink_result_file.c_str());
+                    if (!fout) {
+                        log(ERROR_) << "fail to open result file '"
+                            << outlink_result_file << "'" << endl;
+                        return -1;
+                    }
+                    log(INFO_) << "analyzing word-activation-force matrix" << endl;
+                    analyze_matrix(waf_mat, termset,
+                            term_mapping, result_count, ANAL_OUTLINK, fout);
+                }
+            }
+            break;
+        case MAT_AFFINITY:
+            {
+                ifstream fin(affinity_matrix_file.c_str());
+                if (!fin) {
+                    log(ERROR_) << "fail to open matrix file '"
+                        << affinity_matrix_file << "'" << endl;
+                    return -1;
+                }
+                CrossList<waf::affinity_type> a_mat;
+                fin >> a_mat;
+
+                if (term_filter) filter_matrix(a_mat, termset);
+
+                if (pair_result_file!="") {
+                    ofstream fout(pair_result_file.c_str());
+                    if (!fout) {
+                        log(ERROR_) << "fail to open result file '"
+                            << pair_result_file << "'" << endl;
+                        return -1;
+                    }
+                    log(INFO_) << "analyzing affinity matrix" << endl;
+                    analyze_matrix(a_mat, termset,
+                            term_mapping, result_count, ANAL_PAIR, fout);
+                }
+                if (inlink_result_file!="") {
+                    ofstream fout(inlink_result_file.c_str());
+                    if (!fout) {
+                        log(ERROR_) << "fail to open result file '"
+                            << inlink_result_file << "'" << endl;
+                        return -1;
+                    }
+                    log(INFO_) << "analyzing affinity matrix" << endl;
+                    analyze_matrix(a_mat, termset,
+                            term_mapping, result_count, ANAL_INLINK, fout);
+                }
+                if (outlink_result_file!="") {
+                    ofstream fout(outlink_result_file.c_str());
+                    if (!fout) {
+                        log(ERROR_) << "fail to open result file '"
+                            << outlink_result_file << "'" << endl;
+                        return -1;
+                    }
+                    log(INFO_) << "analyzing affinity matrix" << endl;
+                    analyze_matrix(a_mat, termset,
+                            term_mapping, result_count, ANAL_OUTLINK, fout);
+                }
+            }
+            break;
+        default:
+            {
+                log(ERROR_) << "unsupported matrix type" << endl;
+                return -1;
+            }
+            break;
+        }
+
+        log(INFO_) << "operation finished successfully, cost "
+            << timing::duration() << " seconds" << endl;
+        return 0;
+    } catch (const std::exception& e) {
+        log(ERROR_)
             << "operation terminated with exception: " << e.what()
             << ", cost " << timing::duration() << " seconds" << endl;
         return -1;
@@ -775,6 +971,18 @@ int run_help(int argc, char* argv[]) {
         command.options.push_back("--log");
         commands.push_back(command);
     }
+    {
+        CommandDescription command;
+        command.name = "analyze-matrix";
+        command.description = "analyze matrix elements";
+        command.options.push_back("--waf-matrix or --affinity-matrix (input)(required)");
+        command.options.push_back("--pair-result or --inlink-result or --outlink-result (output)(required)");
+        command.options.push_back("--term-dict: term filter and dictionary");
+        command.options.push_back("--result-count: (total for --pair-result, each elements for --inlink-result and --outlink-result)");
+        command.options.push_back("--config-file");
+        command.options.push_back("--log");
+        commands.push_back(command);
+    }
 
     // print helping information
     bool cmd_exists = false;
@@ -805,4 +1013,126 @@ int run_help(int argc, char* argv[]) {
             cerr << "\t" << command.options[i] << endl;
     }
     return 0;
+}
+
+// =============================================================================
+
+template <typename T>
+void filter_matrix(CrossList<T>& mat, const waf::TermSet& termset) {
+	for (waf::termid_type i=0; i<mat.row_count(); ++i) {
+		if (!termset.search(i))
+			mat.erase_range(mat.row_begin(i), mat.row_end(i));
+	}
+	for (waf::termid_type i=0; i<mat.column_count(); ++i) {
+		if (!termset.search(i))
+			mat.erase_range(mat.column_begin(i), mat.column_end(i));
+	}
+}
+
+template <typename T>
+bool cell_compare(const Cell<T>& lhs, const Cell<T>& rhs) {
+    if (lhs.value != rhs.value) {
+        return lhs.value > rhs.value;
+    } else if (lhs.row != rhs.row) {
+        return lhs.row < rhs.row;
+    } else {
+        return lhs.column < rhs.column;
+    }
+}
+
+template <typename T>
+void sort_matrix_term_pairs_pair(const CrossList<T>& mat,
+        waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
+    term_pairs.resize(1, deque<Cell<T> >());
+    deque<Cell<T> >& arr = term_pairs[0];
+    for (CrossList<T>::const_iterator
+            iter=mat.begin(); iter!=mat.end(); ++iter) {
+        arr.push_back(Cell<T>(iter.row(), iter.column(), *iter));
+    }
+    sort(arr.begin(), arr.end(), cell_compare<T>);
+    if (arr.size() > result_count) arr.resize(result_count);
+}
+
+template <typename T>
+void sort_matrix_term_pairs_inlink(const CrossList<T>& mat,
+        waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
+    term_pairs.resize(mat.column_count(), deque<Cell<T> >());
+    for (size_t i=0; i<mat.column_count(); ++i) {
+        for (CrossList<T>::const_column_iterator
+                iter=mat.column_begin(i); iter!=mat.column_end(i); ++iter) {
+            term_pairs[i].push_back(Cell<T>(iter.row(), iter.column(), *iter));
+        }
+    }
+    for (size_t i=0; i<term_pairs.size(); ++i) {
+        sort(term_pairs[i].begin(), term_pairs[i].end(), cell_compare<T>);
+        if (term_pairs[i].size() > result_count)
+            term_pairs[i].resize(result_count);
+    }
+}
+
+template <typename T>
+void sort_matrix_term_pairs_outlink(const CrossList<T>& mat,
+        waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
+    term_pairs.resize(mat.row_count(), deque<Cell<T> >());
+    for (size_t i=0; i<mat.row_count(); ++i) {
+        for (CrossList<T>::const_row_iterator
+                iter=mat.row_begin(i); iter!=mat.row_end(i); ++iter) {
+            term_pairs[i].push_back(Cell<T>(iter.row(), iter.column(), *iter));
+        }
+    }
+    for (size_t i=0; i<term_pairs.size(); ++i) {
+        sort(term_pairs[i].begin(), term_pairs[i].end(), cell_compare<T>);
+        if (term_pairs[i].size() > result_count)
+            term_pairs[i].resize(result_count);
+    }
+}
+
+template <typename T>
+void term_pairs_output(const deque<deque<Cell<T> > >& sorted_pairs,
+        const waf::TermSet& termset, bool term_mapping, ostream& os) {
+    if (term_mapping) {
+		os << "<from_term>\t<to_term>\t<value>" << endl;
+        for (deque<deque<Cell<T> > >::const_iterator
+                it1=sorted_pairs.begin(); it1!=sorted_pairs.end(); ++it1) {
+            for (deque<Cell<T> >::const_iterator
+                    it2=it1->begin(); it2!=it1->end(); ++it2) {
+                os << termset[it2->row] << "\t"
+                    << termset[it2->column] << "\t"
+                    << it2->value << endl;
+            }
+        }
+    } else {
+		os << "<from_termid>\t<to_termid>\t<value>" << endl;
+        for (deque<deque<Cell<T> > >::const_iterator
+                it1=sorted_pairs.begin(); it1!=sorted_pairs.end(); ++it1) {
+            for (deque<Cell<T> >::const_iterator
+                    it2=it1->begin(); it2!=it1->end(); ++it2) {
+                os << it2->row << "\t"
+                    << it2->column << "\t"
+                    << it2->value << endl;
+            }
+        }
+    }
+}
+
+template <typename T>
+void analyze_matrix(
+        const CrossList<T>& mat, const waf::TermSet& termset,
+        bool term_mapping, waf::size_type result_count,
+        AnalyzeMethod analyze_method, ostream& os) {
+    deque<deque<Cell<T> > > term_pairs;
+    switch (analyze_method) {
+    case ANAL_PAIR:
+        sort_matrix_term_pairs_pair(mat, result_count, term_pairs);
+        break;
+    case ANAL_INLINK:
+        sort_matrix_term_pairs_inlink(mat, result_count, term_pairs);
+        break;
+    case ANAL_OUTLINK:
+        sort_matrix_term_pairs_outlink(mat, result_count, term_pairs);
+        break;
+    default:
+        break;
+    }
+    term_pairs_output(term_pairs, termset, term_mapping, os);
 }

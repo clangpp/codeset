@@ -15,6 +15,8 @@ int run_word_activation_force(int argc, char* argv[]);
 
 int run_affinity_measure(int argc, char* argv[]);
 
+int run_analyze_matrix(int argc, char* argv[]);
+
 int run_help(int argc, char* argv[]);
 
 #include "waf_shell-inl.h"

@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
     func_table["co-occurrence"] = &run_co_occurrence;
     func_table["word-activation-force"] = &run_word_activation_force;
     func_table["affinity-measure"] = &run_affinity_measure;
+    func_table["analyze-matrix"] = &run_analyze_matrix;
     func_table["help"] = &run_help;
 
     if (!func_table.count(argv[1])) {
