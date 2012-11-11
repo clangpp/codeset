@@ -140,16 +140,16 @@ affinity_type affinity_or_mean(
 	while (first1!=last1 || first2!=last2) {
 		while (first1!=last1 && !care1(iter_termid(first1))) ++first1;
 		while (first2!=last2 && !care2(iter_termid(first2))) ++first2;
-        if (first1==last1 && first2==last2) {  // both reach end
-            break;
-        } else if (first1==last1 && first2!=last2) {  // "left" side reach end
-            ++first2;
-        } else if (first1!=last1 && first2==last2) {  // "right" side reach end
-            ++first1;
-        } else {  // neither side reach end
+        if (first1!=last1 && first2!=last2) {  // neither side reach end
 			force_type waf1 = *first1++, waf2 = *first2++;
 			or_sum += std::min(waf1,waf2) / std::max(waf1,waf2);
-        }
+		} else if (first1==last1 && first2!=last2) {  // "left" side reach end
+            ++first2;
+		} else if (first1!=last1 && first2==last2) {  // "right" side reach end
+            ++first1;
+		} else {  // (first1==last1 && first2==last2) {  // both reach end
+            break;
+		}
         ++or_count;
 	}
     return or_count>0 ? or_sum/or_count : or_nolink;
@@ -160,27 +160,30 @@ affinity_type affinity_measure(
 		const CrossList<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
 		const CrossList<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
         affinity_type affinity_nolink) {
+	const affinity_type NO_LINK_FLAG = -1;
 
 	// calculate k_mean (scan col_i and col_j)
     affinity_type k_mean = affinity_or_mean(
             waf_mat1.column_begin(i1),waf_mat1.column_end(i1), back1,
             waf_mat2.column_begin(i2),waf_mat2.column_end(i2), back2,
             std::mem_fun_ref(
-                &CrossList<force_type>::const_column_iterator::row), -1);
-    if (k_mean<=0 && k_mean>-0.01) return 0;  // k_mean == 0
+                &CrossList<force_type>::const_column_iterator::row), NO_LINK_FLAG);
+	bool has_inlink = k_mean!=NO_LINK_FLAG;
+    if (k_mean==0) return 0;
 
 	// calculate l_mean (scan row_i and row_j)
     affinity_type l_mean = affinity_or_mean(
             waf_mat1.row_begin(i1),waf_mat1.row_end(i1), back1,
             waf_mat2.row_begin(i2),waf_mat2.row_end(i2), back2,
             std::mem_fun_ref(
-                &CrossList<force_type>::const_row_iterator::column), -1);
-    if (l_mean<=0 && l_mean>-0.01) return 0;  // l_mean == 0
-
-    // there are neither in-link nor out-link
-    if (k_mean<0 && l_mean<0) return affinity_nolink;
+                &CrossList<force_type>::const_row_iterator::column), NO_LINK_FLAG);
+	bool has_outlink = l_mean!=NO_LINK_FLAG;
+    if (l_mean==0) return 0;
 
 	// calculate affinity measure
+    if (!has_inlink && !has_outlink) return affinity_nolink;
+	if (!has_inlink) k_mean = 1;
+	if (!has_outlink) l_mean = 1;
 	return std::sqrt(k_mean*l_mean);
 }
 
@@ -253,7 +256,7 @@ void word_activation_force(
             co_mat_is >> dimension;
             term_size = std::max(dimension.row, dimension.column);
             dimension.row = dimension.column = term_size;
-            waf_mat_os << dimension << std::endl;
+			waf_mat_os << std::endl << dimension << std::endl;
             break;
         default:
             unknown_pattern = true;

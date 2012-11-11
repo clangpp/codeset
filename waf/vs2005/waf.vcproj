@@ -122,6 +122,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\crosslist\crosslist-inl.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\crosslist\crosslist.h"
 				>
 			</File>

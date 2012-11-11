@@ -1,0 +1,1 @@
+..\..\..\bin\waf affinity-measure --waf-matrix ..\data\waf-matrix.txt --term-dict ..\data\term-dict.txt --affinity-matrix ..\data\affinity-matrix.txt --precision 0.04 ..\data\affinity-matrix.txt --log

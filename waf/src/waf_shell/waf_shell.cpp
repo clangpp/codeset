@@ -58,7 +58,7 @@ int run_term_to_termid(int argc, char* argv[]) {
     }
 
     if (!configure::search("term-file")) {
-        cerr << "option '--term-file' needed"
+        cerr << "option '--term-file' required"
             << " to specify term file(s) (input)" << endl;
         return -1;
     }
@@ -69,7 +69,7 @@ int run_term_to_termid(int argc, char* argv[]) {
     }
 
     if (!configure::search("termid-file")) {
-        cerr << "option '--termid-file' needed"
+        cerr << "option '--termid-file' required"
             << " to specify termid file(s) (output)" << endl;
         return -1;
     }
@@ -198,7 +198,7 @@ int run_termid_frequency(int argc, char* argv[]) {
     }
 
     if (!configure::search("termid-file")) {
-        cerr << "option '--termid-file' needed"
+        cerr << "option '--termid-file' required"
             << " to specify termid file(s) (input)" << endl;
         return -1;
     }
@@ -210,7 +210,7 @@ int run_termid_frequency(int argc, char* argv[]) {
     }
 
     if (!configure::search("freq-vector")) {
-        cerr << "option '--freq-vector' needed"
+        cerr << "option '--freq-vector' required"
             << " to specify termid frequency vector file (output)" << endl;
         return -1;
     }
@@ -277,7 +277,9 @@ int run_termid_frequency(int argc, char* argv[]) {
         log(INFO_) << "writting frequency vector into file '"
             << freq_vec_file << "'" << endl;
         ofstream fout(freq_vec_file.c_str());
-        if (!fout) {
+        if (fout) {
+            fout << freqvec;
+        } else {
             log(ERROR_) << "fail to open frequency vector file '"
                 << freq_vec_file << "'" << endl;
             return -1;
@@ -303,7 +305,7 @@ int run_co_occurrence(int argc, char* argv[]) {
     }
 
     if (!configure::search("termid-file")) {
-        cerr << "option '--termid-file' needed"
+        cerr << "option '--termid-file' required"
             << " to specify termid file(s) (input)" << endl;
         return -1;
     }
@@ -315,7 +317,7 @@ int run_co_occurrence(int argc, char* argv[]) {
     }
 
     if (!configure::search("window-size")) {
-        cerr << "option '--window-size' needed"
+        cerr << "option '--window-size' required"
             << " to specify co-occurrence window size" << endl;
         return -1;
     }
@@ -326,7 +328,7 @@ int run_co_occurrence(int argc, char* argv[]) {
     }
 
     if (!configure::search("co-matrix")) {
-        cerr << "option '--co-matrix' needed"
+        cerr << "option '--co-matrix' required"
             << " to specify co-occurrence matrix (output)" << endl;
         return -1;
     }
@@ -427,21 +429,21 @@ int run_word_activation_force(int argc, char* argv[]) {
     }
 
     if (!configure::search("co-matrix")) {
-        cerr << "option '--co-matrix' needed"
+        cerr << "option '--co-matrix' required"
             << " to specify co-occurrence matrix (input)" << endl;
         return -1;
     }
     string co_matrix_file = configure::get<string>("co-matrix");
 
     if (!configure::search("waf-matrix")) {
-        cerr << "option '--waf-matrix' needed"
+        cerr << "option '--waf-matrix' required"
             << " to specify word-activation-force matrix (output)" << endl;
         return -1;
     }
     string waf_matrix_file = configure::get<string>("waf-matrix");
 
     if (!configure::search("freq-vector")) {
-        cerr << "option '--freq-vector' needed"
+        cerr << "option '--freq-vector' required"
             << " to specify frequency vector (input)" << endl;
         return -1;
     }
@@ -539,7 +541,7 @@ int run_affinity_measure(int argc, char* argv[]) {
     }
 
     if (!configure::search("waf-matrix")) {
-        cerr << "option '--waf-matrix' needed"
+        cerr << "option '--waf-matrix' required"
             << " to specify word-activation-force matrix (input)" << endl;
         return -1;
     }
@@ -549,7 +551,7 @@ int run_affinity_measure(int argc, char* argv[]) {
     switch (waf_matrix_files.size()) {
     case 1:  // one waf-matrix to one affinity matrix
         if (!configure::search("affinity-matrix")) {
-            cerr << "option '--affinity-matrix' needed"
+            cerr << "option '--affinity-matrix' required"
                 << " to specify affinity matrix (output)" << endl;
             return -1;
         }
@@ -557,7 +559,7 @@ int run_affinity_measure(int argc, char* argv[]) {
         break;
     case 2:  // two waf-matrix to one affinity vector
         if (!configure::search("affinity-vector")) {
-            cerr << "option '--affinity-vector' needed"
+            cerr << "option '--affinity-vector' required"
                 << " to specify affinity vector (output)" << endl;
             return -1;
         }
@@ -569,10 +571,12 @@ int run_affinity_measure(int argc, char* argv[]) {
         break;
     }
 
+    string term_dict_file =
+        configure::default_get<string>("term-dict", "");  // default option
     string care_term_dict_file =
-        configure::default_get<string>("care-term-dict", "");
+        configure::default_get<string>("care-term-dict", term_dict_file);
     string back_term_dict_file =
-        configure::default_get<string>("back-term-dict", "");
+        configure::default_get<string>("back-term-dict", term_dict_file);
 
     waf::affinity_type precision =
         configure::default_get<waf::affinity_type>("precision", 0.0);
@@ -694,6 +698,111 @@ int run_affinity_measure(int argc, char* argv[]) {
     }
 }
 
+struct CommandDescription {
+    string name;
+    string description;
+    vector<string> options;
+};
+
 int run_help(int argc, char* argv[]) {
+    vector<CommandDescription> commands;
+
+    {
+        CommandDescription command;
+        command.name = "term-to-termid";
+        command.description = "convert term to termid";
+        command.options.push_back("--term-file (input)(required)");
+        command.options.push_back("--termid-file (output)(required)");
+        command.options.push_back("--delimiters");
+        command.options.push_back("--init-term-dict (input)");
+        command.options.push_back("--term-dict (output)");
+        command.options.push_back("--config-file");
+        command.options.push_back("--log");
+        commands.push_back(command);
+    }
+    {
+        CommandDescription command;
+        command.name = "termid-frequency";
+        command.description = "calculate termid frequency";
+        command.options.push_back("--termid-file (input)(required)");
+        command.options.push_back("--freq-vector (output)(required)");
+        command.options.push_back("--term-dict: term filter");
+        command.options.push_back("--init-freq-vector (input)");
+        command.options.push_back("--config-file");
+        command.options.push_back("--log");
+        commands.push_back(command);
+    }
+    {
+        CommandDescription command;
+        command.name = "co-occurrence";
+        command.description = "calculate co-occurrence of termid";
+        command.options.push_back("--termid-file (input)(required)");
+        command.options.push_back("--co-matrix (output)(required)");
+        command.options.push_back("--window-size (required)");
+        command.options.push_back("--term-dict: term filter");
+        command.options.push_back("--left-term-dict: left term filter (cover --term-dict)");
+        command.options.push_back("--right-term-dict: right term filter (cover --term-dict)");
+        command.options.push_back("--config-file");
+        command.options.push_back("--log");
+        commands.push_back(command);
+    }
+    {
+        CommandDescription command;
+        command.name = "word-activation-force";
+        command.description = "calculate word-activation-force matrix";
+        command.options.push_back("--co-matrix (input)(required)");
+        command.options.push_back("--freq-vector (input)(required)");
+        command.options.push_back("--waf-matrix (output)(required)");
+        command.options.push_back("--precision");
+        command.options.push_back("--term-dict: term filter");
+        command.options.push_back("--left-term-dict: left term filter (cover --term-dict)");
+        command.options.push_back("--right-term-dict: right term filter (cover --term-dict)");
+        command.options.push_back("--config-file");
+        command.options.push_back("--log");
+        commands.push_back(command);
+    }
+    {
+        CommandDescription command;
+        command.name = "affinity-measure";
+        command.description = "calculate affinity matrix";
+        command.options.push_back("--waf-matrix (input)(required)");
+        command.options.push_back("--affinity-matrix or --affinity-vector (output)(required)");
+        command.options.push_back("--precision");
+        command.options.push_back("--term-dict: term filter");
+        command.options.push_back("--care-term-dict: cared term filter (cover --term-dict)");
+        command.options.push_back("--back-term-dict: background term filter (cover --term-dict)");
+        command.options.push_back("--config-file");
+        command.options.push_back("--log");
+        commands.push_back(command);
+    }
+
+    // print helping information
+    bool cmd_exists = false;
+    size_t cmd_index = 0;
+    if (1==argc) {
+        string command_name = argv[0];
+        for (size_t i=0; i<commands.size(); ++i) {
+            if (commands[i].name==command_name) {
+                cmd_exists = true;
+                cmd_index = i;
+                break;
+            }
+        }
+    }
+    if (!cmd_exists) {
+        cerr << "usage: waf <command> <command-options>" << endl;
+        cerr << "<command> list:" << endl;
+        for (size_t i=0; i<commands.size(); ++i) {
+            cerr << "\t" << commands[i].name
+                << ": " << commands[i].description << endl;
+        }
+        cerr << "try 'waf help <command>' for command options" << endl;
+    } else {
+        const CommandDescription& command = commands[cmd_index];
+        cerr << "usage: waf " << command.name << " <command-options>" << endl;
+        cerr << "<command-options> list:" << endl;
+        for (size_t i=0; i<command.options.size(); ++i)
+            cerr << "\t" << command.options[i] << endl;
+    }
     return 0;
 }
