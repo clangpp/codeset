@@ -1,9 +1,9 @@
 // main.cpp
 
-#include "waf_shell/waf_shell.h"
-
 #include <iostream>
 #include <stdexcept>
+
+#include "waf_shell/waf_shell.h"
 
 using namespace std;
 
