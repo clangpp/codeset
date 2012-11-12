@@ -970,8 +970,8 @@ int run_help(int argc, char* argv[]) {
         command.description = "analyze matrix elements";
         command.options.push_back("--waf-matrix or --affinity-matrix (input)(required)");
         command.options.push_back("--pair-result or --inlink-result or --outlink-result (output)(required)");
-        command.options.push_back("--term-dict: term filter and dictionary");
         command.options.push_back("--result-count: (total for --pair-result, each elements for --inlink-result and --outlink-result)");
+        command.options.push_back("--term-dict: term filter and dictionary");
         command.options.push_back("--config-file");
         command.options.push_back("--log");
         commands.push_back(command);
