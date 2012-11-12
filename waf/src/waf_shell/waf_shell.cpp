@@ -701,15 +701,12 @@ int run_affinity_measure(int argc, char* argv[]) {
     }
 }
 
-template <typename T>
-void filter_matrix(CrossList<T>& mat, const waf::TermSet& termset);
-
 enum AnalyzeMethod {ANAL_PAIR, ANAL_INLINK, ANAL_OUTLINK};
 
 template <typename T>
 void analyze_matrix(
-        const CrossList<T>& mat, const waf::TermSet& termset,
-        bool term_mapping, waf::size_type result_count,
+        const string& matrix_file, const waf::TermSet& termset,
+        bool term_filter, bool term_mapping, waf::size_type result_count,
         AnalyzeMethod analyze_method, ostream& os);
 
 int run_analyze_matrix(int argc, char* argv[]) {
@@ -781,16 +778,14 @@ int run_analyze_matrix(int argc, char* argv[]) {
         switch (matrix_token) {
         case MAT_WAF:
             {
-                ifstream fin(waf_matrix_file.c_str());
-                if (!fin) {
-                    log(ERROR_) << "fail to open matrix file '"
-                        << waf_matrix_file << "'" << endl;
-                    return -1;
+                {
+                    ifstream fin(waf_matrix_file.c_str());
+                    if (!fin) {
+                        log(ERROR_) << "fail to open matrix file '"
+                            << waf_matrix_file << "'" << endl;
+                        return -1;
+                    }
                 }
-                CrossList<waf::force_type> waf_mat;
-                fin >> waf_mat;
-
-                if (term_filter) filter_matrix(waf_mat, termset);
 
                 if (pair_result_file!="") {
                     ofstream fout(pair_result_file.c_str());
@@ -800,8 +795,8 @@ int run_analyze_matrix(int argc, char* argv[]) {
                         return -1;
                     }
                     log(INFO_) << "analyzing word-activation-force matrix" << endl;
-                    analyze_matrix(waf_mat, termset,
-                            term_mapping, result_count, ANAL_PAIR, fout);
+                    analyze_matrix<waf::force_type>(waf_matrix_file, termset,
+                            term_filter, term_mapping, result_count, ANAL_PAIR, fout);
                 }
                 if (inlink_result_file!="") {
                     ofstream fout(inlink_result_file.c_str());
@@ -811,8 +806,8 @@ int run_analyze_matrix(int argc, char* argv[]) {
                         return -1;
                     }
                     log(INFO_) << "analyzing word-activation-force matrix" << endl;
-                    analyze_matrix(waf_mat, termset,
-                            term_mapping, result_count, ANAL_INLINK, fout);
+                    analyze_matrix<waf::force_type>(waf_matrix_file, termset,
+                            term_filter, term_mapping, result_count, ANAL_INLINK, fout);
                 }
                 if (outlink_result_file!="") {
                     ofstream fout(outlink_result_file.c_str());
@@ -822,23 +817,21 @@ int run_analyze_matrix(int argc, char* argv[]) {
                         return -1;
                     }
                     log(INFO_) << "analyzing word-activation-force matrix" << endl;
-                    analyze_matrix(waf_mat, termset,
-                            term_mapping, result_count, ANAL_OUTLINK, fout);
+                    analyze_matrix<waf::force_type>(waf_matrix_file, termset,
+                            term_filter, term_mapping, result_count, ANAL_OUTLINK, fout);
                 }
             }
             break;
         case MAT_AFFINITY:
             {
-                ifstream fin(affinity_matrix_file.c_str());
-                if (!fin) {
-                    log(ERROR_) << "fail to open matrix file '"
-                        << affinity_matrix_file << "'" << endl;
-                    return -1;
+                {
+                    ifstream fin(affinity_matrix_file.c_str());
+                    if (!fin) {
+                        log(ERROR_) << "fail to open matrix file '"
+                            << affinity_matrix_file << "'" << endl;
+                        return -1;
+                    }
                 }
-                CrossList<waf::affinity_type> a_mat;
-                fin >> a_mat;
-
-                if (term_filter) filter_matrix(a_mat, termset);
 
                 if (pair_result_file!="") {
                     ofstream fout(pair_result_file.c_str());
@@ -848,8 +841,8 @@ int run_analyze_matrix(int argc, char* argv[]) {
                         return -1;
                     }
                     log(INFO_) << "analyzing affinity matrix" << endl;
-                    analyze_matrix(a_mat, termset,
-                            term_mapping, result_count, ANAL_PAIR, fout);
+                    analyze_matrix<waf::affinity_type>(affinity_matrix_file, termset,
+                            term_filter, term_mapping, result_count, ANAL_PAIR, fout);
                 }
                 if (inlink_result_file!="") {
                     ofstream fout(inlink_result_file.c_str());
@@ -859,8 +852,8 @@ int run_analyze_matrix(int argc, char* argv[]) {
                         return -1;
                     }
                     log(INFO_) << "analyzing affinity matrix" << endl;
-                    analyze_matrix(a_mat, termset,
-                            term_mapping, result_count, ANAL_INLINK, fout);
+                    analyze_matrix<waf::affinity_type>(affinity_matrix_file, termset,
+                            term_filter, term_mapping, result_count, ANAL_INLINK, fout);
                 }
                 if (outlink_result_file!="") {
                     ofstream fout(outlink_result_file.c_str());
@@ -870,8 +863,8 @@ int run_analyze_matrix(int argc, char* argv[]) {
                         return -1;
                     }
                     log(INFO_) << "analyzing affinity matrix" << endl;
-                    analyze_matrix(a_mat, termset,
-                            term_mapping, result_count, ANAL_OUTLINK, fout);
+                    analyze_matrix<waf::affinity_type>(affinity_matrix_file, termset,
+                            term_filter, term_mapping, result_count, ANAL_OUTLINK, fout);
                 }
             }
             break;
@@ -1018,18 +1011,6 @@ int run_help(int argc, char* argv[]) {
 // =============================================================================
 
 template <typename T>
-void filter_matrix(CrossList<T>& mat, const waf::TermSet& termset) {
-	for (waf::termid_type i=0; i<mat.row_count(); ++i) {
-		if (!termset.search(i))
-			mat.erase_range(mat.row_begin(i), mat.row_end(i));
-	}
-	for (waf::termid_type i=0; i<mat.column_count(); ++i) {
-		if (!termset.search(i))
-			mat.erase_range(mat.column_begin(i), mat.column_end(i));
-	}
-}
-
-template <typename T>
 bool cell_compare(const Cell<T>& lhs, const Cell<T>& rhs) {
     if (lhs.value != rhs.value) {
         return lhs.value > rhs.value;
@@ -1041,50 +1022,75 @@ bool cell_compare(const Cell<T>& lhs, const Cell<T>& rhs) {
 }
 
 template <typename T>
-void sort_matrix_term_pairs_pair(const CrossList<T>& mat,
+void sort_matrix_term_pairs_pair(
+        istream& is_mat, const waf::TermSet& termset, bool term_filter,
         waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
+    waf::Care care = waf::care_all();
+    if (term_filter) care = waf::care_in(termset);
     term_pairs.resize(1, deque<Cell<T> >());
     deque<Cell<T> >& arr = term_pairs[0];
-    for (CrossList<T>::const_iterator
-            iter=mat.begin(); iter!=mat.end(); ++iter) {
-        arr.push_back(Cell<T>(iter.row(), iter.column(), *iter));
+    Cell<T> cell;
+	Dimension dim;
+    while (next_cell(is_mat, cell, dim)) {
+        if (!care(cell.row) || !care(cell.column)) continue;
+        arr.push_back(cell);
+        push_heap(arr.begin(), arr.end(), cell_compare<T>);
+        if (arr.size() > result_count) {
+            pop_heap(arr.begin(), arr.end(), cell_compare<T>);
+            arr.pop_back();
+        }
     }
-    sort(arr.begin(), arr.end(), cell_compare<T>);
-    if (arr.size() > result_count) arr.resize(result_count);
+    sort_heap(arr.begin(), arr.end(), cell_compare<T>);
 }
 
 template <typename T>
-void sort_matrix_term_pairs_inlink(const CrossList<T>& mat,
+void sort_matrix_term_pairs_inlink(
+        istream& is_mat, const waf::TermSet& termset, bool term_filter,
         waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
-    term_pairs.resize(mat.column_count(), deque<Cell<T> >());
-    for (size_t i=0; i<mat.column_count(); ++i) {
-        for (CrossList<T>::const_column_iterator
-                iter=mat.column_begin(i); iter!=mat.column_end(i); ++iter) {
-            term_pairs[i].push_back(Cell<T>(iter.row(), iter.column(), *iter));
+    waf::Care care = waf::care_all();
+    if (term_filter) care = waf::care_in(termset);
+    term_pairs.clear();  // column prior
+    Cell<T> cell;
+    Dimension dim;
+    while (next_cell(is_mat, cell, dim)) {
+        if (!care(cell.row) || !care(cell.column)) continue;
+        if (term_pairs.size() <= cell.column)
+            term_pairs.resize(cell.column+1);
+        deque<Cell<T> >& arr = term_pairs[cell.column];
+        arr.push_back(cell);
+        push_heap(arr.begin(), arr.end(), cell_compare<T>);
+        if (arr.size() > result_count) {
+            pop_heap(arr.begin(), arr.end(), cell_compare<T>);
+            arr.pop_back();
         }
     }
-    for (size_t i=0; i<term_pairs.size(); ++i) {
-        sort(term_pairs[i].begin(), term_pairs[i].end(), cell_compare<T>);
-        if (term_pairs[i].size() > result_count)
-            term_pairs[i].resize(result_count);
-    }
+    for (size_t i=0; i<term_pairs.size(); ++i)
+        sort_heap(term_pairs[i].begin(), term_pairs[i].end(), cell_compare<T>);
 }
 
 template <typename T>
-void sort_matrix_term_pairs_outlink(const CrossList<T>& mat,
+void sort_matrix_term_pairs_outlink(
+        istream& is_mat, const waf::TermSet& termset, bool term_filter,
         waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
-    term_pairs.resize(mat.row_count(), deque<Cell<T> >());
-    for (size_t i=0; i<mat.row_count(); ++i) {
-        for (CrossList<T>::const_row_iterator
-                iter=mat.row_begin(i); iter!=mat.row_end(i); ++iter) {
-            term_pairs[i].push_back(Cell<T>(iter.row(), iter.column(), *iter));
+    waf::Care care = waf::care_all();
+    if (term_filter) care = waf::care_in(termset);
+    term_pairs.clear();  // row prior
+    Cell<T> cell;
+    Dimension dim;
+    while (next_cell(is_mat, cell, dim)) {
+        if (!care(cell.row) || !care(cell.column)) continue;
+        if (term_pairs.size() <= cell.row)
+            term_pairs.resize(cell.row+1);
+        deque<Cell<T> >& arr = term_pairs[cell.row];
+        arr.push_back(cell);
+        push_heap(arr.begin(), arr.end(), cell_compare<T>);
+        if (arr.size() > result_count) {
+            pop_heap(arr.begin(), arr.end(), cell_compare<T>);
+            arr.pop_back();
         }
     }
-    for (size_t i=0; i<term_pairs.size(); ++i) {
-        sort(term_pairs[i].begin(), term_pairs[i].end(), cell_compare<T>);
-        if (term_pairs[i].size() > result_count)
-            term_pairs[i].resize(result_count);
-    }
+    for (size_t i=0; i<term_pairs.size(); ++i)
+        sort_heap(term_pairs[i].begin(), term_pairs[i].end(), cell_compare<T>);
 }
 
 template <typename T>
@@ -1117,19 +1123,23 @@ void term_pairs_output(const deque<deque<Cell<T> > >& sorted_pairs,
 
 template <typename T>
 void analyze_matrix(
-        const CrossList<T>& mat, const waf::TermSet& termset,
-        bool term_mapping, waf::size_type result_count,
+        const string& matrix_file, const waf::TermSet& termset,
+        bool term_filter, bool term_mapping, waf::size_type result_count,
         AnalyzeMethod analyze_method, ostream& os) {
+    ifstream is_mat(matrix_file.c_str());
     deque<deque<Cell<T> > > term_pairs;
     switch (analyze_method) {
     case ANAL_PAIR:
-        sort_matrix_term_pairs_pair(mat, result_count, term_pairs);
+        sort_matrix_term_pairs_pair(
+                is_mat, termset, term_filter, result_count, term_pairs);
         break;
     case ANAL_INLINK:
-        sort_matrix_term_pairs_inlink(mat, result_count, term_pairs);
+        sort_matrix_term_pairs_inlink(
+                is_mat, termset, term_filter, result_count, term_pairs);
         break;
     case ANAL_OUTLINK:
-        sort_matrix_term_pairs_outlink(mat, result_count, term_pairs);
+        sort_matrix_term_pairs_outlink(
+                is_mat, termset, term_filter, result_count, term_pairs);
         break;
     default:
         break;
