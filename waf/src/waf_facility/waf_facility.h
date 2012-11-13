@@ -156,6 +156,7 @@ public:  // term frequency observers
 
 public:  // member functions  // TBD: more functions to be written
     void clear() { term_freqs_.clear(); }
+	size_type size() const { return term_freqs_.size(); }
 
 public:  // serialization
     friend std::istream& operator >> (std::istream& is, FreqVector& freqvec);

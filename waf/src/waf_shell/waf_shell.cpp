@@ -725,7 +725,7 @@ int run_analyze_matrix(int argc, char* argv[]) {
         configure::default_get<string>("affinity-matrix", "");
     if (affinity_matrix_file!="") {
         if (MAT_WAF==matrix_token) {
-            cerr << "WARNINg: waf-matrix file '" << waf_matrix_file
+            cerr << "WARNING: waf-matrix file '" << waf_matrix_file
                 << "' specified by '--waf-matrix' is ignored" << endl;
         }
         matrix_token = MAT_AFFINITY;
@@ -887,6 +887,100 @@ int run_analyze_matrix(int argc, char* argv[]) {
     }
 }
 
+void filter_freq_vector_by_frequency(
+        waf::FreqVector& freqvec, waf::size_type result_count);
+
+int run_filter_termset(int argc, char* argv[]) {
+    configure::read(argc, argv);
+    if (configure::search("config-file")) {
+        configure::read("config-file");
+        configure::read(argc, argv);
+    }
+
+    if (!configure::search("term-dict")) {
+        cerr << "option '--term-dict' required"
+            << " to specify source termset (input)" << endl;
+        return -1;
+    }
+
+    if (!configure::search("freq-vector")) {
+        cerr << "option '--freq-vector' required"
+            << " to specify termid frequency vector (input)" << endl;
+        return -1;
+    }
+
+    if (!configure::search("filtered-term-dict")) {
+        cerr << "option '--filtered-term-dict required'"
+            << " to specify filtered termset (output)" << endl;
+        return -1;
+    }
+
+    string term_dict_file = configure::get<string>("term-dict");
+    string freq_vec_file = configure::get<string>("freq-vector");
+    string filtered_term_dict_file = 
+        configure::get<string>("filtered-term-dict");
+    waf::size_type result_count =
+        configure::default_get<waf::size_type>("result-count",
+                numeric_limits<waf::size_type>::max());
+
+    ofstream flog;
+    if (!waf_internal::resolve_log_option(flog)) return -1;
+
+    try {
+        timing::start();
+        log(INFO_) << "operation started" << endl;
+
+        ifstream freqvec_is(freq_vec_file.c_str());
+        if (!freqvec_is) {
+            log(ERROR_) << "fail to open frequency vector file '"
+                << freq_vec_file << "'" << endl;
+            return -1;
+        }
+
+        waf::FreqVector freqvec;
+        freqvec_is >> freqvec;
+        freqvec_is.close();
+
+        log(INFO_) << "filtering frequency vector (by frequency)" << endl;
+		filter_freq_vector_by_frequency(freqvec, result_count);
+
+        ifstream termset_is(term_dict_file.c_str());
+        if (!termset_is) {
+            log(ERROR_) << "fail to open term dict file '"
+                << term_dict_file << "'" << endl;
+            return -1;
+        }
+        waf::TermSet termset, termset_filtered;
+        termset_is >> termset;
+        termset_is.close();
+
+        log(INFO_) << "filtering termset by filtered frequency vector" << endl;
+        for (waf::termid_type termid=0;
+                termid<=termset.max_termid(); ++termid) {
+            if (termset.search(termid) && freqvec[termid]>0)
+                termset_filtered.insert(termid, termset[termid]);
+        }
+
+        ofstream termset_os(filtered_term_dict_file.c_str());
+        if (!termset_os) {
+            log(ERROR_) << "fail to open term dict file '"
+                << filtered_term_dict_file << "'" << endl;
+            return -1;
+        }
+        termset_os << termset_filtered;
+
+        log(INFO_) << "operation finished successfully, cost "
+            << timing::duration() << " seconds" << endl;
+        return 0;
+
+    } catch (const std::exception& e) {
+        log(ERROR_)
+            << "operation terminated with exception: " << e.what()
+            << ", cost " << timing::duration() << " seconds" << endl;
+        return -1;
+    }
+}
+
 struct CommandDescription {
     string name;
     string description;
@@ -976,6 +1070,18 @@ int run_help(int argc, char* argv[]) {
         command.options.push_back("--log");
         commands.push_back(command);
     }
+    {
+        CommandDescription command;
+        command.name = "filter-termset";
+        command.description = "filter termset by term frequency";
+        command.options.push_back("--term-dict (input)(required)");
+        command.options.push_back("--freq-vector (input)(required)");
+        command.options.push_back("--filtered-term-dict (output)(required)");
+        command.options.push_back("--result-count");
+        command.options.push_back("--config-file");
+        command.options.push_back("--log");
+        commands.push_back(command);
+    }
 
     // print helping information
     bool cmd_exists = false;
@@ -1024,11 +1130,11 @@ bool cell_compare(const Cell<T>& lhs, const Cell<T>& rhs) {
 template <typename T>
 void sort_matrix_term_pairs_pair(
         istream& is_mat, const waf::TermSet& termset, bool term_filter,
-        waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
+        waf::size_type result_count, vector<vector<Cell<T> > >& term_pairs) {
     waf::Care care = waf::care_all();
     if (term_filter) care = waf::care_in(termset);
-    term_pairs.resize(1, deque<Cell<T> >());
-    deque<Cell<T> >& arr = term_pairs[0];
+    term_pairs.resize(1, vector<Cell<T> >());
+    vector<Cell<T> >& arr = term_pairs[0];
     Cell<T> cell;
 	Dimension dim;
     while (next_cell(is_mat, cell, dim)) {
@@ -1046,7 +1152,7 @@ void sort_matrix_term_pairs_pair(
 template <typename T>
 void sort_matrix_term_pairs_inlink(
         istream& is_mat, const waf::TermSet& termset, bool term_filter,
-        waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
+        waf::size_type result_count, vector<vector<Cell<T> > >& term_pairs) {
     waf::Care care = waf::care_all();
     if (term_filter) care = waf::care_in(termset);
     term_pairs.clear();  // column prior
@@ -1056,7 +1162,7 @@ void sort_matrix_term_pairs_inlink(
         if (!care(cell.row) || !care(cell.column)) continue;
         if (term_pairs.size() <= cell.column)
             term_pairs.resize(cell.column+1);
-        deque<Cell<T> >& arr = term_pairs[cell.column];
+        vector<Cell<T> >& arr = term_pairs[cell.column];
         arr.push_back(cell);
         push_heap(arr.begin(), arr.end(), cell_compare<T>);
         if (arr.size() > result_count) {
@@ -1071,7 +1177,7 @@ void sort_matrix_term_pairs_inlink(
 template <typename T>
 void sort_matrix_term_pairs_outlink(
         istream& is_mat, const waf::TermSet& termset, bool term_filter,
-        waf::size_type result_count, deque<deque<Cell<T> > >& term_pairs) {
+        waf::size_type result_count, vector<vector<Cell<T> > >& term_pairs) {
     waf::Care care = waf::care_all();
     if (term_filter) care = waf::care_in(termset);
     term_pairs.clear();  // row prior
@@ -1081,7 +1187,7 @@ void sort_matrix_term_pairs_outlink(
         if (!care(cell.row) || !care(cell.column)) continue;
         if (term_pairs.size() <= cell.row)
             term_pairs.resize(cell.row+1);
-        deque<Cell<T> >& arr = term_pairs[cell.row];
+        vector<Cell<T> >& arr = term_pairs[cell.row];
         arr.push_back(cell);
         push_heap(arr.begin(), arr.end(), cell_compare<T>);
         if (arr.size() > result_count) {
@@ -1094,13 +1200,13 @@ void sort_matrix_term_pairs_outlink(
 }
 
 template <typename T>
-void term_pairs_output(const deque<deque<Cell<T> > >& sorted_pairs,
+void term_pairs_output(const vector<vector<Cell<T> > >& sorted_pairs,
         const waf::TermSet& termset, bool term_mapping, ostream& os) {
     if (term_mapping) {
 		os << "<from_term>\t<to_term>\t<value>" << endl;
-        for (deque<deque<Cell<T> > >::const_iterator
+        for (vector<vector<Cell<T> > >::const_iterator
                 it1=sorted_pairs.begin(); it1!=sorted_pairs.end(); ++it1) {
-            for (deque<Cell<T> >::const_iterator
+            for (vector<Cell<T> >::const_iterator
                     it2=it1->begin(); it2!=it1->end(); ++it2) {
                 os << termset[it2->row] << "\t"
                     << termset[it2->column] << "\t"
@@ -1109,9 +1215,9 @@ void term_pairs_output(const deque<deque<Cell<T> > >& sorted_pairs,
         }
     } else {
 		os << "<from_termid>\t<to_termid>\t<value>" << endl;
-        for (deque<deque<Cell<T> > >::const_iterator
+        for (vector<vector<Cell<T> > >::const_iterator
                 it1=sorted_pairs.begin(); it1!=sorted_pairs.end(); ++it1) {
-            for (deque<Cell<T> >::const_iterator
+            for (vector<Cell<T> >::const_iterator
                     it2=it1->begin(); it2!=it1->end(); ++it2) {
                 os << it2->row << "\t"
                     << it2->column << "\t"
@@ -1127,7 +1233,7 @@ void analyze_matrix(
         bool term_filter, bool term_mapping, waf::size_type result_count,
         AnalyzeMethod analyze_method, ostream& os) {
     ifstream is_mat(matrix_file.c_str());
-    deque<deque<Cell<T> > > term_pairs;
+    vector<vector<Cell<T> > > term_pairs;
     switch (analyze_method) {
     case ANAL_PAIR:
         sort_matrix_term_pairs_pair(
@@ -1145,4 +1251,44 @@ void analyze_matrix(
         break;
     }
     term_pairs_output(term_pairs, termset, term_mapping, os);
+}
+
+bool freq_pair_compare(
+        const pair<waf::termid_type, waf::size_type>& lhs,
+        const pair<waf::termid_type, waf::size_type>& rhs) {
+    if (lhs.second != rhs.second) {
+        return lhs.second > rhs.second;
+    } else {
+        return lhs.first < rhs.first;
+    }
+}
+
+void filter_freq_vector_by_frequency(
+        waf::FreqVector& freqvec, waf::size_type result_count) {
+    if (freqvec.size() <= result_count) return;
+    vector<pair<waf::termid_type, waf::size_type> > freq_pairs;
+
+    // // filter 'result_count' high frequency termids
+    // // time O(freqvec.size() * log(result_count)), space O(result_count)
+    // for (waf::termid_type termid=0; termid<freqvec.size(); ++termid) {
+    //     freq_pairs.push_back(make_pair(termid, freqvec[termid]));
+    //     push_heap(freq_pairs.begin(), freq_pairs.end(), freq_pair_compare);
+    //     if (freq_pairs.size() > result_count) {
+    //         pop_heap(freq_pairs.begin(), freq_pairs.end(), freq_pair_compare);
+    //         freq_pairs.pop_back();
+    //     }
+    // }
+
+    // filter 'result_count' high frequency termids
+    // time O(result_count), space O(freqvec.size())
+    for (waf::termid_type termid=0; termid<freqvec.size(); ++termid)
+        freq_pairs.push_back(make_pair(termid, freqvec[termid]));
+    nth_element(freq_pairs.begin(), freq_pairs.begin()+result_count,
+            freq_pairs.end(), freq_pair_compare);
+    freq_pairs.resize(result_count);
+
+    // set frequencies: low frequency termids' to 0, high's to 1
+    for (size_t i=0; i<freqvec.size(); ++i) freqvec[i] = 0;
+    for (size_t i=0; i<freq_pairs.size(); ++i)
+        freqvec[freq_pairs[i].first] = 1;
 }

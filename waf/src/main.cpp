@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
     func_table["word-activation-force"] = &run_word_activation_force;
     func_table["affinity-measure"] = &run_affinity_measure;
     func_table["analyze-matrix"] = &run_analyze_matrix;
+    func_table["filter-termset"] = &run_filter_termset;
     func_table["help"] = &run_help;
 
     if (!func_table.count(argv[1])) {
