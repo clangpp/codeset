@@ -167,6 +167,7 @@ int run_term_to_termid(int argc, char* argv[]) {
                 }
                 fout << termset[term] << " ";
             }
+            fout << static_cast<int>(waf::delim_termid) << "\n";
         }
 
         if (term_dict_file!="") {  // output term set
