@@ -747,6 +747,10 @@ int run_analyze_matrix(int argc, char* argv[]) {
         cerr << "at least one of '--pair-result', '--inlink-result', '--outlink-result' should be specified (output)" << endl;
         return -1;
     }
+    vector<pair<AnalyzeMethod, string> > analyze_options;
+    analyze_options.push_back(make_pair(ANAL_PAIR, pair_result_file));
+    analyze_options.push_back(make_pair(ANAL_INLINK, inlink_result_file));
+    analyze_options.push_back(make_pair(ANAL_OUTLINK, outlink_result_file));
 
     string term_dict_file =
         configure::default_get<string>("term-dict", "");
@@ -788,38 +792,19 @@ int run_analyze_matrix(int argc, char* argv[]) {
                     }
                 }
 
-                if (pair_result_file!="") {
-                    ofstream fout(pair_result_file.c_str());
+                for (size_t i=0; i<analyze_options.size(); ++i) {
+                    const AnalyzeMethod& analyze_method = analyze_options[i].first;
+                    const string& result_file = analyze_options[i].second;
+                    if (result_file=="") continue;
+                    ofstream fout(result_file.c_str());
                     if (!fout) {
                         log(ERROR_) << "fail to open result file '"
-                            << pair_result_file << "'" << endl;
+                            << result_file << "'" << endl;
                         return -1;
                     }
                     log(INFO_) << "analyzing word-activation-force matrix" << endl;
                     analyze_matrix<waf::force_type>(waf_matrix_file, termset,
-                            term_filter, term_mapping, result_count, ANAL_PAIR, fout);
-                }
-                if (inlink_result_file!="") {
-                    ofstream fout(inlink_result_file.c_str());
-                    if (!fout) {
-                        log(ERROR_) << "fail to open result file '"
-                            << inlink_result_file << "'" << endl;
-                        return -1;
-                    }
-                    log(INFO_) << "analyzing word-activation-force matrix" << endl;
-                    analyze_matrix<waf::force_type>(waf_matrix_file, termset,
-                            term_filter, term_mapping, result_count, ANAL_INLINK, fout);
-                }
-                if (outlink_result_file!="") {
-                    ofstream fout(outlink_result_file.c_str());
-                    if (!fout) {
-                        log(ERROR_) << "fail to open result file '"
-                            << outlink_result_file << "'" << endl;
-                        return -1;
-                    }
-                    log(INFO_) << "analyzing word-activation-force matrix" << endl;
-                    analyze_matrix<waf::force_type>(waf_matrix_file, termset,
-                            term_filter, term_mapping, result_count, ANAL_OUTLINK, fout);
+                            term_filter, term_mapping, result_count, analyze_method, fout);
                 }
             }
             break;
@@ -834,38 +819,19 @@ int run_analyze_matrix(int argc, char* argv[]) {
                     }
                 }
 
-                if (pair_result_file!="") {
-                    ofstream fout(pair_result_file.c_str());
+                for (size_t i=0; i<analyze_options.size(); ++i) {
+                    const AnalyzeMethod& analyze_method = analyze_options[i].first;
+                    const string& result_file = analyze_options[i].second;
+                    if (result_file=="") continue;
+                    ofstream fout(result_file.c_str());
                     if (!fout) {
                         log(ERROR_) << "fail to open result file '"
-                            << pair_result_file << "'" << endl;
+                            << result_file << "'" << endl;
                         return -1;
                     }
                     log(INFO_) << "analyzing affinity matrix" << endl;
                     analyze_matrix<waf::affinity_type>(affinity_matrix_file, termset,
-                            term_filter, term_mapping, result_count, ANAL_PAIR, fout);
-                }
-                if (inlink_result_file!="") {
-                    ofstream fout(inlink_result_file.c_str());
-                    if (!fout) {
-                        log(ERROR_) << "fail to open result file '"
-                            << inlink_result_file << "'" << endl;
-                        return -1;
-                    }
-                    log(INFO_) << "analyzing affinity matrix" << endl;
-                    analyze_matrix<waf::affinity_type>(affinity_matrix_file, termset,
-                            term_filter, term_mapping, result_count, ANAL_INLINK, fout);
-                }
-                if (outlink_result_file!="") {
-                    ofstream fout(outlink_result_file.c_str());
-                    if (!fout) {
-                        log(ERROR_) << "fail to open result file '"
-                            << outlink_result_file << "'" << endl;
-                        return -1;
-                    }
-                    log(INFO_) << "analyzing affinity matrix" << endl;
-                    analyze_matrix<waf::affinity_type>(affinity_matrix_file, termset,
-                            term_filter, term_mapping, result_count, ANAL_OUTLINK, fout);
+                            term_filter, term_mapping, result_count, analyze_method, fout);
                 }
             }
             break;
