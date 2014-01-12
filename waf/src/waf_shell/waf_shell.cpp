@@ -11,10 +11,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include "../configure/configure.h"
-#include "../logging/logging.h"
-#include "../serialization/serialization.h"
-#include "../timing/timing.h"
+#include "../../../configure/src/configure/configure.h"
+#include "../../../logging/src/logging/logging.h"
+#include "../../../serialization/src/serialization/serialization.h"
+#include "../../../timing/src/timing/timing.h"
 
 using namespace logging;
 using namespace serialization::sparsematrix;
@@ -91,7 +91,7 @@ int run_term_to_termid(int argc, char* argv[]) {
         return -1;
     }
 
-    vector<string> delimiters = 
+    vector<string> delimiters =
         configure::default_get<vector<string> >("delimiters", vector<string>());
     set<string> delim_set;
     copy(delimiters.begin(), delimiters.end(),
@@ -267,7 +267,7 @@ int run_termid_frequency(int argc, char* argv[]) {
                     << termid_files[i] << "', skipping" << endl;
                 continue;
             }
-            
+
             log(INFO_) << "counting file '" << termid_files[i] << "'" << endl;
             waf::termid_type termid;
             while (fin >> termid) {
@@ -740,7 +740,7 @@ int run_analyze_matrix(int argc, char* argv[]) {
         configure::default_get<string>("pair-result", "");
     string inlink_result_file =
         configure::default_get<string>("inlink-result", "");
-    string outlink_result_file = 
+    string outlink_result_file =
         configure::default_get<string>("outlink-result", "");
     if (pair_result_file=="" &&
             inlink_result_file=="" && outlink_result_file=="") {
@@ -884,7 +884,7 @@ int run_filter_termset(int argc, char* argv[]) {
 
     string term_dict_file = configure::get<string>("term-dict");
     string freq_vec_file = configure::get<string>("freq-vector");
-    string filtered_term_dict_file = 
+    string filtered_term_dict_file =
         configure::get<string>("filtered-term-dict");
     waf::size_type result_count =
         configure::default_get<waf::size_type>("result-count",
@@ -909,7 +909,7 @@ int run_filter_termset(int argc, char* argv[]) {
         freqvec_is.close();
 
         log(INFO_) << "filtering frequency vector (by frequency)" << endl;
-		filter_freq_vector_by_frequency(freqvec, result_count);
+        filter_freq_vector_by_frequency(freqvec, result_count);
 
         ifstream termset_is(term_dict_file.c_str());
         if (!termset_is) {
@@ -1103,7 +1103,7 @@ void sort_matrix_term_pairs_pair(
     term_pairs.resize(1, vector<Cell<T> >());
     vector<Cell<T> >& arr = term_pairs[0];
     Cell<T> cell;
-	Dimension dim;
+    Dimension dim;
     while (next_cell(is_mat, cell, dim)) {
         if (!care(cell.row) || !care(cell.column)) continue;
         arr.push_back(cell);
@@ -1170,10 +1170,10 @@ template <typename T>
 void term_pairs_output(const vector<vector<Cell<T> > >& sorted_pairs,
         const waf::TermSet& termset, bool term_mapping, ostream& os) {
     if (term_mapping) {
-		os << "<from_term>\t<to_term>\t<value>" << endl;
-        for (vector<vector<Cell<T> > >::const_iterator
+        os << "<from_term>\t<to_term>\t<value>" << endl;
+        for (typename vector<vector<Cell<T> > >::const_iterator
                 it1=sorted_pairs.begin(); it1!=sorted_pairs.end(); ++it1) {
-            for (vector<Cell<T> >::const_iterator
+            for (typename vector<Cell<T> >::const_iterator
                     it2=it1->begin(); it2!=it1->end(); ++it2) {
                 os << termset[it2->row] << "\t"
                     << termset[it2->column] << "\t"
@@ -1181,10 +1181,10 @@ void term_pairs_output(const vector<vector<Cell<T> > >& sorted_pairs,
             }
         }
     } else {
-		os << "<from_termid>\t<to_termid>\t<value>" << endl;
-        for (vector<vector<Cell<T> > >::const_iterator
+        os << "<from_termid>\t<to_termid>\t<value>" << endl;
+        for (typename vector<vector<Cell<T> > >::const_iterator
                 it1=sorted_pairs.begin(); it1!=sorted_pairs.end(); ++it1) {
-            for (vector<Cell<T> >::const_iterator
+            for (typename vector<Cell<T> >::const_iterator
                     it2=it1->begin(); it2!=it1->end(); ++it2) {
                 os << it2->row << "\t"
                     << it2->column << "\t"

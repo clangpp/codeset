@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
         cerr << "try 'waf help' for more information." << endl;
         return -1;
     }
-    
+
     typedef int (*command_type) (int argc, char* argv[]);
     map<string, command_type> func_table;
     func_table["term-to-termid"] = &run_term_to_termid;
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     try {
         return (*func_table[argv[1]])(argc-2, argv+2);
     } catch (const exception& e) {
-		cerr << "exception occured: " << e.what() << endl;
-		return -1;
+        cerr << "exception occured: " << e.what() << endl;
+        return -1;
     }
 }

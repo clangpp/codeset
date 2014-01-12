@@ -4,7 +4,7 @@ SRC_DIR = ../src
 TARGET = $(BIN_DIR)/waf
 
 HEADERS = $(wildcard $(SRC_DIR)/*/*.h)
-SOURCES = $(wildcard $(SRC_DIR)/*/*.cpp $(SRC_DIR)/*.cpp)
+SOURCES = $(wildcard $(SRC_DIR)/*.cpp $(SRC_DIR)/../../*/*/*/*.cpp)
 
 CXX = g++
 CXXFLAGS = -Wall -O3

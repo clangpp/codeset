@@ -6,8 +6,8 @@
 #include <istream>
 #include <ostream>
 
-#include "../crosslist/crosslist.h"
-#include "../sparsematrix/sparsematrix.h"
+#include "../../../crosslist/src/crosslist/crosslist.h"
+#include "../../../sparsematrix/src/sparsematrix/sparsematrix.h"
 
 namespace waf {
 
@@ -32,7 +32,7 @@ template <typename InputIterator,
          typename Predicate, typename RandomAccessIterator>
 void term_frequency(
         InputIterator termid_first, InputIterator termid_last,
-		Predicate care, RandomAccessIterator freq_iter);
+        Predicate care, RandomAccessIterator freq_iter);
 
 // append co-occurrence information of [termid_first, termid_last) onto co_mat
 // element in co_mat is (total-distance, count) pair
@@ -42,7 +42,7 @@ template <typename InputIterator,
          typename Predicate1, typename Predicate2>
 void co_occurrence(
         InputIterator termid_first, InputIterator termid_last,
-		Predicate1 care_left, Predicate2 care_right,
+        Predicate1 care_left, Predicate2 care_right,
         size_type co_win, SparseMatrix<cooccur_type>& co_mat);
 
 // inplace convert (total-distance, count) to (mean-distance, count)
@@ -69,8 +69,8 @@ affinity_type affinity_or_mean(
 // pre-condition: i1<waf_mat1.row_count() && i2<waf_mat2.row_count()
 template <typename Predicate1, typename Predicate2>
 affinity_type affinity_measure(
-		const CrossList<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
-		const CrossList<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
+        const CrossList<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
+        const CrossList<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
         affinity_type affinity_nolink = null_affinity);
 
 

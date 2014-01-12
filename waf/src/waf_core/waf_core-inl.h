@@ -12,7 +12,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "../serialization/serialization.h"
+#include "../../../serialization/src/serialization/serialization.h"
 
 namespace waf {
 
@@ -22,13 +22,13 @@ template <typename InputIterator,
          typename Predicate, typename RandomAccessIterator>
 void term_frequency(
         InputIterator termid_first, InputIterator termid_last,
-		Predicate care, RandomAccessIterator freq_first) {
+        Predicate care, RandomAccessIterator freq_first) {
 
-	for (; termid_first!=termid_last; ++termid_first) {
-		termid_type termid = static_cast<termid_type>(*termid_first);
-		if (termid!=delim_termid && care(termid))
-			++ *(freq_first + termid);
-	}
+    for (; termid_first!=termid_last; ++termid_first) {
+        termid_type termid = static_cast<termid_type>(*termid_first);
+        if (termid!=delim_termid && care(termid))
+            ++ *(freq_first + termid);
+    }
 }
 
 namespace internal {
@@ -42,7 +42,7 @@ inline void comat_enlarge(
         co_mat.reserve(max_termid+1, max_termid+1);  // enlarge matrix
 
         waf::size_type index_dim = co_mat.sparse().first;
-        waf::size_type index_hope = 
+        waf::size_type index_hope =
             static_cast<waf::size_type>(std::sqrt(1.0*co_mat.size()));
         if (index_hope >= 2 * index_dim) {
             co_mat.sparse(index_hope,index_hope);  // sparse matrix
@@ -56,7 +56,7 @@ template <typename InputIterator,
          typename Predicate1, typename Predicate2>
 void co_occurrence(
         InputIterator termid_first, InputIterator termid_last,
-		Predicate1 care_left, Predicate2 care_right,
+        Predicate1 care_left, Predicate2 care_right,
         size_type co_win, SparseMatrix<cooccur_type>& co_mat) {
 
     co_mat.clear();
@@ -108,14 +108,14 @@ void co_occurrence(
 
 template <typename ForwardIterator>
 void mean_distance(ForwardIterator co_first, ForwardIterator co_last) {
-	for (; co_first!=co_last; ++co_first)
-		co_first->first /= co_first->second;
+    for (; co_first!=co_last; ++co_first)
+        co_first->first /= co_first->second;
 }
 
 template <typename ForwardIterator>
 void total_distance(ForwardIterator co_first, ForwardIterator co_last) {
-	for (; co_first!=co_last; ++co_first)
-		co_first->first *= co_first->second;
+    for (; co_first!=co_last; ++co_first)
+        co_first->first *= co_first->second;
 }
 
 inline force_type word_activation_force(
@@ -125,7 +125,7 @@ inline force_type word_activation_force(
     force_type f_j = static_cast<force_type>( right_freq );
     distance_type d_ij_mean = co_info.first;
     force_type waf = f_ij * f_ij / (f_i * f_j * d_ij_mean * d_ij_mean);
-	return waf;
+    return waf;
 }
 
 template <typename InputIterator, typename Predicate1,
@@ -137,54 +137,54 @@ affinity_type affinity_or_mean(
 
     affinity_type or_sum = 0;
     size_type or_count = 0;
-	while (first1!=last1 || first2!=last2) {
-		while (first1!=last1 && !care1(iter_termid(first1))) ++first1;
-		while (first2!=last2 && !care2(iter_termid(first2))) ++first2;
+    while (first1!=last1 || first2!=last2) {
+        while (first1!=last1 && !care1(iter_termid(first1))) ++first1;
+        while (first2!=last2 && !care2(iter_termid(first2))) ++first2;
         if (first1!=last1 && first2!=last2) {  // neither side reach end
-			force_type waf1 = *first1++, waf2 = *first2++;
-			or_sum += std::min(waf1,waf2) / std::max(waf1,waf2);
-		} else if (first1==last1 && first2!=last2) {  // "left" side reach end
+            force_type waf1 = *first1++, waf2 = *first2++;
+            or_sum += std::min(waf1,waf2) / std::max(waf1,waf2);
+        } else if (first1==last1 && first2!=last2) {  // "left" side reach end
             ++first2;
-		} else if (first1!=last1 && first2==last2) {  // "right" side reach end
+        } else if (first1!=last1 && first2==last2) {  // "right" side reach end
             ++first1;
-		} else {  // (first1==last1 && first2==last2) {  // both reach end
+        } else {  // (first1==last1 && first2==last2) {  // both reach end
             break;
-		}
+        }
         ++or_count;
-	}
+    }
     return or_count>0 ? or_sum/or_count : or_nolink;
 }
 
 template <typename Predicate1, typename Predicate2>
 affinity_type affinity_measure(
-		const CrossList<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
-		const CrossList<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
+        const CrossList<force_type>& waf_mat1, termid_type i1, Predicate1 back1, 
+        const CrossList<force_type>& waf_mat2, termid_type i2, Predicate2 back2,
         affinity_type affinity_nolink) {
-	const affinity_type NO_LINK_FLAG = -1;
+    const affinity_type NO_LINK_FLAG = -1;
 
-	// calculate k_mean (scan col_i and col_j)
+    // calculate k_mean (scan col_i and col_j)
     affinity_type k_mean = affinity_or_mean(
             waf_mat1.column_begin(i1),waf_mat1.column_end(i1), back1,
             waf_mat2.column_begin(i2),waf_mat2.column_end(i2), back2,
             std::mem_fun_ref(
                 &CrossList<force_type>::const_column_iterator::row), NO_LINK_FLAG);
-	bool has_inlink = k_mean!=NO_LINK_FLAG;
+    bool has_inlink = k_mean!=NO_LINK_FLAG;
     if (k_mean==0) return 0;
 
-	// calculate l_mean (scan row_i and row_j)
+    // calculate l_mean (scan row_i and row_j)
     affinity_type l_mean = affinity_or_mean(
             waf_mat1.row_begin(i1),waf_mat1.row_end(i1), back1,
             waf_mat2.row_begin(i2),waf_mat2.row_end(i2), back2,
             std::mem_fun_ref(
                 &CrossList<force_type>::const_row_iterator::column), NO_LINK_FLAG);
-	bool has_outlink = l_mean!=NO_LINK_FLAG;
+    bool has_outlink = l_mean!=NO_LINK_FLAG;
     if (l_mean==0) return 0;
 
-	// calculate affinity measure
+    // calculate affinity measure
     if (!has_inlink && !has_outlink) return affinity_nolink;
-	if (!has_inlink) k_mean = 1;
-	if (!has_outlink) l_mean = 1;
-	return std::sqrt(k_mean*l_mean);
+    if (!has_inlink) k_mean = 1;
+    if (!has_outlink) l_mean = 1;
+    return std::sqrt(k_mean*l_mean);
 }
 
 
@@ -192,11 +192,11 @@ affinity_type affinity_measure(
 // =============================================================================
 template <typename Predicate1, typename Predicate2, typename UnaryFunction>
 void word_activation_force(
-        const CrossList<cooccur_type>& co_mat, 
+        const CrossList<cooccur_type>& co_mat,
         Predicate1 care_left, Predicate2 care_right,
         UnaryFunction term_freq, force_type prec, CrossList<force_type>& waf_mat) {
 
-	waf_mat.clear();
+    waf_mat.clear();
     size_type term_size = std::max(co_mat.row_count(), co_mat.column_count());
     waf_mat.reserve(term_size, term_size);
 
@@ -204,15 +204,15 @@ void word_activation_force(
     CrossList<cooccur_type>::const_iterator co_end = co_mat.end();
     for (; co_iter!=co_end; ++co_iter) {
 
-		// verify there is at least one term(id) concerned
-		termid_type i = co_iter.row(), j = co_iter.column();
-		if (!care_left(i) || !care_right(j)) continue;
+        // verify there is at least one term(id) concerned
+        termid_type i = co_iter.row(), j = co_iter.column();
+        if (!care_left(i) || !care_right(j)) continue;
 
-		// calculate waf from term i to term j which the element denotes
+        // calculate waf from term i to term j which the element denotes
         force_type waf = word_activation_force(*co_iter, term_freq(i), term_freq(j));
 
-		// check precision and store waf into waf_mat
-		if (waf >= prec) waf_mat.rset(i, j, waf);
+        // check precision and store waf into waf_mat
+        if (waf >= prec) waf_mat.rset(i, j, waf);
     }
 }
 
@@ -256,7 +256,7 @@ void word_activation_force(
             co_mat_is >> dimension;
             term_size = std::max(dimension.row, dimension.column);
             dimension.row = dimension.column = term_size;
-			waf_mat_os << std::endl << dimension << std::endl;
+            waf_mat_os << std::endl << dimension << std::endl;
             break;
         default:
             unknown_pattern = true;
@@ -282,7 +282,7 @@ void affinity_measure(
     }
 
     a_mat.clear();
-	size_type term_size = waf_mat.row_count();
+    size_type term_size = waf_mat.row_count();
     a_mat.reserve(term_size, term_size);
 
     for (size_type i=0; i<term_size; ++i) {
@@ -316,7 +316,7 @@ void affinity_measure(const CrossList<force_type>& waf_mat,
     typedef serialization::sparsematrix::Cell<affinity_type> a_cell_type;
     typedef serialization::sparsematrix::Dimension dimension_type;
     CrossList<affinity_type> a_mat;
-	size_type term_size = waf_mat.row_count();
+    size_type term_size = waf_mat.row_count();
     a_mat.reserve(term_size, term_size);
     dimension_type dimension(a_mat.row_count(), a_mat.column_count());
 

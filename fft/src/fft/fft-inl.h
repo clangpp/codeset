@@ -5,6 +5,7 @@
 #include "fft-inl.h"
 
 #include <cmath>
+#include <stdexcept>
 
 namespace fft {
 

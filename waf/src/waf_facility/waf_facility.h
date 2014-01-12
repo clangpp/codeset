@@ -12,8 +12,8 @@
 #include <string>
 #include <vector>
 
-#include "../ac/ac.h"
-#include "../serialization/serialization.h"
+#include "../../../ac/src/ac/ac.h"
+#include "../../../serialization/src/serialization/serialization.h"
 
 namespace waf {
 
@@ -137,9 +137,9 @@ public:
         size_type& operator [] (difference_type n) {
             return * iterator(*this + n);
         }
-		operator const_iterator() const {
-			return const_iterator(base::pfreq_vec_, base::pos_);
-		}
+        operator const_iterator() const {
+            return const_iterator(base::pfreq_vec_, base::pos_);
+        }
     };
 
 public:  // iterator observers
@@ -156,7 +156,7 @@ public:  // term frequency observers
 
 public:  // member functions  // TBD: more functions to be written
     void clear() { term_freqs_.clear(); }
-	size_type size() const { return term_freqs_.size(); }
+    size_type size() const { return term_freqs_.size(); }
 
 public:  // serialization
     friend std::istream& operator >> (std::istream& is, FreqVector& freqvec);

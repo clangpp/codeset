@@ -2,7 +2,7 @@
 #ifndef SPARSEMATRIX_H_
 #define SPARSEMATRIX_H_
 
-#include "../crosslist/crosslist.h"
+#include "../../../crosslist/src/crosslist/crosslist.h"
 
 #include <list>
 #include <utility>
