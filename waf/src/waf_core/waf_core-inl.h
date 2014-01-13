@@ -141,13 +141,19 @@ affinity_type affinity_or_mean(
         while (first1!=last1 && !care1(iter_termid(first1))) ++first1;
         while (first2!=last2 && !care2(iter_termid(first2))) ++first2;
         if (first1!=last1 && first2!=last2) {  // neither side reach end
-            force_type waf1 = *first1++, waf2 = *first2++;
-            or_sum += std::min(waf1,waf2) / std::max(waf1,waf2);
+            if (iter_termid(first1) == iter_termid(first2)) {
+                force_type waf1 = *first1++, waf2 = *first2++;
+                or_sum += std::min(waf1,waf2) / std::max(waf1,waf2);
+            } else if (iter_termid(first1) < iter_termid(first2)) {
+              ++first1;
+            } else {  // (iter_termid(first1) > iter_termid(first2))
+              ++first2;
+            }
         } else if (first1==last1 && first2!=last2) {  // "left" side reach end
             ++first2;
         } else if (first1!=last1 && first2==last2) {  // "right" side reach end
             ++first1;
-        } else {  // (first1==last1 && first2==last2) {  // both reach end
+        } else {  // (first1==last1 && first2==last2)  // both reach end
             break;
         }
         ++or_count;
