@@ -31,6 +31,9 @@ template <typename NodeT>
 inline void replace_child(NodeT* old_child, NodeT* new_child);
 
 template <typename NodeT>
+inline void destory(NodeT*& root);
+
+template <typename NodeT>
 inline void print(const NodeT* root, std::ostream& out = std::cout);
 
 template <typename NodeT>
@@ -205,6 +208,18 @@ template <typename RandomAccessIterator1,
 OutputIterator inorder_postorder_to_preorder(
         RandomAccessIterator1 in_first, RandomAccessIterator1 in_last,
         RandomAccessIterator2 post_first, OutputIterator pre_iter);
+
+template <typename NodeT, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+NodeT* preorder_inorder_to_tree(
+        RandomAccessIterator1 pre_first, RandomAccessIterator1 pre_last,
+        RandomAccessIterator2 in_first);
+
+template <typename NodeT, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+NodeT* inorder_postorder_to_tree(
+        RandomAccessIterator1 in_first, RandomAccessIterator1 in_last,
+        RandomAccessIterator2 post_first);
 
 namespace heap {
 

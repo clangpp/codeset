@@ -582,6 +582,15 @@ void test_traversal_orders() {
     standard_logger() << endl;
     pass == (iter==result.end()) && (result==preorders);
     log(INFO_) << "test inorder_postorder_to_preorder: " << (pass ? "pass" : "FAILED") << endl;
+
+    BSNode<int>* tree1 = tree::preorder_inorder_to_tree<BSNode<int> >(
+        preorders.begin(), preorders.end(), inorders.begin());
+    tree::print(tree1);
+    tree::destory(tree1);
+    BSNode<int>* tree2 = tree::inorder_postorder_to_tree<BSNode<int> >(
+        inorders.begin(), inorders.end(), postorders.begin());
+    tree::print(tree2);
+    tree::destory(tree2);
 }
 
 void test_heap() {

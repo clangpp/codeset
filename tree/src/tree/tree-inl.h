@@ -38,6 +38,15 @@ void replace_child(NodeT* old_child, NodeT* new_child) {
 }
 
 template <typename NodeT>
+void destory(NodeT*& root) {
+  if (NULL==root) return;
+  destory(root->left);
+  destory(root->right);
+  delete root;
+  root = NULL;
+}
+
+template <typename NodeT>
 void print(const NodeT* root, std::ostream& out) { print_inorder(root, out); }
 
 template <typename NodeT>
@@ -637,7 +646,7 @@ OutputIterator inorder_postorder_to_preorder(
     if (in_root==in_last)
         throw std::runtime_error("mismatched input sequences");
     difference_type left_len = in_root - in_first;  // left subtree size
-    
+
     *(pre_iter++) = *in_root;  // output root node
 
     // traverse left subtree
@@ -649,6 +658,66 @@ OutputIterator inorder_postorder_to_preorder(
             in_root+1, in_last, post_first+left_len, pre_iter);
     return pre_iter;
 }  // O(n * log(n))
+
+template <typename NodeT, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+NodeT* preorder_inorder_to_tree(
+        RandomAccessIterator1 pre_first, RandomAccessIterator1 pre_last,
+        RandomAccessIterator2 in_first) {
+    if (pre_first==pre_last) return NULL;  // empty tree
+
+    // find root position in inorder sequence
+    typedef typename std::iterator_traits<
+        RandomAccessIterator1>:: difference_type difference_type;
+    difference_type len = pre_last - pre_first;
+    RandomAccessIterator2 in_root = std::find(in_first, in_first+len, *pre_first);
+    if (in_root==in_first+len)
+        throw std::runtime_error("mismatched input sequences");
+    difference_type left_len = in_root-in_first;  // left subtree size
+
+    NodeT* root = new NodeT();
+    root->value = *in_root;  // output root node
+
+    // traverse left subtree
+    set_left(root, preorder_inorder_to_tree<NodeT>(
+            pre_first+1, pre_first+1+left_len, in_first));
+
+    // traverse right subtree
+    set_right(root, preorder_inorder_to_tree<NodeT>(
+            pre_first+1+left_len, pre_last, in_root+1));
+
+    return root;
+}
+
+template <typename NodeT, typename RandomAccessIterator1,
+         typename RandomAccessIterator2>
+NodeT* inorder_postorder_to_tree(
+        RandomAccessIterator1 in_first, RandomAccessIterator1 in_last,
+        RandomAccessIterator2 post_first) {
+    if (in_first==in_last) return NULL;  // empty tree
+
+    // find root position in inorder sequence
+    typedef typename std::iterator_traits<
+        RandomAccessIterator1>:: difference_type difference_type;
+    difference_type len = in_last - in_first;
+    RandomAccessIterator1 in_root =
+        std::find(in_first, in_last, *(post_first+len-1));
+    if (in_root==in_last)
+        throw std::runtime_error("mismatched input sequences");
+    difference_type left_len = in_root - in_first;  // left subtree size
+
+    NodeT* root = new NodeT();
+    root->value = *in_root;  // output root node
+
+    // traverse left subtree
+    set_left(root, inorder_postorder_to_tree<NodeT>(
+            in_first, in_root, post_first));
+
+    // traverse right subtree
+    set_right(root, inorder_postorder_to_tree<NodeT>(
+            in_root+1, in_last, post_first+left_len));
+    return root;
+}
 
 namespace heap {
 
