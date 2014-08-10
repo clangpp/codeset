@@ -157,8 +157,9 @@ class Matrix {
   // `Matrix&& + const Matrix&` will be implemented by non-member function.
   Matrix operator + (Matrix&& other) const {
     check_dimension_matches(other);
-    // NOTE(clangpp): rvalue reference `other` has a name now, so it can't be
-    // used as an rvalue reference, needs to be wrapped by std::move().
+    // NOTE(clangpp): rvalue reference `other` has a name now, so following code
+    // won't treat it as rvalue reference any more. Wrap with std::move() to
+    // make other code treat it as rvalue reference.
     Matrix result(std::move(other));
     result += *this;
     LOG << "Plus (const Matrix& + Matrix&&) called";
