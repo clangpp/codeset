@@ -174,6 +174,7 @@ class Matrix {
   }
 
   // ==== Stream operators ====
+
   friend std::ostream& operator << (std::ostream& os, const Matrix& matrix) {
     for (const auto& row : matrix.data_) {
       for (const auto& element : row) {
