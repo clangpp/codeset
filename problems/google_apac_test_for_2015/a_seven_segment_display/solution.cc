@@ -48,11 +48,9 @@ int main(int argc, char* argv[]) {
       for (set<int>::iterator iter = first_digits.begin();
            iter != first_digits.end(); ) {
         int guess_digit = NextDigit(*iter, n);
-        // bool displayed_undesired_segment =
-        //     (kDigitSegs[guess_digit] | states[n]) != kDigitSegs[guess_digit];
-        bool not_matching_state =
-            (kDigitSegs[guess_digit] & mask) != states[n];
-        if (not_matching_state) {
+        bool guess_matches_state =
+            (kDigitSegs[guess_digit] & mask) == states[n];
+        if (!guess_matches_state) {
           first_digits.erase(iter++);
         } else {
           ++iter;
@@ -68,7 +66,7 @@ int main(int argc, char* argv[]) {
       }
       bool bad_segment_lights = std::any_of(
           states.begin(), states.end(), [&bad_mask](const Seg& state) {
-            return (state & bad_mask).count() > 0;
+            return (state & bad_mask).any();
           });
       if (bad_segment_lights) {
         first_digits.erase(iter++);
