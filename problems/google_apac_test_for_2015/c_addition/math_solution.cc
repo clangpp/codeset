@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 
     // Calulates variable representation.
     size_t num_vars = dict.size();
-    size_t num_equations = equations_set.size();
+    size_t num_equations = equation_set.size();
     vector<Expression> exps(num_vars);
     vector<bool> determined(num_vars);
     vector<int> values(num_vars);
