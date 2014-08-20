@@ -23,9 +23,10 @@ struct Variable {
 };
 
 struct Evidence {
-  size_t var1 = 0;
-  size_t var2 = 0;
+  size_t addend = 0;
   int sum = 0;
+  Evidence(size_t addend, int sum): addend(addend), sum(sum) {}
+  Evidence() {}
 };
 
 class NameIndexDict {
@@ -48,8 +49,7 @@ class NameIndexDict {
 };
 
 void SpanDeterminedNodes(
-    const vector<vector<Evidence>>& outlinks,
-    const vector<vector<Evidence>>& inlinks,
+    const vector<vector<Evidence>>& edges,
     size_t determined_node,
     vector<Variable>* nodes) {
   queue<size_t> determined_nodes;
@@ -57,37 +57,28 @@ void SpanDeterminedNodes(
       !determined_nodes.empty();
       determined_nodes.pop()) {
     size_t node = determined_nodes.front();
-    for (const auto& evidence : outlinks[node]) {
-      if (!(*nodes)[evidence.var2].determined) {
-        (*nodes)[evidence.var2].value = evidence.sum - (*nodes)[node].value;
-        (*nodes)[evidence.var2].determined = true;
-        determined_nodes.push(evidence.var2);
-      }
-    }
-    for (const auto& evidence : inlinks[node]) {
-      if (!(*nodes)[evidence.var1].determined) {
-        (*nodes)[evidence.var1].value = evidence.sum - (*nodes)[node].value;
-        (*nodes)[evidence.var1].determined = true;
-        determined_nodes.push(evidence.var1);
+    for (const auto& evidence : edges[node]) {
+      if (!(*nodes)[evidence.addend].determined) {
+        (*nodes)[evidence.addend].value = evidence.sum - (*nodes)[node].value;
+        (*nodes)[evidence.addend].determined = true;
+        determined_nodes.push(evidence.addend);
       }
     }
   }
 }
 
 void SpanDeterminedNodes(
-    const vector<vector<Evidence>>& outlinks,
-    const vector<vector<Evidence>>& inlinks,
+    const vector<vector<Evidence>>& edges,
     vector<Variable>* nodes) {
   for (size_t node = 0; node < nodes->size(); ++node) {
     if ((*nodes)[node].determined) {
-      SpanDeterminedNodes(outlinks, inlinks, node, nodes);
+      SpanDeterminedNodes(edges, node, nodes);
     }
   }
 }
 
 bool DetermineCircle(
-    const vector<vector<Evidence>>& outlinks,
-    const vector<vector<Evidence>>& inlinks,
+    const vector<vector<Evidence>>& edges,
     size_t var1,
     size_t curr,
     size_t sum_prev_curr,
@@ -99,7 +90,6 @@ bool DetermineCircle(
   }
   (*visited)[curr] = true;
   path->push_back(make_pair(curr, sum_prev_curr));
-  clog << path->size() << endl;
   if (path->back().first == var1) {
     if (path->size() % 2 == 1) {  // odd edges
       int sign = 1;
@@ -117,15 +107,9 @@ bool DetermineCircle(
       return false;
     }
   }
-  for (const auto& evidence : outlinks[curr]) {
-    if (DetermineCircle(outlinks, inlinks, var1, evidence.var2, evidence.sum,
-                        visited, path, nodes)) {
-      return true;
-    }
-  }
-  for (const auto& evidence : inlinks[curr]) {
-    if (DetermineCircle(outlinks, inlinks, var1, evidence.var1, evidence.sum,
-                        visited, path, nodes)) {
+  for (const auto& evidence : edges[curr]) {
+    if (DetermineCircle(edges, var1, evidence.addend, evidence.sum, visited,
+                        path, nodes)) {
       return true;
     }
   }
@@ -135,28 +119,20 @@ bool DetermineCircle(
 }
 
 void DetermineCircles(
-    const vector<vector<Evidence>>& outlinks,
-    const vector<vector<Evidence>>& inlinks,
+    const vector<vector<Evidence>>& edges,
     vector<Variable>* nodes) {
   for (size_t node = 0; node < nodes->size(); ++node) {
     if (!(*nodes)[node].determined) {
       vector<bool> visited(nodes->size());
       vector<pair<size_t, int>> path;
       bool circle_determined = false;
-      for (const auto& evidence : outlinks[node]) {
+      for (const auto& evidence : edges[node]) {
         if (circle_determined) break;
         circle_determined = DetermineCircle(
-            outlinks, inlinks, node, evidence.var2, evidence.sum, &visited,
-            &path, nodes);
-      }
-      for (const auto& evidence : inlinks[node]) {
-        if (circle_determined) break;
-        circle_determined = DetermineCircle(
-            outlinks, inlinks, node, evidence.var1, evidence.sum, &visited,
-            &path, nodes);
+            edges, node, evidence.addend, evidence.sum, &visited, &path, nodes);
       }
       if (circle_determined) {
-        SpanDeterminedNodes(outlinks, inlinks, node, nodes);
+        SpanDeterminedNodes(edges, node, nodes);
       }
     }
   }
@@ -164,8 +140,7 @@ void DetermineCircles(
 
 bool DetermineSum(
     const vector<Variable>& nodes,
-    const vector<vector<Evidence>>& outlinks,
-    const vector<vector<Evidence>>& inlinks,
+    const vector<vector<Evidence>>& edges,
     size_t curr,
     size_t var2,
     int sum_prev_curr,
@@ -192,15 +167,9 @@ bool DetermineSum(
       return false;
     }
   }
-  for (const auto& evidence : outlinks[curr]) {
-    if (DetermineSum(nodes, outlinks, inlinks, evidence.var2, var2,
-                     evidence.sum, visited, path, sum)) {
-      return true;
-    }
-  }
-  for (const auto& evidence : inlinks[curr]) {
-    if (DetermineSum(nodes, outlinks, inlinks, evidence.var1, var2,
-                     evidence.sum, visited, path, sum)) {
+  for (const auto& evidence : edges[curr]) {
+    if (DetermineSum(nodes, edges, evidence.addend, var2, evidence.sum,
+                     visited, path, sum)) {
       return true;
     }
   }
@@ -211,15 +180,13 @@ bool DetermineSum(
 
 bool DetermineSum(
     const vector<Variable>& nodes,
-    const vector<vector<Evidence>>& outlinks,
-    const vector<vector<Evidence>>& inlinks,
+    const vector<vector<Evidence>>& edges,
     size_t var1,
     size_t var2,
     int* sum) {
   vector<bool> visited(nodes.size());
   vector<pair<size_t, int>> path;
-  return DetermineSum(
-      nodes, outlinks, inlinks, var1, var2, 0, &visited, &path, sum);
+  return DetermineSum(nodes, edges, var1, var2, 0, &visited, &path, sum);
 }
 
 int main(int argc, char* argv[]) {
@@ -230,7 +197,7 @@ int main(int argc, char* argv[]) {
     int N = 0;
     cin >> N;
     vector<Variable> nodes;
-    vector<vector<Evidence>> outlinks, inlinks;
+    vector<vector<Evidence>> edges;
     NameIndexDict dict;
     for (int n = 0; n < N; ++n) {
       // Parses input evidence
@@ -240,30 +207,25 @@ int main(int argc, char* argv[]) {
       getline(cin, var2, '=');
       int sum = 0;
       cin >> sum;
-      clog << var1 << " " << var2 << " " << sum << endl;
       Evidence evidence;
-      evidence.var1 = dict.IndexOf(var1);
-      evidence.var2 = dict.IndexOf(var2);
-      evidence.sum = sum;
+      size_t index1 = dict.IndexOf(var1);
+      size_t index2 = dict.IndexOf(var2);
 
       // Puts edge into graph
       nodes.resize(dict.size());
-      outlinks.resize(dict.size());
-      inlinks.resize(dict.size());
-      if (evidence.var1 == evidence.var2) {  // not edge
-        nodes[evidence.var1].determined = true;
-        nodes[evidence.var1].value = evidence.sum / 2;
+      edges.resize(dict.size());
+      if (index1 == index2) {  // not edge
+        nodes[index1].determined = true;
+        nodes[index1].value = sum / 2;
       } else {
-        outlinks[evidence.var1].push_back(evidence);
-        inlinks[evidence.var2].push_back(evidence);
+        edges[index1].push_back(Evidence(index2, sum));
+        edges[index2].push_back(Evidence(index1, sum));
       }
     }
 
     // Tries to determine as many nodes
-    clog << "SpanDeterminedNodes()" << endl;
-    SpanDeterminedNodes(outlinks, inlinks, &nodes);
-    clog << "DetermineCircles()" << endl;
-    DetermineCircles(outlinks, inlinks, &nodes);
+    SpanDeterminedNodes(edges, &nodes);
+    DetermineCircles(edges, &nodes);
 
     // Handles requests
     cout << "Case #" << (t+1) << ":" << endl;
@@ -274,7 +236,6 @@ int main(int argc, char* argv[]) {
       getline(cin, unused);  // new line
       getline(cin, var1, '+');
       cin >> var2;
-      clog << var1 << " " << var2 << " ?" << endl;
       if (!dict.HasName(var1) || !dict.HasName(var2)) {
         continue;  // new variable, can't determine
       }
@@ -285,7 +246,7 @@ int main(int argc, char* argv[]) {
             << (nodes[index1].value + nodes[index2].value) << endl;
       } else if (!nodes[index1].determined && !nodes[index2].determined) {
         int sum = 0;
-        if (DetermineSum(nodes, outlinks, inlinks, index1, index2, &sum)) {
+        if (DetermineSum(nodes, edges, index1, index2, &sum)) {
           cout << var1 << "+" << var2 << "=" << sum << endl;
         }
       } else {
