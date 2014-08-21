@@ -1,5 +1,5 @@
-#ifndef MATRIX_H_
-#define MATRIX_H_
+#ifndef DEMO_MATRIX_H_
+#define DEMO_MATRIX_H_
 
 #ifndef LOG_DETAIL
 #define LOG_DETAIL
@@ -209,4 +209,4 @@ class Matrix {
   size_type column_size_;  // Stores column size in case data_.empty()
 };
 
-#endif  // MATRIX_H_
+#endif  // DEMO_MATRIX_H_
