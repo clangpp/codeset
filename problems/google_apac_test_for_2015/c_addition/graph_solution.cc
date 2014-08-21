@@ -140,6 +140,8 @@ int main(int argc, char* argv[]) {
         Expression exp = sum_exp - exps[var];  // b = n-a
         if (visited[edge.to] && exps[edge.to] != exp) {
           // Calculates first visited node value (constant).
+          // NOTE(clangpp): Each variable can have and only have two forms,
+          // n1+x, n2-x, so we can store 2*x=n1+n2 in case n1+n2 is odd number.
           determined[exp.variable] = true;
           values_time_2[exp.variable] =
               (exp.constant - exps[edge.to].constant) * 2 /
