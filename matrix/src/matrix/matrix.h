@@ -58,8 +58,10 @@ class Matrix {
 
   Matrix& operator = (Matrix&& other) {
     std::clog << "Matrix::operator = (Matrix&&)" << std::endl;
-    data_ = std::move(other.data_);
-    column_size_ = other.column_size_;
+    if (this != &other) {
+      data_ = std::move(other.data_);
+      column_size_ = other.column_size_;
+    }
     return *this;
   }
 
