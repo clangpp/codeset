@@ -1,3 +1,23 @@
+// Idea (Peng Liu, Jie Mao, code by clangpp):
+//
+// 1. Evidence x+y=n is an edge of an (undirected) graph, with x and y as
+// nodes, with n as weight.
+//
+// 2. In a connected subgraph, every node xi can be expressed by a base node x0
+// in the form n1-x0 or n2+x0, and x0 can be expressed as, err, x0.
+//
+// 3. In the above connected subgraph, if any node xi can be expressed as n1-x0
+// *and* n2+x0, then x0 can be determined as (n1-n2)/2.
+//
+// 4. Express all nodes in `count(subgraph)` base nodes, determine values of as
+// many base nodes as possible.
+//
+// 5. When asking for a+b, plus their expressions.
+// 5.1 If there's no variables, then a+b is determined.
+// 5.2 If all remained (1 or 2) variables' value are determined, then a+b is
+// determined.
+// 5.3 Otherwise, a+b can't be determined.
+
 #include <algorithm>
 #include <cstddef>  // size_t
 #include <iostream>
