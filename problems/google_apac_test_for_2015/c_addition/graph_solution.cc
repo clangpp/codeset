@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     size_t num_vars = edges.size();
     vector<Expression> exps(num_vars);
     vector<bool> determined(num_vars);
-    vector<int> values(num_vars);
+    vector<int> values_time_2(num_vars);
     // DFS, Expresses every node in connected subgraph by first visited node.
     vector<bool> visited(num_vars);
     stack<Variable> holder;
@@ -141,8 +141,8 @@ int main(int argc, char* argv[]) {
         if (visited[edge.to] && exps[edge.to] != exp) {
           // Calculates first visited node value (constant).
           determined[exp.variable] = true;
-          values[exp.variable] =
-              (exp.constant - exps[edge.to].constant) /
+          values_time_2[exp.variable] =
+              (exp.constant - exps[edge.to].constant) * 2 /
               (exps[edge.to].coefficient - exp.coefficient);
         }
         if (!visited[edge.to]) {
@@ -172,14 +172,15 @@ int main(int argc, char* argv[]) {
         if (exp1.coefficient + exp2.coefficient == 0) {
           // sum += 0;
         } else if (determined[exp1.variable]) {
-          sum += (exp1.coefficient + exp2.coefficient) * values[exp1.variable];
+          sum += (exp1.coefficient + exp2.coefficient) *
+              values_time_2[exp1.variable] / 2;
         } else {
           continue;
         }
       } else {
         if (determined[exp1.variable] && determined[exp2.variable]) {
-          sum += exp1.coefficient * values[exp1.variable];
-          sum += exp2.coefficient * values[exp2.variable];
+          sum += ((exp1.coefficient * values_time_2[exp1.variable]) +
+                  (exp2.coefficient * values_time_2[exp2.variable])) / 2;
         } else {
           continue;
         }
