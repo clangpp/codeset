@@ -23,14 +23,38 @@ class Matrix {
   typedef const T& const_reference;
   typedef std::size_t size_type;
 
+ private:
+  // inner class, used for implementing `mat[i][j]` access pattern.
+  class BracketBridge {
+   public:
+    reference operator [] (size_type index) {
+      return (*vec_)[index];
+    }
+   private:
+    friend class Matrix;
+    BracketBridge(std::vector<value_type>* vec): vec_(vec) {}
+    std::vector<value_type>* vec_;
+  };
+  class ConstBracketBridge {
+   public:
+    const_reference operator [] (size_type index) const {
+      return (*vec_)[index];
+    }
+   private:
+    friend class Matrix;
+    ConstBracketBridge(const std::vector<value_type>* vec): vec_(vec) {}
+    const std::vector<value_type>* vec_;
+  };
+
  public:
   // ==== Constructors and (default) Destructor ====
 
   Matrix(size_type row_size, size_type column_size,
                   const value_type& filled = value_type())
-    : data_(row_size), std::vector<value_type>(column_size, filled) {
+    : data_(row_size, std::vector<value_type>(column_size, filled)),
+      column_size_(column_size) {
     std::clog << "Matrix::Matrix(size_type, size_type, const value_type&)"
-      << std::endl;
+        << std::endl;
   }
 
   Matrix(): column_size_(0) {
@@ -89,6 +113,18 @@ class Matrix {
   const_reference operator () (size_type row, size_type column) const {
     check_indices_range(row, column);
     return data_[row][column];
+  }
+
+  // Supports access pattern `mat[row][column]`.
+  // NOTE(clangpp): No index check is performed in this way.
+  BracketBridge operator [] (size_type row) {
+    return BracketBridge(&data_[row]);
+  }
+
+  // Supports access pattern `const_mat[row][column]`.
+  // NOTE(clangpp): No index check is performed in this way.
+  ConstBracketBridge operator [] (size_type row) const {
+    return ConstBracketBridge(&data_[row]);
   }
 
   void check_dimension_matches(const Matrix& other) const {
