@@ -38,83 +38,53 @@ class NameIndexDict {
 
 struct Expression {
   int constant;
-  vector<Variable> variables;
-  vector<int> coefficients;
+  Variable variable;
+  int coefficient;
 
-  Expression(int constant, Variable variable, int coefficient)
-      : constant(constant), variables(1, variable),
-        coefficients(1, coefficient) {
+  explicit Expression(
+      int constant = 0, Variable variable = 0, int coefficient = 0)
+      : constant(constant), variable(variable), coefficient(coefficient) {
   }
-  explicit Expression(int constant): constant(constant) {}
-  Expression(): constant(0) {}
 
   bool operator != (const Expression& other) const {
     return !(constant == other.constant &&
-             variables == other.variables &&
-             coefficients == other.coefficients);
-  }
-
-  Expression operator - () const {
-    Expression result(*this);
-    result.constant = -result.constant;
-    for (auto& coefficient : result.coefficients) {
-      coefficient = -coefficient;
-    }
-    return result;
+             variable == other.variable &&
+             coefficient == other.coefficient);
   }
 
   Expression operator + (const Expression& other) const {
-    Expression result;
-    result.constant = constant + other.constant;
-    for (size_t i = 0, j = 0;
-         i < variables.size() || j < other.variables.size(); ) {
-      if (i >= variables.size()) {
-        for (; j < other.variables.size(); ++j) {
-          result.variables.push_back(other.variables[j]);
-          result.coefficients.push_back(other.coefficients[j]);
-        }
-      } else if (j >= other.variables.size()) {
-        for (; i < variables.size(); ++i) {
-          result.variables.push_back(variables[i]);
-          result.coefficients.push_back(coefficients[i]);
-        }
-      } else {
-        if (variables[i] < other.variables[j]) {
-          result.variables.push_back(variables[i]);
-          result.coefficients.push_back(coefficients[i]);
-          ++i;
-        } else if (variables[i] > other.variables[j]) {
-          result.variables.push_back(other.variables[j]);
-          result.coefficients.push_back(other.coefficients[j]);
-          ++j;
-        } else {  // variables[i] == other.variables[j]
-          int coefficient = coefficients[i] + other.coefficients[j];
-          if (coefficient != 0) {
-            result.variables.push_back(variables[i]);
-            result.coefficients.push_back(coefficient);
-          }
-          ++i;
-          ++j;
-        }
-      }
+    if (variable != other.variable) {
+      cerr << "not addable variables: "
+           << variable << " " << other.variable << endl;
+      exit(1);
     }
+    Expression result(*this);
+    result.constant += other.constant;
+    result.coefficient += other.coefficient;
     return result;
   }
 
   Expression operator - (const Expression& other) const {
-    return *this + (-other);
+    if (variable != other.variable) {
+      cerr << "not minusable variables: "
+           << variable << " " << other.variable << endl;
+      exit(1);
+    }
+    Expression result(*this);
+    result.constant -= other.constant;
+    result.coefficient -= other.coefficient;
+    return result;
   }
 
-  // friend ostream& operator << (ostream& os, const Expression& exp) {
-  //   os << exp.constant;
-  //   for (size_t i = 0; i < exp.variables.size(); ++i) {
-  //     if (exp.coefficients[i] > 0) {
-  //       os << "+";
-  //     }
-  //     os << exp.coefficients[i] << "*x_" << exp.variables[i];
-  //   }
-  //   return os;
-  // }
+  friend ostream& operator << (ostream& os, const Expression& exp) {
+    os << exp.constant;
+    if (exp.coefficient > 0) {
+      os << "+" << exp.coefficient << "*x_" << exp.variable;
+    } else if (exp.coefficient < 0) {
+      os << exp.coefficient << "*x_" << exp.variable;
+    }
+    return os;
+  }
 };
 
 int main(int argc, char* argv[]) {
@@ -134,7 +104,6 @@ int main(int argc, char* argv[]) {
       getline(cin, var2, '=');
       int sum = 0;
       cin >> sum;
-      Edge edge;
       size_t index1 = dict.IndexOf(var1);
       size_t index2 = dict.IndexOf(var2);
 
@@ -167,13 +136,14 @@ int main(int argc, char* argv[]) {
         visited[var] = true;
       }
       for (const auto& edge : edges[var]) {
-        Expression exp = Expression(edge.sum) - exps[var];  // b = n-a
+        Expression sum_exp(edge.sum, exps[var].variable, 0);
+        Expression exp = sum_exp - exps[var];  // b = n-a
         if (visited[edge.to] && exps[edge.to] != exp) {
           // Calculates first visited node value (constant).
-          determined[exp.variables.front()] = true;
-          values[exp.variables.front()] =
+          determined[exp.variable] = true;
+          values[exp.variable] =
               (exp.constant - exps[edge.to].constant) /
-              (exps[edge.to].coefficients.front() - exp.coefficients.front());
+              (exps[edge.to].coefficient - exp.coefficient);
         }
         if (!visited[edge.to]) {
           exps[edge.to] = exp;
@@ -195,22 +165,26 @@ int main(int argc, char* argv[]) {
       if (!dict.HasName(var1) || !dict.HasName(var2)) {
         continue;  // new variable, can't determine
       }
-      size_t index1 = dict.IndexOf(var1);
-      size_t index2 = dict.IndexOf(var2);
-      Expression sum_exp = exps[index1] + exps[index2];
-      int sum = sum_exp.constant;
-      bool sum_determined = true;
-      for (size_t i = 0; i < sum_exp.variables.size(); ++i) {
-        if (determined[sum_exp.variables[i]]) {
-          sum += values[sum_exp.variables[i]] * sum_exp.coefficients[i];
+      const Expression& exp1 = exps[dict.IndexOf(var1)];
+      const Expression& exp2 = exps[dict.IndexOf(var2)];
+      int sum = exp1.constant + exp2.constant;
+      if (exp1.variable == exp2.variable) {
+        if (exp1.coefficient + exp2.coefficient == 0) {
+          // sum += 0;
+        } else if (determined[exp1.variable]) {
+          sum += (exp1.coefficient + exp2.coefficient) * values[exp1.variable];
         } else {
-          sum_determined = false;
-          break;
+          continue;
+        }
+      } else {
+        if (determined[exp1.variable] && determined[exp2.variable]) {
+          sum += exp1.coefficient * values[exp1.variable];
+          sum += exp2.coefficient * values[exp2.variable];
+        } else {
+          continue;
         }
       }
-      if (sum_determined) {
-        cout << var1 << "+" << var2 << "=" << sum << endl;
-      }
+      cout << var1 << "+" << var2 << "=" << sum << endl;
     }
   }
   return 0;
