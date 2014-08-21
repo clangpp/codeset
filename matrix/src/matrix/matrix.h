@@ -160,17 +160,6 @@ class Matrix {
     return *this;
   }
 
-  friend Matrix<T> operator - (const Matrix<T>& lhs, Matrix<T>&& rhs) {
-    lhs.check_dimension_matches(rhs);
-    Matrix<T> result(std::move(rhs));
-    for (size_type i=0; i<result.row_size(); ++i) {
-      for (size_type j=0; j<result.column_size(); ++j) {
-        result.data_[i][j] = lhs.data_[i][j] - result.data_[i][j];
-      }
-    }
-    return result;
-  }
-
   Matrix& operator *= (const value_type& factor) {
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
@@ -240,6 +229,19 @@ Matrix<T> operator - (const Matrix<T>& lhs, const Matrix<T>& rhs) {
   lhs.check_dimension_matches(rhs);
   Matrix<T> result(lhs);
   result -= rhs;
+  return result;
+}
+
+template <typename T>
+Matrix<T> operator - (const Matrix<T>& lhs, Matrix<T>&& rhs) {
+  lhs.check_dimension_matches(rhs);
+  Matrix<T> result(std::move(rhs));
+  typedef typename Matrix<T>::size_type size_type;
+  for (size_type i=0; i<result.row_size(); ++i) {
+    for (size_type j=0; j<result.column_size(); ++j) {
+      result[i][j] = lhs[i][j] - result[i][j];
+    }
+  }
   return result;
 }
 

@@ -6,7 +6,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
   Matrix<int> a, b, c;
-  c = Matrix<int>() / 3;
+  c = a - Matrix<int>();
 
   Matrix<int> d(2, 2, 3);
   const Matrix<int>& cd(d);
