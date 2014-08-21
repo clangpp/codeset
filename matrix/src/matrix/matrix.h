@@ -13,7 +13,7 @@
 #include <iterator>
 #include <numeric>
 #include <sstream>
-#include <utility>  // std::move()
+#include <utility>  // move(), make_pair
 #include <vector>
 
 #include <iostream>  // debug
@@ -163,6 +163,7 @@ class Matrix {
 
   Matrix(Matrix&& other)
     : data_(std::move(other.data_)), column_size_(other.column_size_) {
+    other.column_size_ = 0;
     std::clog << "Matrix::Matrix(Matrix&&)" << std::endl;
   }
 
@@ -195,7 +196,7 @@ class Matrix {
   }
 
   std::pair<size_type, size_type> dimension() const {
-    return make_pair(row_size(), column_size());
+    return std::make_pair(row_size(), column_size());
   }
 
   bool empty() const { return row_size() == 0 || column_size() == 0; }
@@ -289,7 +290,7 @@ class Matrix {
 
   void row_resize(size_type new_row_size,
                   const value_type& filled = value_type()) {
-    data_.resize(new_row_size, filled);
+    data_.resize(new_row_size, std::vector<value_type>(column_size_, filled));
   }
 
   void column_resize(size_type new_column_size,
@@ -297,6 +298,7 @@ class Matrix {
     for (auto& row_vec : data_) {
       row_vec.resize(new_column_size, filled);
     }
+    column_size_ = new_column_size;
   }
 
   // ==== Arithmetric operators ====
@@ -426,7 +428,11 @@ template <typename T>
 Matrix<T> operator + (const Matrix<T>& lhs, Matrix<T>&& rhs) {
   lhs.check_dimension_matches(rhs);
   Matrix<T> result(std::move(rhs));
-  return result += lhs;
+  // TODO(clangpp): Dont' know why, but if merge the following two lines to
+  // `return result += lhs;`, there will be an additional
+  // Matrix::Matrix(const Matrix&) call.
+  result += lhs;
+  return result;
 }
 
 template <typename T>
@@ -458,7 +464,8 @@ template <typename T>
 Matrix<T> operator - (Matrix<T>&& lhs, const Matrix<T>& rhs) {
   lhs.check_dimension_matches(rhs);
   Matrix<T> result(std::move(lhs));
-  return result -= rhs;
+  result -= rhs;
+  return result;
 }
 
 template <typename T>
@@ -475,7 +482,8 @@ Matrix<T> operator * (const T& factor, const Matrix<T>& mat) {
 template <typename T>
 Matrix<T> operator * (Matrix<T>&& mat, const T& factor) {
   Matrix<T> result(std::move(mat));
-  return result *= factor;
+  result *= factor;
+  return result;
 }
 
 template <typename T>
@@ -492,7 +500,8 @@ Matrix<T> operator / (const Matrix<T>& mat, const T& factor) {
 template <typename T>
 Matrix<T> operator / (Matrix<T>&& mat, const T& factor) {
   Matrix<T> result(std::move(mat));
-  return result /= factor;
+  result /= factor;
+  return result;
 }
 
 template <typename T>
@@ -504,19 +513,21 @@ Matrix<T> operator % (const Matrix<T>& mat, const T& factor) {
 template <typename T>
 Matrix<T> operator % (Matrix<T>&& mat, const T& factor) {
   Matrix<T> result(std::move(mat));
-  return result %= factor;
+  result %= factor;
+  return result;
 }
 
 template <typename T>
 Matrix<T> operator * (const Matrix<T>& lhs, const Matrix<T>& rhs) {
   Matrix<T> result(lhs);
-  return lhs *= rhs;
+  return result *= rhs;
 }
 
 template <typename T>
 Matrix<T> operator * (Matrix<T>&& lhs, const Matrix<T>& rhs) {
   Matrix<T> result(std::move(lhs));
-  return result *= rhs;
+  result *= rhs;
+  return result;
 }
 
 #endif  // MATRIX_H_
