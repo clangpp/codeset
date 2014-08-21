@@ -1,11 +1,11 @@
 // STATUS: small input passed, large input passed.
 //
 // Idea:
-//  1. Edge x+y=n is an edge of a graph, with x and y as nodes, and n as
+//  1. Evidence x+y=n is an edge of a graph, with x and y as nodes, and n as
 //    weight.
 //  2. If x to y has odd number edges (n1, n2, n3, ..., nt), then x+y is
 //    determined as n1-n2+n3-...+nt.
-//  3. If there's edge z+z=n, then z is determined (n/2), and thus all nodes
+//  3. If there's evidence z+z=n, then z is determined (n/2), and thus all nodes
 //    connected with z are determined.
 //    But normally no need for determination, one path of
 //    (n1, n2, ..., nz, ..., nt) and
