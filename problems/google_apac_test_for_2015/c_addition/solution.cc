@@ -19,11 +19,11 @@
 
 using namespace std;
 
-struct Evidence {
-  size_t addend = 0;
+struct Edge {
+  size_t to = 0;
   int sum = 0;
-  Evidence(size_t addend, int sum): addend(addend), sum(sum) {}
-  Evidence() {}
+  Edge(size_t to, int sum): to(to), sum(sum) {}
+  Edge() {}
 };
 
 class NameIndexDict {
@@ -46,17 +46,17 @@ class NameIndexDict {
 };
 
 bool DetermineSum(
-    const vector<vector<Evidence>>& edges,
+    const vector<vector<Edge>>& edges,
     size_t var1,
     size_t var2,
     int* sum) {
   vector<bool> visited(edges.size());
   vector<int> var1_plus(edges.size());
   queue<size_t> determined_nodes;
-  for (const auto& evidence : edges[var1]) {
-    var1_plus[evidence.addend] = evidence.sum;
-    visited[evidence.addend] = true;
-    determined_nodes.push(evidence.addend);
+  for (const auto& edge : edges[var1]) {
+    var1_plus[edge.to] = edge.sum;
+    visited[edge.to] = true;
+    determined_nodes.push(edge.to);
   }
   for (; !determined_nodes.empty(); determined_nodes.pop()) {
     size_t start = determined_nodes.front();
@@ -64,12 +64,12 @@ bool DetermineSum(
       *sum = var1_plus[var2];
       return true;
     }
-    for (const auto& evidence1 : edges[start]) {
-      size_t via = evidence1.addend;
-      for (const auto& evidence2 : edges[via]) {
-        size_t next = evidence2.addend;
+    for (const auto& edge1 : edges[start]) {
+      size_t via = edge1.to;
+      for (const auto& edge2 : edges[via]) {
+        size_t next = edge2.to;
         if (!visited[next]) {
-          var1_plus[next] = var1_plus[start] - evidence1.sum + evidence2.sum;
+          var1_plus[next] = var1_plus[start] - edge1.sum + edge2.sum;
           visited[next] = true;
           determined_nodes.push(next);
         }
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     // Processes evidences
     int N = 0;
     cin >> N;
-    vector<vector<Evidence>> edges;
+    vector<vector<Edge>> edges;
     NameIndexDict dict;
     for (int n = 0; n < N; ++n) {
       // Parses input evidence
@@ -96,17 +96,16 @@ int main(int argc, char* argv[]) {
       getline(cin, var2, '=');
       int sum = 0;
       cin >> sum;
-      Evidence evidence;
       size_t index1 = dict.IndexOf(var1);
       size_t index2 = dict.IndexOf(var2);
 
       // Puts edge into graph
       edges.resize(dict.size());
       if (index1 == index2) {  // not edge
-        edges[index1].push_back(Evidence(index2, sum));
+        edges[index1].push_back(Edge(index2, sum));
       } else {
-        edges[index1].push_back(Evidence(index2, sum));
-        edges[index2].push_back(Evidence(index1, sum));
+        edges[index1].push_back(Edge(index2, sum));
+        edges[index2].push_back(Edge(index1, sum));
       }
     }
 
