@@ -168,7 +168,7 @@ void TestArithmetrics_Plus() {
   assert(a.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(a[i][j] = 30);
+      assert(a[i][j] == 30);
     }
   }
   Matrix<int> d = a + b;
@@ -176,7 +176,7 @@ void TestArithmetrics_Plus() {
   assert(d.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(d[i][j] = 50);
+      assert(d[i][j] == 50);
     }
   }
   Matrix<int> e = Matrix<int>(3, 4, 40) + b;
@@ -184,7 +184,7 @@ void TestArithmetrics_Plus() {
   assert(e.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(e[i][j] = 60);
+      assert(e[i][j] == 60);
     }
   }
   Matrix<int> f = b + Matrix<int>(3, 4, 40);
@@ -192,19 +192,19 @@ void TestArithmetrics_Plus() {
   assert(f.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(f[i][j] = 60);
+      assert(f[i][j] == 60);
     }
   }
 }
 
 void TestArithmetrics_Minus() {
-  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(b);
+  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(a);
   c -= b;
   assert(c.row_size() == 3);
   assert(c.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(c[i][j] = -10);
+      assert(c[i][j] == -10);
     }
   }
   Matrix<int> d = a - b;
@@ -212,7 +212,7 @@ void TestArithmetrics_Minus() {
   assert(d.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(d[i][j] = -10);
+      assert(d[i][j] == -10);
     }
   }
   Matrix<int> e = Matrix<int>(3, 4, 40) - b;
@@ -220,7 +220,7 @@ void TestArithmetrics_Minus() {
   assert(e.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(e[i][j] = 20);
+      assert(e[i][j] == 20);
     }
   }
   Matrix<int> f = b - Matrix<int>(3, 4, 40);
@@ -228,19 +228,19 @@ void TestArithmetrics_Minus() {
   assert(f.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(f[i][j] = -20);
+      assert(f[i][j] == -20);
     }
   }
 }
 
 void TestArithmetrics_MultiplyByValue() {
-  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(b);
+  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(a);
   c *= 3;
   assert(c.row_size() == 3);
   assert(c.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(c[i][j] = 30);
+      assert(c[i][j] == 30);
     }
   }
   Matrix<int> d = a * 4;
@@ -248,7 +248,7 @@ void TestArithmetrics_MultiplyByValue() {
   assert(d.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(d[i][j] = 40);
+      assert(d[i][j] == 40);
     }
   }
   Matrix<int> e = 4 * a;
@@ -256,7 +256,7 @@ void TestArithmetrics_MultiplyByValue() {
   assert(e.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(e[i][j] = 40);
+      assert(e[i][j] == 40);
     }
   }
   Matrix<int> f = 4 * Matrix<int>(3, 4, 10);
@@ -264,7 +264,7 @@ void TestArithmetrics_MultiplyByValue() {
   assert(f.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(f[i][j] = 40);
+      assert(f[i][j] == 40);
     }
   }
   Matrix<int> g = Matrix<int>(3, 4, 10) * 4;
@@ -272,19 +272,19 @@ void TestArithmetrics_MultiplyByValue() {
   assert(g.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(g[i][j] = 40);
+      assert(g[i][j] == 40);
     }
   }
 }
 
 void TestArithmetrics_DivideByValue() {
-  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(b);
+  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(a);
   c /= 2;
   assert(c.row_size() == 3);
   assert(c.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(c[i][j] = 5);
+      assert(c[i][j] == 5);
     }
   }
   Matrix<int> d = a / 2;
@@ -292,7 +292,7 @@ void TestArithmetrics_DivideByValue() {
   assert(d.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(d[i][j] = 5);
+      assert(d[i][j] == 5);
     }
   }
   Matrix<int> e = Matrix<int>(3, 4, 40) / 4;
@@ -300,19 +300,19 @@ void TestArithmetrics_DivideByValue() {
   assert(e.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(e[i][j] = 10);
+      assert(e[i][j] == 10);
     }
   }
 }
 
 void TestArithmetrics_ModuleByValue() {
-  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(b);
+  Matrix<int> a(3, 4, 10), b(3, 4, 20), c(a);
   c %= 3;
   assert(c.row_size() == 3);
   assert(c.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(c[i][j] = 1);
+      assert(c[i][j] == 1);
     }
   }
   Matrix<int> d = a % 4;
@@ -320,7 +320,7 @@ void TestArithmetrics_ModuleByValue() {
   assert(d.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(d[i][j] = 2);
+      assert(d[i][j] == 2);
     }
   }
   Matrix<int> e = Matrix<int>(3, 4, 10) % 7;
@@ -328,7 +328,7 @@ void TestArithmetrics_ModuleByValue() {
   assert(e.column_size() == 4);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 4; ++j) {
-      assert(e[i][j] = 3);
+      assert(e[i][j] == 3);
     }
   }
 }
@@ -340,7 +340,7 @@ void TestArithmetrics_MultiplyByMatrix() {
   assert(c.column_size() == 5);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 5; ++j) {
-      assert(c[i][j] = 200);
+      assert(c[i][j] == 800);
     }
   }
   Matrix<int> d = a * b;
@@ -348,7 +348,7 @@ void TestArithmetrics_MultiplyByMatrix() {
   assert(d.column_size() == 5);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 5; ++j) {
-      assert(d[i][j] = 200);
+      assert(d[i][j] == 800);
     }
   }
   Matrix<int> e = a * Matrix<int>(4, 5, 20);
@@ -356,7 +356,7 @@ void TestArithmetrics_MultiplyByMatrix() {
   assert(e.column_size() == 5);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 5; ++j) {
-      assert(e[i][j] = 200);
+      assert(e[i][j] == 800);
     }
   }
   Matrix<int> f = Matrix<int>(3, 4, 10) * b;
@@ -364,7 +364,7 @@ void TestArithmetrics_MultiplyByMatrix() {
   assert(f.column_size() == 5);
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 5; ++j) {
-      assert(f[i][j] = 200);
+      assert(f[i][j] == 800);
     }
   }
 }
