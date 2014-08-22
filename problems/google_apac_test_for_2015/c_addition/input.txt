@@ -1,4 +1,4 @@
-2
+3
 2
 apple+banana=10
 coconut+coconut=12
@@ -17,3 +17,18 @@ a+c
 a+d
 b+c
 b+d
+7
+a+b=5
+b+c=8
+c+d=8
+d+e=4
+e+f=5
+f+f=4
+g+g=10
+6
+a+b
+a+c
+a+d
+a+e
+a+f
+a+g

@@ -5,3 +5,10 @@ banana+apple=10
 Case #2:
 a+d=3
 b+c=3
+Case #3:
+a+b=5
+a+c=11
+a+d=5
+a+e=7
+a+f=6
+a+g=9
