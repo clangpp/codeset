@@ -108,21 +108,21 @@ class Matrix {
 
     // ==== InputIterator requirements ====
 
-    bool operator == (const self& other) const {
+    bool operator==(const self& other) const {
       return (data_ == other.data_ && row_ == other.row_ &&
               column_ == other.column_);
     }
-    bool operator != (const self& other) const { return !(*this == other); }
-    reference operator * () const { return (*data_)[row_][column_]; }
-    pointer operator -> () const { return &*(*this); }
+    bool operator!=(const self& other) const { return !(*this == other); }
+    reference operator*() const { return (*data_)[row_][column_]; }
+    pointer operator->() const { return &*(*this); }
 
     // ==== ForwardIterator requirements ====
 
-    self& operator ++ () {
+    self& operator++() {
       ++row_;
       return *this;
     }
-    self operator ++ (int) {
+    self operator++(int) {
       self result(*this);
       ++*this;
       return result;
@@ -130,11 +130,11 @@ class Matrix {
 
     // ==== BidirectionalIterator requirements ====
 
-    self& operator -- () {
+    self& operator--() {
       --row_;
       return *this;
     }
-    self operator --(int) {
+    self operator--(int){
       self result(*this);
       --*this;
       return result;
@@ -142,30 +142,30 @@ class Matrix {
 
     // ==== RandomAccessIterator requirements ====
 
-    self& operator += (difference_type n) {
+    self& operator+=(difference_type n) {
       row_ += n;
       return *this;
     }
-    self operator + (difference_type n) const {
+    self operator+(difference_type n) const {
       self result(*this);
       return result += n;
     }
-    friend self operator + (difference_type n, const self& iter) {
+    friend self operator+(difference_type n, const self& iter) {
       return iter + n;
     }
-    self& operator -= (difference_type n) { return *this += (-n); }
-    self operator - (difference_type n) const {
+    self& operator-=(difference_type n) { return *this += (-n); }
+    self operator-(difference_type n) const {
       self result(*this);
       return result -= n;
     }
-    difference_type operator - (const self& other) const {
+    difference_type operator-(const self& other) const {
       return row_ - other.row_;
     }
-    reference operator [] (difference_type n) const { return *(*this + n); }
-    bool operator < (const self& other) const { return row_ < other.row_; }
-    bool operator > (const self& other) const { return other < *this; }
-    bool operator >= (const self& other) const { return !(*this < other); }
-    bool operator <= (const self& other) const { return !(*this > other); }
+    reference operator[](difference_type n) const { return *(*this + n); }
+    bool operator<(const self& other) const { return row_ < other.row_; }
+    bool operator>(const self& other) const { return other < *this; }
+    bool operator>=(const self& other) const { return !(*this < other); }
+    bool operator<=(const self& other) const { return !(*this > other); }
    private:
     friend class Matrix;
     basic_column_iterator(Container* data, size_type row, size_type column)
@@ -185,7 +185,7 @@ class Matrix {
   // inner class, used for implementing `mat[i][j]` access pattern.
   class BracketBridge {
    public:
-    reference operator [] (size_type index) {
+    reference operator[](size_type index) {
       return (*vec_)[index];
     }
    private:
@@ -195,7 +195,7 @@ class Matrix {
   };
   class ConstBracketBridge {
    public:
-    const_reference operator [] (size_type index) const {
+    const_reference operator[](size_type index) const {
       return (*vec_)[index];
     }
    private:
@@ -232,15 +232,15 @@ class Matrix {
 
   // ==== Assignment operator ====
 
-  Matrix& operator = (const Matrix& other) {
-    std::clog << "Matrix::operator = (const Matrix&)" << std::endl;
+  Matrix& operator=(const Matrix& other) {
+    std::clog << "Matrix::operator=(const Matrix&)" << std::endl;
     data_ = other.data_;
     column_size_ = other.column_size_;
     return *this;
   }
 
-  Matrix& operator = (Matrix&& other) {
-    std::clog << "Matrix::operator = (Matrix&&)" << std::endl;
+  Matrix& operator=(Matrix&& other) {
+    std::clog << "Matrix::operator=(Matrix&&)" << std::endl;
     if (this != &other) {
       data_ = std::move(other.data_);
       column_size_ = other.column_size_;
@@ -264,25 +264,25 @@ class Matrix {
 
   bool empty() const { return row_size() == 0 || column_size() == 0; }
 
-  reference operator () (size_type row, size_type column) {
+  reference operator()(size_type row, size_type column) {
     matrix::CheckIndicesRange(*this, row, column);
     return data_[row][column];
   }
 
-  const_reference operator () (size_type row, size_type column) const {
+  const_reference operator()(size_type row, size_type column) const {
     matrix::CheckIndicesRange(*this, row, column);
     return data_[row][column];
   }
 
   // Supports access pattern `mat[row][column]`.
   // NOTE(clangpp): No index check is performed in this way.
-  BracketBridge operator [] (size_type row) {
+  BracketBridge operator[](size_type row) {
     return BracketBridge(&data_[row]);
   }
 
   // Supports access pattern `const_mat[row][column]`.
   // NOTE(clangpp): No index check is performed in this way.
-  ConstBracketBridge operator [] (size_type row) const {
+  ConstBracketBridge operator[](size_type row) const {
     return ConstBracketBridge(&data_[row]);
   }
 
@@ -345,7 +345,7 @@ class Matrix {
 
   // ==== Arithmetric operators ====
 
-  Matrix& operator += (const Matrix& other) {
+  Matrix& operator+=(const Matrix& other) {
     matrix::CheckDimensionMatches(*this, other);
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
@@ -355,7 +355,7 @@ class Matrix {
     return *this;
   }
 
-  Matrix& operator -= (const Matrix& other) {
+  Matrix& operator-=(const Matrix& other) {
     matrix::CheckDimensionMatches(*this, other);
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
@@ -365,7 +365,7 @@ class Matrix {
     return *this;
   }
 
-  Matrix& operator *= (const value_type& factor) {
+  Matrix& operator*=(const value_type& factor) {
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
         data_[i][j] *= factor;
@@ -374,7 +374,7 @@ class Matrix {
     return *this;
   }
 
-  Matrix& operator /= (const value_type& factor) {
+  Matrix& operator/=(const value_type& factor) {
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
         data_[i][j] /= factor;
@@ -383,7 +383,7 @@ class Matrix {
     return *this;
   }
 
-  Matrix& operator %= (const value_type& factor) {
+  Matrix& operator%=(const value_type& factor) {
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
         data_[i][j] %= factor;
@@ -392,7 +392,7 @@ class Matrix {
     return *this;
   }
 
-  Matrix& operator *= (const Matrix& other) {
+  Matrix& operator*=(const Matrix& other) {
     matrix::CheckDimensionMultipliable(*this, other);
     std::vector<value_type> row_result(other.column_size());
     for (size_type row = 0; row < row_size(); ++row) {
@@ -408,7 +408,7 @@ class Matrix {
     return *this;
   }
 
-  friend Matrix operator * (const Matrix& lhs, Matrix&& rhs) {
+  friend Matrix operator*(const Matrix& lhs, Matrix&& rhs) {
     matrix::CheckDimensionMultipliable(lhs, rhs);
     size_type rhs_row_size(rhs.row_size()), rhs_column_size(rhs.column_size());
     Matrix result(std::move(rhs));
@@ -435,14 +435,14 @@ class Matrix {
 // ==== Arithmetric operators ====
 
 template <typename T>
-Matrix<T> operator + (const Matrix<T>& lhs, const Matrix<T>& rhs) {
+Matrix<T> operator+(const Matrix<T>& lhs, const Matrix<T>& rhs) {
   matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(lhs);
   return result += rhs;
 }
 
 template <typename T>
-Matrix<T> operator + (const Matrix<T>& lhs, Matrix<T>&& rhs) {
+Matrix<T> operator+(const Matrix<T>& lhs, Matrix<T>&& rhs) {
   matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(rhs));
   // TODO(clangpp): Dont' know why, but if merge the following two lines to
@@ -453,19 +453,19 @@ Matrix<T> operator + (const Matrix<T>& lhs, Matrix<T>&& rhs) {
 }
 
 template <typename T>
-Matrix<T> operator + (Matrix<T>&& lhs, const Matrix<T>& rhs) {
+Matrix<T> operator+(Matrix<T>&& lhs, const Matrix<T>& rhs) {
   return rhs + std::move(lhs);
 }
 
 template <typename T>
-Matrix<T> operator - (const Matrix<T>& lhs, const Matrix<T>& rhs) {
+Matrix<T> operator-(const Matrix<T>& lhs, const Matrix<T>& rhs) {
   matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(lhs);
   return result -= rhs;
 }
 
 template <typename T>
-Matrix<T> operator - (const Matrix<T>& lhs, Matrix<T>&& rhs) {
+Matrix<T> operator-(const Matrix<T>& lhs, Matrix<T>&& rhs) {
   matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(rhs));
   typedef typename Matrix<T>::size_type size_type;
@@ -478,7 +478,7 @@ Matrix<T> operator - (const Matrix<T>& lhs, Matrix<T>&& rhs) {
 }
 
 template <typename T>
-Matrix<T> operator - (Matrix<T>&& lhs, const Matrix<T>& rhs) {
+Matrix<T> operator-(Matrix<T>&& lhs, const Matrix<T>& rhs) {
   matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(lhs));
   result -= rhs;
@@ -486,62 +486,62 @@ Matrix<T> operator - (Matrix<T>&& lhs, const Matrix<T>& rhs) {
 }
 
 template <typename T>
-Matrix<T> operator * (const Matrix<T>& mat, const T& factor) {
+Matrix<T> operator*(const Matrix<T>& mat, const T& factor) {
   Matrix<T> result(mat);
   return result *= factor;
 }
 
 template <typename T>
-Matrix<T> operator * (const T& factor, const Matrix<T>& mat) {
+Matrix<T> operator*(const T& factor, const Matrix<T>& mat) {
   return mat * factor;
 }
 
 template <typename T>
-Matrix<T> operator * (Matrix<T>&& mat, const T& factor) {
+Matrix<T> operator*(Matrix<T>&& mat, const T& factor) {
   Matrix<T> result(std::move(mat));
   result *= factor;
   return result;
 }
 
 template <typename T>
-Matrix<T> operator * (const T& factor, Matrix<T>&& mat) {
+Matrix<T> operator*(const T& factor, Matrix<T>&& mat) {
   return std::move(mat) * factor;
 }
 
 template <typename T>
-Matrix<T> operator / (const Matrix<T>& mat, const T& factor) {
+Matrix<T> operator/(const Matrix<T>& mat, const T& factor) {
   Matrix<T> result(mat);
   return result /= factor;
 }
 
 template <typename T>
-Matrix<T> operator / (Matrix<T>&& mat, const T& factor) {
+Matrix<T> operator/(Matrix<T>&& mat, const T& factor) {
   Matrix<T> result(std::move(mat));
   result /= factor;
   return result;
 }
 
 template <typename T>
-Matrix<T> operator % (const Matrix<T>& mat, const T& factor) {
+Matrix<T> operator%(const Matrix<T>& mat, const T& factor) {
   Matrix<T> result(mat);
   return result %= factor;
 }
 
 template <typename T>
-Matrix<T> operator % (Matrix<T>&& mat, const T& factor) {
+Matrix<T> operator%(Matrix<T>&& mat, const T& factor) {
   Matrix<T> result(std::move(mat));
   result %= factor;
   return result;
 }
 
 template <typename T>
-Matrix<T> operator * (const Matrix<T>& lhs, const Matrix<T>& rhs) {
+Matrix<T> operator*(const Matrix<T>& lhs, const Matrix<T>& rhs) {
   Matrix<T> result(lhs);
   return result *= rhs;
 }
 
 template <typename T>
-Matrix<T> operator * (Matrix<T>&& lhs, const Matrix<T>& rhs) {
+Matrix<T> operator*(Matrix<T>&& lhs, const Matrix<T>& rhs) {
   Matrix<T> result(std::move(lhs));
   result *= rhs;
   return result;
