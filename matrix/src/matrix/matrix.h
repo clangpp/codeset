@@ -4,12 +4,16 @@
 // Author: clangpp@gmail.com
 //
 // Intention:
-// C++11 r-value reference is already released and well supported, it's time to
-// write a matrix class to take advantage of that, to perform space-cheaper
+// 1. C++11 r-value reference is already released and well supported, it's time
+// to write a matrix class to take advantage of that, to perform space-cheaper
 // matrix arithmetics.
+// 2. C++11 std::async() is a powerful tool to perform concurrent operations,
+// it can be used to make full use of multi-core CPU's power, to perform
+// time-faster matrix arithmetrics.
 
 #include <algorithm>
-#include <cstddef>  // size_t
+#include <cstddef>  // size_t, ptrdiff_t
+#include <future>
 #include <iterator>
 #include <numeric>
 #include <sstream>
@@ -77,6 +81,26 @@ void CheckColumnRange(const Matrix<T>& mat,
        << "(" << mat.row_size() << ", " << mat.column_size() << ")";
     throw std::out_of_range(ss.str());
   }
+}
+
+// process: `process(index) -> void` should be satisfied
+template <typename UnaryFunction>
+void ConcurrentProcess(std::size_t count, UnaryFunction process,
+                       std::vector<std::future<void>>* helper_futures) {
+  helper_futures->resize(count);
+  for (std::size_t index = 0; index < count; ++index) {
+    (*helper_futures)[index] = std::async(std::launch::async, process, index);
+  }
+  for (std::size_t index = 0; index < count; ++index) {
+    (*helper_futures)[index].wait();
+  }
+}
+
+// process: `process(index) -> void` should be satisfied
+template <typename UnaryFunction>
+void ConcurrentProcess(std::size_t count, UnaryFunction process) {
+  std::vector<std::future<void>> futures(count);
+  ConcurrentProcess(count, process, &futures);
 }
 
 }  // namespace matrix
@@ -347,61 +371,74 @@ class Matrix {
 
   Matrix& operator+=(const Matrix& other) {
     matrix::CheckDimensionMatches(*this, other);
-    for (size_type i=0; i<row_size(); ++i) {
-      for (size_type j=0; j<column_size(); ++j) {
-        data_[i][j] += other.data_[i][j];
-      }
-    }
+    matrix::ConcurrentProcess(
+        row_size(), [this, &other](size_type row) mutable {
+          for (size_type column = 0; column < this->column_size(); ++column) {
+            data_[row][column] += other.data_[row][column];
+          }
+        });
     return *this;
   }
 
   Matrix& operator-=(const Matrix& other) {
     matrix::CheckDimensionMatches(*this, other);
-    for (size_type i=0; i<row_size(); ++i) {
-      for (size_type j=0; j<column_size(); ++j) {
-        data_[i][j] -= other.data_[i][j];
-      }
-    }
+    matrix::ConcurrentProcess(
+        row_size(), [this, &other](size_type row) mutable {
+          for (size_type column = 0; column < this->column_size(); ++column) {
+            data_[row][column] -= other.data_[row][column];
+          }
+        });
     return *this;
   }
 
   Matrix& operator*=(const value_type& factor) {
-    for (size_type i=0; i<row_size(); ++i) {
-      for (size_type j=0; j<column_size(); ++j) {
-        data_[i][j] *= factor;
-      }
-    }
+    matrix::ConcurrentProcess(
+        row_size(), [this, &factor](size_type row) mutable {
+          for (size_type column = 0; column < this->column_size(); ++column) {
+            data_[row][column] *= factor;
+          }
+        });
     return *this;
   }
 
   Matrix& operator/=(const value_type& factor) {
-    for (size_type i=0; i<row_size(); ++i) {
-      for (size_type j=0; j<column_size(); ++j) {
-        data_[i][j] /= factor;
-      }
-    }
+    matrix::ConcurrentProcess(
+        row_size(), [this, &factor](size_type row) mutable {
+          for (size_type column = 0; column < this->column_size(); ++column) {
+            data_[row][column] /= factor;
+          }
+        });
     return *this;
   }
 
   Matrix& operator%=(const value_type& factor) {
-    for (size_type i=0; i<row_size(); ++i) {
-      for (size_type j=0; j<column_size(); ++j) {
-        data_[i][j] %= factor;
-      }
-    }
+    matrix::ConcurrentProcess(
+        row_size(), [this, &factor](size_type row) mutable {
+          for (size_type column = 0; column < this->column_size(); ++column) {
+            data_[row][column] %= factor;
+          }
+        });
     return *this;
   }
 
   Matrix& operator*=(const Matrix& other) {
     matrix::CheckDimensionMultipliable(*this, other);
     std::vector<value_type> row_result(other.column_size());
+    std::vector<std::future<void>> futures(other.column_size());
     for (size_type row = 0; row < row_size(); ++row) {
       row_result.resize(other.column_size());
-      for (size_type column = 0; column < other.column_size(); ++column) {
-        row_result[column] = std::inner_product(
-            row_begin(row), row_end(row), other.column_begin(column),
-            value_type());
-      }
+
+      // Concurrently calculates single row in result matrix.
+      matrix::ConcurrentProcess(
+          other.column_size(),
+          [this, &other, row, &row_result](size_type column) mutable {
+            row_result[column] = std::inner_product(
+                this->row_begin(row), this->row_end(row),
+                other.column_begin(column), value_type());
+          },
+          &futures);
+
+      // Inplace puts calculated row into result matrix.
       data_[row].swap(row_result);
     }
     column_size_ = other.column_size();
@@ -414,12 +451,19 @@ class Matrix {
     Matrix result(std::move(rhs));
     result.row_resize(std::max(rhs_row_size, lhs.row_size()));
     std::vector<value_type> column_result(lhs.row_size());
+    std::vector<std::future<void>> futures(lhs.row_size());
     for (size_type column = 0; column < rhs_column_size; ++column) {
-      for (size_type row = 0; row < lhs.row_size(); ++row) {
-        column_result[row] = std::inner_product(
-            lhs.row_begin(row), lhs.row_end(row), result.column_begin(column),
-            value_type());
-      }
+      // Concurrently calculates single column in result matrix.
+      matrix::ConcurrentProcess(
+          lhs.row_size(),
+          [&lhs, &result, column, &column_result](size_type row) mutable {
+            column_result[row] = std::inner_product(
+                lhs.row_begin(row), lhs.row_end(row),
+                result.column_begin(column), value_type());
+          },
+          &futures);
+
+      // Puts calculated column into result matrix.
       std::copy(column_result.begin(), column_result.end(),
                 result.column_begin(column));
     }
@@ -469,11 +513,13 @@ Matrix<T> operator-(const Matrix<T>& lhs, Matrix<T>&& rhs) {
   matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(rhs));
   typedef typename Matrix<T>::size_type size_type;
-  for (size_type i=0; i<result.row_size(); ++i) {
-    for (size_type j=0; j<result.column_size(); ++j) {
-      result[i][j] = lhs[i][j] - result[i][j];
-    }
-  }
+  matrix::ConcurrentProcess(
+      result.row_size(),
+      [&lhs, &result](size_type row) mutable {
+        for (size_type column = 0; column < result.column_size(); ++column) {
+          result[row][column] = lhs[row][column] - result[row][column];
+        }
+      });
   return result;
 }
 
