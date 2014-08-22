@@ -1,6 +1,9 @@
 #include "matrix.h"
 
 #include <cassert>
+#include <cstddef>  // size_t
+#include <chrono>
+#include <future>
 #include <iostream>
 
 using namespace std;
@@ -369,6 +372,46 @@ void TestArithmetrics_MultiplyByMatrix() {
   }
 }
 
+void TestConcurrentSpeed() {
+  typedef chrono::system_clock clock;
+  clock::time_point start, stop;
+  chrono::microseconds microsecs;
+  size_t num_row = 10000, num_column = 100000;
+  vector<size_t> dummy_results(num_row);
+
+  // single thread
+  start = clock::now();
+  for (size_t i = 0; i < num_row; ++i) {
+    for (size_t j = 0; j < num_column; ++j) {
+      dummy_results[i] += i + j;
+    }
+  }
+  stop = clock::now();
+  microsecs = stop - start;
+  cout << microsecs.count() << " microseconds"
+       << " (single-threaded double-for-loop)" << endl;
+
+  // multi-threaded
+  start = clock::now();
+  vector<future<size_t>> futures;
+  for (size_t i = 0; i < num_row; ++i) {
+    futures.push_back(std::async(std::launch::async, [i, num_column]() {
+      size_t result = 0;
+      for (size_t j = 0; j < num_column; ++j) {
+        result += i + j;
+      }
+      return result;
+    }));
+  }
+  for (size_t i = 0; i < num_row; ++i) {
+    dummy_results[i] = futures[i].get();
+  }
+  stop = clock::now();
+  microsecs = stop - start;
+  cout << microsecs.count() << " microseconds"
+       << " (multi-threaded double-for-loop)" << endl;
+}
+
 int main(int argc, char* argv[]) {
   TestConstructors();
   TestObservers();
@@ -381,5 +424,6 @@ int main(int argc, char* argv[]) {
   TestArithmetrics_DivideByValue();
   TestArithmetrics_ModuleByValue();
   TestArithmetrics_MultiplyByMatrix();
+  TestConcurrentSpeed();
   return 0;
 }
