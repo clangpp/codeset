@@ -18,7 +18,7 @@
 #include <numeric>
 #include <sstream>
 #include <stdexcept>
-#include <utility>  // move(), make_pair
+#include <utility>  // move(), make_pair(), swap()
 #include <vector>
 
 #include <iostream>  // debug
@@ -80,6 +80,24 @@ void CheckColumnRange(const Matrix<T>& mat,
     ss << "Matrix column " << column << ") out of range "
        << "(" << mat.row_size() << ", " << mat.column_size() << ")";
     throw std::out_of_range(ss.str());
+  }
+}
+
+// T: ZeroComparable, StreamOutputable
+template <typename T>
+void CheckValueNotZero(const T& value) {
+  if (value == 0) {
+    std::stringstream ss;
+    ss << "Non-zero value expected, actual " << value;
+    throw std::invalid_argument(ss.str());
+  }
+}
+
+void CheckIndicesNotEqual(size_t index1, size_t index2) {
+  if (index1 == index2) {
+    std::stringstream ss;
+    ss << "Indices should'nt be equal, actual " << index1 << " and " << index2;
+    throw std::runtime_error(ss.str());
   }
 }
 
@@ -469,6 +487,70 @@ class Matrix {
     }
     result.row_resize(lhs.row_size());
     return result;
+  }
+
+  // ==== Elementary operations ====
+
+  Matrix& elementary_row_switch(size_type row1, size_type row2) {
+    matrix::CheckRowRange(*this, row1);
+    matrix::CheckRowRange(*this, row2);
+    data_[row1].swap(data_[row2]);
+    return *this;
+  }
+
+  Matrix& elementary_row_multiply(size_type row, const value_type& factor) {
+    matrix::CheckRowRange(*this, row);
+    // elementary multiplication requires factor != 0
+    matrix::CheckValueNotZero(factor);
+    for (size_type column = 0; column < column_size(); ++column) {
+      data_[row][column] *= factor;
+    }
+    return *this;
+  }
+
+  Matrix& elementary_row_add(size_type row_target, size_type row_adding,
+                             const value_type& factor) {
+    matrix::CheckRowRange(*this, row_target);
+    matrix::CheckRowRange(*this, row_adding);
+    // elementary addition requires row_target != row_adding
+    matrix::CheckIndicesNotEqual(row_target, row_adding);
+    for (size_type column = 0; column < column_size(); ++column) {
+      data_[row_target][column] += data_[row_adding][column] * factor;
+    }
+    return *this;
+  }
+
+  Matrix& elementary_column_switch(size_type column1, size_type column2) {
+    matrix::CheckColumnRange(*this, column1);
+    matrix::CheckColumnRange(*this, column1);
+    for (size_type row = 0; row < row_size(); ++row) {
+      std::swap(data_[row][column1], data_[row][column2]);
+    }
+    return *this;
+  }
+
+  Matrix& elementary_column_multiply(size_type column,
+                                     const value_type& factor) {
+    matrix::CheckColumnRange(*this, column);
+    // elementary multiplication requires factor != 0
+    matrix::CheckValueNotZero(factor);
+    for (size_type row = 0; row < row_size(); ++row) {
+      data_[row][column] *= factor;
+    }
+    return *this;
+  }
+
+  Matrix& elementary_column_add(
+      size_type column_target, size_type column_adding,
+      const value_type& factor) {
+    matrix::CheckColumnRange(*this, column_target);
+    matrix::CheckColumnRange(*this, column_adding);
+    // elementary addition requires column_target != column_adding
+    matrix::CheckIndicesNotEqual(column_target, column_adding);
+    for (size_type row = 0; row < row_size(); ++row) {
+      data_[row][column_target] += data_[row][column_adding] * factor;
+    }
+    return *this;
   }
 
  private:

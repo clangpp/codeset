@@ -412,6 +412,61 @@ void TestConcurrentSpeed() {
        << " (multi-threaded double-for-loop)" << endl;
 }
 
+void TestElementaryOperations() {
+  Matrix<int> a(3, 4);
+  for (int i = 0; i < 3; ++i) {
+    std::fill(a.row_begin(i), a.row_end(i), i+1);
+  }
+  a.elementary_row_switch(0, 1);
+  for (int j = 0; j < 4; ++j) {
+    assert(a[0][j] == 2);
+    assert(a[1][j] == 1);
+    assert(a[2][j] == 3);
+  }
+  // a.elementary_row_multiply(1, 0);  // exception throwed
+  a.elementary_row_multiply(1, 4);
+  for (int j = 0; j < 4; ++j) {
+    assert(a[0][j] == 2);
+    assert(a[1][j] == 4);
+    assert(a[2][j] == 3);
+  }
+  // a.elementary_row_add(1, 1, 3);  // expection throwed
+  a.elementary_row_add(0, 2, 4);
+  for (int j = 0; j < 4; ++j) {
+    assert(a[0][j] == 14);
+    assert(a[1][j] == 4);
+    assert(a[2][j] == 3);
+  }
+
+  Matrix<int> b(3, 4);
+  for (int j = 0; j < 4; ++j) {
+    std::fill(b.column_begin(j), b.column_end(j), j+1);
+  }
+  b.elementary_column_switch(1, 2);
+  for (int i = 0; i < 3; ++i) {
+    assert(b[i][0] == 1);
+    assert(b[i][1] == 3);
+    assert(b[i][2] == 2);
+    assert(b[i][3] == 4);
+  }
+  // b.elementary_column_multiply(0, 0);  // exception throwed
+  b.elementary_column_multiply(0, 5);
+  for (int i = 0; i < 3; ++i) {
+    assert(b[i][0] == 5);
+    assert(b[i][1] == 3);
+    assert(b[i][2] == 2);
+    assert(b[i][3] == 4);
+  }
+  // b.elementary_column_add(1, 1, 6);  // exception throwed
+  b.elementary_column_add(1, 2, 6);
+  for (int i = 0; i < 3; ++i) {
+    assert(b[i][0] == 5);
+    assert(b[i][1] == 15);
+    assert(b[i][2] == 2);
+    assert(b[i][3] == 4);
+  }
+}
+
 int main(int argc, char* argv[]) {
   TestConstructors();
   TestObservers();
@@ -425,5 +480,6 @@ int main(int argc, char* argv[]) {
   TestArithmetrics_ModuleByValue();
   TestArithmetrics_MultiplyByMatrix();
   TestConcurrentSpeed();
+  TestElementaryOperations();
   return 0;
 }
