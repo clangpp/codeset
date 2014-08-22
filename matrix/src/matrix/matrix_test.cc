@@ -376,7 +376,7 @@ void TestConcurrentSpeed() {
   typedef chrono::system_clock clock;
   clock::time_point start, stop;
   chrono::microseconds microsecs;
-  size_t num_row = 10000, num_column = 100000;
+  size_t num_row = 1000, num_column = 100000;
   vector<size_t> dummy_results(num_row);
 
   // single thread
