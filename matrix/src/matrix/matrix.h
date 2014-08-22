@@ -24,7 +24,7 @@ template <typename T> class Matrix;
 namespace matrix {
 
 template <typename T>
-void check_dimension_matches(const Matrix<T>& lhs, const Matrix<T>& rhs) {
+void CheckDimensionMatches(const Matrix<T>& lhs, const Matrix<T>& rhs) {
   if (lhs.row_size() != rhs.row_size() ||
       lhs.column_size() != rhs.column_size()) {
     std::stringstream ss;
@@ -36,7 +36,7 @@ void check_dimension_matches(const Matrix<T>& lhs, const Matrix<T>& rhs) {
 }
 
 template <typename T>
-void check_dimension_multipliable(const Matrix<T>& lhs, const Matrix<T>& rhs) {
+void CheckDimensionMultipliable(const Matrix<T>& lhs, const Matrix<T>& rhs) {
   if (lhs.column_size() != rhs.row_size()) {
     std::stringstream ss;
     ss << "Matrices dimensions not multipliable: "
@@ -47,9 +47,9 @@ void check_dimension_multipliable(const Matrix<T>& lhs, const Matrix<T>& rhs) {
 }
 
 template <typename T>
-void check_indices_range(const Matrix<T>& mat,
-                         typename Matrix<T>::size_type row,
-                         typename Matrix<T>::size_type column) {
+void CheckIndicesRange(const Matrix<T>& mat,
+                       typename Matrix<T>::size_type row,
+                       typename Matrix<T>::size_type column) {
   if (row >= mat.row_size() || column >= mat.column_size()) {
     std::stringstream ss;
     ss << "Matrix indices (" << row << ", " << column << ") out of range "
@@ -59,7 +59,7 @@ void check_indices_range(const Matrix<T>& mat,
 }
 
 template <typename T>
-void check_row_range(const Matrix<T>& mat, typename Matrix<T>::size_type row) {
+void CheckRowRange(const Matrix<T>& mat, typename Matrix<T>::size_type row) {
   if (row >= mat.row_size()) {
     std::stringstream ss;
     ss << "Matrix row " << row << ") out of range "
@@ -69,8 +69,8 @@ void check_row_range(const Matrix<T>& mat, typename Matrix<T>::size_type row) {
 }
 
 template <typename T>
-void check_column_range(const Matrix<T>& mat,
-                        typename Matrix<T>::size_type column) {
+void CheckColumnRange(const Matrix<T>& mat,
+                      typename Matrix<T>::size_type column) {
   if (column >= mat.column_size()) {
     std::stringstream ss;
     ss << "Matrix column " << column << ") out of range "
@@ -265,12 +265,12 @@ class Matrix {
   bool empty() const { return row_size() == 0 || column_size() == 0; }
 
   reference operator () (size_type row, size_type column) {
-    matrix::check_indices_range(*this, row, column);
+    matrix::CheckIndicesRange(*this, row, column);
     return data_[row][column];
   }
 
   const_reference operator () (size_type row, size_type column) const {
-    matrix::check_indices_range(*this, row, column);
+    matrix::CheckIndicesRange(*this, row, column);
     return data_[row][column];
   }
 
@@ -289,42 +289,42 @@ class Matrix {
   // ==== Iterators ====
 
   row_iterator row_begin(size_type row) {
-    matrix::check_row_range(*this, row);
+    matrix::CheckRowRange(*this, row);
     return data_[row].begin();
   }
 
   row_iterator row_end(size_type row) {
-    matrix::check_row_range(*this, row);
+    matrix::CheckRowRange(*this, row);
     return data_[row].end();
   }
 
   const_row_iterator row_begin(size_type row) const {
-    matrix::check_row_range(*this, row);
+    matrix::CheckRowRange(*this, row);
     return data_[row].begin();
   }
 
   const_row_iterator row_end(size_type row) const {
-    matrix::check_row_range(*this, row);
+    matrix::CheckRowRange(*this, row);
     return data_[row].end();
   }
 
   column_iterator column_begin(size_type column) {
-    matrix::check_column_range(*this, column);
+    matrix::CheckColumnRange(*this, column);
     return column_iterator(&data_, 0, column);
   }
 
   column_iterator column_end(size_type column) {
-    matrix::check_column_range(*this, column);
+    matrix::CheckColumnRange(*this, column);
     return column_iterator(&data_, data_.size(), column);
   }
 
   const_column_iterator column_begin(size_type column) const {
-    matrix::check_column_range(*this, column);
+    matrix::CheckColumnRange(*this, column);
     return const_column_iterator(&data_, 0, column);
   }
 
   const_column_iterator column_end(size_type column) const {
-    matrix::check_column_range(*this, column);
+    matrix::CheckColumnRange(*this, column);
     return const_column_iterator(&data_, data_.size(), column);
   }
 
@@ -346,7 +346,7 @@ class Matrix {
   // ==== Arithmetric operators ====
 
   Matrix& operator += (const Matrix& other) {
-    matrix::check_dimension_matches(*this, other);
+    matrix::CheckDimensionMatches(*this, other);
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
         data_[i][j] += other.data_[i][j];
@@ -356,7 +356,7 @@ class Matrix {
   }
 
   Matrix& operator -= (const Matrix& other) {
-    matrix::check_dimension_matches(*this, other);
+    matrix::CheckDimensionMatches(*this, other);
     for (size_type i=0; i<row_size(); ++i) {
       for (size_type j=0; j<column_size(); ++j) {
         data_[i][j] -= other.data_[i][j];
@@ -393,7 +393,7 @@ class Matrix {
   }
 
   Matrix& operator *= (const Matrix& other) {
-    matrix::check_dimension_multipliable(*this, other);
+    matrix::CheckDimensionMultipliable(*this, other);
     std::vector<value_type> row_result(other.column_size());
     for (size_type row = 0; row < row_size(); ++row) {
       row_result.resize(other.column_size());
@@ -409,7 +409,7 @@ class Matrix {
   }
 
   friend Matrix operator * (const Matrix& lhs, Matrix&& rhs) {
-    matrix::check_dimension_multipliable(lhs, rhs);
+    matrix::CheckDimensionMultipliable(lhs, rhs);
     size_type rhs_row_size(rhs.row_size()), rhs_column_size(rhs.column_size());
     Matrix result(std::move(rhs));
     result.row_resize(std::max(rhs_row_size, lhs.row_size()));
@@ -436,14 +436,14 @@ class Matrix {
 
 template <typename T>
 Matrix<T> operator + (const Matrix<T>& lhs, const Matrix<T>& rhs) {
-  matrix::check_dimension_matches(lhs, rhs);
+  matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(lhs);
   return result += rhs;
 }
 
 template <typename T>
 Matrix<T> operator + (const Matrix<T>& lhs, Matrix<T>&& rhs) {
-  matrix::check_dimension_matches(lhs, rhs);
+  matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(rhs));
   // TODO(clangpp): Dont' know why, but if merge the following two lines to
   // `return result += lhs;`, there will be an additional
@@ -459,14 +459,14 @@ Matrix<T> operator + (Matrix<T>&& lhs, const Matrix<T>& rhs) {
 
 template <typename T>
 Matrix<T> operator - (const Matrix<T>& lhs, const Matrix<T>& rhs) {
-  matrix::check_dimension_matches(lhs, rhs);
+  matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(lhs);
   return result -= rhs;
 }
 
 template <typename T>
 Matrix<T> operator - (const Matrix<T>& lhs, Matrix<T>&& rhs) {
-  matrix::check_dimension_matches(lhs, rhs);
+  matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(rhs));
   typedef typename Matrix<T>::size_type size_type;
   for (size_type i=0; i<result.row_size(); ++i) {
@@ -479,7 +479,7 @@ Matrix<T> operator - (const Matrix<T>& lhs, Matrix<T>&& rhs) {
 
 template <typename T>
 Matrix<T> operator - (Matrix<T>&& lhs, const Matrix<T>& rhs) {
-  matrix::check_dimension_matches(lhs, rhs);
+  matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(lhs));
   result -= rhs;
   return result;
