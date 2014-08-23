@@ -69,7 +69,7 @@ void GaussJordanEliminate(
     }
 
     // Normalizes `max_row` and switches to `pivot` row.
-    mat->elementary_row_multiply(max_row, 1 / (*mat)[max_row][pivot]);
+    mat->elementary_row_multiply(max_row, 1 / (*mat)[max_row][pivot], is_zero);
     mat->elementary_row_switch(pivot, max_row);
   }
 }
