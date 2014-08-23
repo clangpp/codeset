@@ -22,11 +22,14 @@ void TestGaussJordanEliminate() {
 
   math::GaussJordanEliminate(&a, &aa);
 
-  assert(EQ(a[0][0], 1)); assert(EQ(a[0][1], 0));
-  assert(EQ(a[1][0], 0)); assert(EQ(a[1][1], 1));
-
-  assert(EQ(aa[0][0], 8));
-  assert(EQ(aa[1][0], -2));
+  assert(a.equal_to({
+        {1, 0},
+        {0, 1}
+      }, EQ));
+  assert(aa.equal_to({
+        {8},
+        {-2}
+      }, EQ));
 
   // 2, 3, 4
   Matrix<double> b = {
@@ -45,19 +48,20 @@ void TestGaussJordanEliminate() {
 
   math::GaussJordanEliminate(&b, &bb);
 
-  assert(EQ(b[0][0], 1)); assert(EQ(b[0][1], 0)); assert(EQ(b[0][2], 0));
-  assert(EQ(b[1][0], 0)); assert(EQ(b[1][1], 1)); assert(EQ(b[1][2], 0));
-  assert(EQ(b[2][0], 0)); assert(EQ(b[2][1], 0)); assert(EQ(b[2][2], 1));
-  for (int j = 0; j < 3; ++j) {
-    assert(EQ(b[3][j], 0));
-    assert(EQ(b[4][j], 0));
-  }
-
-  assert(EQ(bb[0][0], 2));
-  assert(EQ(bb[1][0], 3));
-  assert(EQ(bb[2][0], 4));
-  assert(EQ(bb[3][0], 0));
-  assert(EQ(bb[4][0], 0));
+  assert(b.equal_to({
+        {1, 0, 0},
+        {0, 1, 0},
+        {0, 0, 1},
+        {0, 0, 0},
+        {0, 0, 0},
+      }, EQ));
+  assert(bb.equal_to({
+        {2},
+        {3},
+        {4},
+        {0},
+        {0},
+      }, EQ));
 
   // 2, 0, 4
   Matrix<double> c = {
@@ -76,20 +80,20 @@ void TestGaussJordanEliminate() {
 
   math::GaussJordanEliminate(&c, &cc);
 
-  assert(EQ(c[0][0], 1)); assert(EQ(c[0][1], 0)); assert(EQ(c[0][2], 0));
-  assert(EQ(c[1][0], 0)); assert(EQ(c[1][1], 1)); assert(EQ(c[1][2], 0));
-  assert(EQ(c[2][0], 0)); assert(EQ(c[2][1], 0)); assert(EQ(c[2][2], 1));
-  for (int j = 0; j < 3; ++j) {
-    assert(EQ(c[3][j], 0));
-    assert(EQ(c[4][j], 0));
-  }
-
-  assert(EQ(cc[0][0], 2));
-  assert(EQ(cc[1][0], 0));
-  assert(EQ(cc[2][0], 4));
-  assert(EQ(cc[3][0], 0));
-  assert(EQ(cc[4][0], 0));
-
+  assert(c.equal_to({
+        {1, 0, 0},
+        {0, 1, 0},
+        {0, 0, 1},
+        {0, 0, 0},
+        {0, 0, 0},
+      }, EQ));
+  assert(cc.equal_to({
+        {2},
+        {0},
+        {4},
+        {0},
+        {0},
+      }, EQ));
 
   // 2, 3, (4)
   Matrix<double> d = {
@@ -102,11 +106,14 @@ void TestGaussJordanEliminate() {
 
   math::GaussJordanEliminate(&d, &dd);
 
-  assert(EQ(d[0][0], 1)); assert(EQ(d[0][1], 0)); assert(EQ(d[0][2], -1));
-  assert(EQ(d[1][0], 0)); assert(EQ(d[1][1], 1)); assert(EQ(d[1][2], 2));
-
-  assert(EQ(dd[0][0], -2));
-  assert(EQ(dd[1][0], 11));
+  assert(d.equal_to({
+        {1, 0, -1},
+        {0, 1, 2},
+      }, EQ));
+  assert(dd.equal_to({
+        {-2},
+        {11},
+      }, EQ));
 
   Matrix<double> e(3, 0);
   math::GaussJordanEliminate(&e);  // exception thrown
