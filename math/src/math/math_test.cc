@@ -81,6 +81,10 @@ void TestGaussJordanEliminate() {
 
   assert(EQ(d[1][0], 0)); assert(EQ(d[1][1], 1));
   assert(EQ(d[1][2], 2)); assert(EQ(d[1][3], 11));
+
+  // not augmented matrix
+  Matrix<double> e(1, 0);
+  // math::GaussJordanEliminate(&e);  // exception thrown
 }
 
 int main(int argc, char* argv[]) {

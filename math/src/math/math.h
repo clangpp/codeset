@@ -13,10 +13,11 @@
 
 namespace math {
 
-void CheckLess(size_t lhs, size_t rhs) {
-  if (!(lhs < rhs)) {
+void CheckSizeAtLeast(size_t test_size, size_t least_size) {
+  if (!(test_size >= least_size)) {
     std::stringstream ss;
-    ss << "`lhs < rhs` expected, actual " << lhs << " and " << rhs;
+    ss << "`test_size >= least_size` expected, actual "
+        << test_size << " and " << least_size;
     throw std::runtime_error(ss.str());
   }
 }
@@ -33,7 +34,7 @@ void GaussJordanEliminate(
     std::function<bool(const T&)> is_zero =
         [](const T& value) { return value == 0; }) {
   // Augmented matrix has at least one column.
-  CheckLess(0, augmented_matrix->column_size());
+  CheckSizeAtLeast(augmented_matrix->column_size(), 1);
 
   // Helpers
   auto mat = augmented_matrix;  // shorter name
