@@ -15,6 +15,7 @@
 #include <cstddef>  // size_t, ptrdiff_t
 #include <functional>
 #include <future>
+#include <initializer_list>
 #include <iterator>
 #include <numeric>
 #include <sstream>
@@ -102,6 +103,24 @@ void CheckIndicesNotEqual(size_t index1, size_t index2) {
     std::stringstream ss;
     ss << "Indices should'nt be equal, actual " << index1 << " and " << index2;
     throw std::runtime_error(ss.str());
+  }
+}
+
+template <typename T>
+void CheckColumnSizesEqual(
+    std::initializer_list<std::initializer_list<T>> il) {
+  auto iter = std::adjacent_find(
+      il.begin(), il.end(),
+      [](std::initializer_list<T> lhs, std::initializer_list<T> rhs) {
+        return lhs.size() != rhs.size();
+      });
+  if (iter != il.end()) {
+    auto diff = iter + 1;  // std::adjacent_find() tells us *iter != *(iter+1)
+    std::stringstream ss;
+    ss << "Each row should have the same column size: "
+        << "row " << (diff - il.begin()) << "'s column size " << diff->size()
+        << " vs previous rows' column size " << iter->size();
+    throw std::invalid_argument(ss.str());
   }
 }
 
@@ -259,6 +278,20 @@ class Matrix {
       column_size_(column_size) {
     std::clog << "Matrix::Matrix(size_type, size_type, const value_type&)"
         << std::endl;
+  }
+
+  Matrix(std::initializer_list<std::initializer_list<value_type>> il)
+    : column_size_(0) {
+    std::clog << "Matrix::Matrix("
+        << "std::initializer_list<std::initializer_list<value_type>>)"
+        << std::endl;
+    matrix::CheckColumnSizesEqual(il);
+    for (auto row_il : il) {
+      data_.emplace_back(row_il);
+    }
+    if (il.size() > 0) {
+      column_size_ = il.begin()->size();
+    }
   }
 
   Matrix(): column_size_(0) {

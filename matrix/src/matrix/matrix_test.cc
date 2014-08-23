@@ -42,6 +42,17 @@ void TestConstructors() {
       assert(f(i, j) == 3);
     }
   }
+  Matrix<int> g = {
+    {0, 1, 2},
+    {1, 2, 3},
+  };
+  assert(g.row_size() == 2);
+  assert(g.column_size() == 3);
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      assert(g(i, j) == i + j);
+    }
+  }
 }
 
 void TestObservers() {
