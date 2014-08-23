@@ -27,10 +27,13 @@ struct AbsoluteValue {
 
 // abs: `abs(value1) < abs(value2)` should be satified.
 template <typename T, typename UnaryFunction = AbsoluteValue<T>>
-void GaussJordanEliminate(Matrix<T>* mat,
+void GaussJordanEliminate(Matrix<T>* augmented_matrix,
                           UnaryFunction abs = UnaryFunction()) {
   // Augmented matrix has at least one column.
-  CheckLess(0, mat->column_size());
+  CheckLess(0, augmented_matrix->column_size());
+
+  // Helpers
+  auto mat = augmented_matrix;  // shorter name
   typedef typename Matrix<T>::size_type size_type;
   std::vector<std::future<void>> futures(mat->row_size());
 
