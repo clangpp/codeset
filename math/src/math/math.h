@@ -21,11 +21,6 @@ void CheckLess(size_t lhs, size_t rhs) {
   }
 }
 
-template <typename T>
-struct AbsoluteValue {
-  T operator()(const T& value) const { return std::abs(value); }
-};
-
 // NOTE(clangpp): absolute_less and is_zero are provided for user to pass
 // special rules for value type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
 template <typename T>
