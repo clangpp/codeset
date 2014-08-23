@@ -1,6 +1,7 @@
 #include "matrix.h"
 
 #include <cassert>
+#include <cmath>
 #include <cstddef>  // size_t
 #include <chrono>
 #include <future>
@@ -488,6 +489,10 @@ void TestComparasions() {
   }, c(a);
   assert(a != b);
   assert(a == c);
+  assert(a.equal_to(
+      b, [](const int& lhs, const int& rhs) {
+        return abs(lhs - rhs) <= 1;
+      }));
 }
 
 int main(int argc, char* argv[]) {

@@ -595,6 +595,38 @@ class Matrix {
     return *this;
   }
 
+  // ==== Comparasion operators ====
+
+  bool equal_to(
+      const Matrix<T>& other,
+      std::function<bool(const value_type&, const value_type&)> value_equal_to =
+          std::equal_to<value_type>()) const {
+    if (row_size() != other.row_size() ||
+        column_size() != other.column_size()) {
+      return false;
+    }
+    std::vector<std::future<bool>> futures(row_size());
+    typedef typename Matrix<T>::size_type size_type;
+    for (size_type row = 0; row < row_size(); ++row) {
+      futures[row] = std::async(
+          std::launch::async,
+          [this, &other, row, &value_equal_to]() {
+            for (size_type column = 0; column < this->column_size(); ++column) {
+              if (!value_equal_to((*this)[row][column], other[row][column])) {
+                return false;
+              }
+            }
+            return true;
+          });
+    }
+    for (size_type row = 0; row < row_size(); ++row) {
+      if (!futures[row].get()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
  private:
   std::vector<std::vector<value_type>> data_;
   size_type column_size_;
@@ -721,30 +753,7 @@ Matrix<T> operator*(Matrix<T>&& lhs, const Matrix<T>& rhs) {
 
 template <typename T>
 bool operator==(const Matrix<T>& lhs, const Matrix<T>& rhs) {
-  if (lhs.row_size() != rhs.row_size() ||
-      lhs.column_size() != rhs.column_size()) {
-    return false;
-  }
-  std::vector<std::future<bool>> futures(lhs.row_size());
-  typedef typename Matrix<T>::size_type size_type;
-  for (size_type row = 0; row < lhs.row_size(); ++row) {
-    futures[row] = std::async(
-        std::launch::async,
-        [&lhs, &rhs, row]() {
-          for (size_type column = 0; column < lhs.column_size(); ++column) {
-            if (lhs[row][column] != rhs[row][column]) {
-              return false;
-            }
-          }
-          return true;
-        });
-  }
-  for (size_type row = 0; row < lhs.row_size(); ++row) {
-    if (!futures[row].get()) {
-      return false;
-    }
-  }
-  return true;
+  return lhs.equal_to(rhs);
 }
 
 template <typename T>
