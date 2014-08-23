@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <future>
 #include <sstream>
 #include <utility>
@@ -25,10 +26,17 @@ struct AbsoluteValue {
   T operator()(const T& value) const { return std::abs(value); }
 };
 
-// abs: `abs(value1) < abs(value2)` should be satified.
-template <typename T, typename UnaryFunction = AbsoluteValue<T>>
-void GaussJordanEliminate(Matrix<T>* augmented_matrix,
-                          UnaryFunction abs = UnaryFunction()) {
+// NOTE(clangpp): absolute_less and is_zero are provided for user to pass
+// special rules for value type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
+template <typename T>
+void GaussJordanEliminate(
+    Matrix<T>* augmented_matrix,
+    std::function<bool(const T&, const T&)> absolute_less =
+        [](const T& lhs, const T& rhs) {
+          return std::abs(lhs) < std::abs(rhs);
+        },
+    std::function<bool(const T&)> is_zero =
+        [](const T& value) { return value == 0; }) {
   // Augmented matrix has at least one column.
   CheckLess(0, augmented_matrix->column_size());
 
@@ -43,11 +51,9 @@ void GaussJordanEliminate(Matrix<T>* augmented_matrix,
     // Finds (abs) max element of current column.
     auto max_iter = std::max_element(
         mat->column_begin(pivot) + pivot, mat->column_end(pivot),
-        [&abs](const T& lhs, const T& rhs) {
-          return abs(lhs) < abs(rhs);
-        });
+        absolute_less);
     size_type max_row = max_iter - mat->column_begin(pivot);
-    if ((*mat)[max_row][pivot] == 0) {
+    if (is_zero((*mat)[max_row][pivot])) {
       continue;
     }
 
