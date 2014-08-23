@@ -478,6 +478,18 @@ void TestElementaryOperations() {
   }
 }
 
+void TestComparasions() {
+  Matrix<int> a = {
+    {1, 2},
+    {3, 4},
+  }, b = {
+    {1, 2},
+    {3, 3},
+  }, c(a);
+  assert(a != b);
+  assert(a == c);
+}
+
 int main(int argc, char* argv[]) {
   TestConstructors();
   TestObservers();
@@ -492,5 +504,6 @@ int main(int argc, char* argv[]) {
   TestArithmetrics_MultiplyByMatrix();
   TestConcurrentSpeed();
   TestElementaryOperations();
+  TestComparasions();
   return 0;
 }

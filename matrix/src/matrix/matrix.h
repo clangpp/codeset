@@ -717,4 +717,39 @@ Matrix<T> operator*(Matrix<T>&& lhs, const Matrix<T>& rhs) {
   return result;
 }
 
+// ==== Comparasion operators ====
+
+template <typename T>
+bool operator==(const Matrix<T>& lhs, const Matrix<T>& rhs) {
+  if (lhs.row_size() != rhs.row_size() ||
+      lhs.column_size() != rhs.column_size()) {
+    return false;
+  }
+  std::vector<std::future<bool>> futures(lhs.row_size());
+  typedef typename Matrix<T>::size_type size_type;
+  for (size_type row = 0; row < lhs.row_size(); ++row) {
+    futures[row] = std::async(
+        std::launch::async,
+        [&lhs, &rhs, row]() {
+          for (size_type column = 0; column < lhs.column_size(); ++column) {
+            if (lhs[row][column] != rhs[row][column]) {
+              return false;
+            }
+          }
+          return true;
+        });
+  }
+  for (size_type row = 0; row < lhs.row_size(); ++row) {
+    if (!futures[row].get()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename T>
+bool operator!=(const Matrix<T>& lhs, const Matrix<T>& rhs) {
+  return !(lhs == rhs);
+}
+
 #endif  // MATRIX_H_
