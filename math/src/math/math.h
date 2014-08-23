@@ -36,26 +36,26 @@ void GaussJordanEliminate(Matrix<T>* mat,
 
   // Augmented matrix represents exactly max->column_size()-1 variables.
   size_type dimension = std::min(mat->row_size(), mat->column_size()-1);
-  for (size_type sentry = 0; sentry < dimension; ++sentry) {
+  for (size_type pivot = 0; pivot < dimension; ++pivot) {
     // Finds (abs) max element of current column.
     auto max_iter = std::max_element(
-        mat->column_begin(sentry) + sentry, mat->column_end(sentry),
+        mat->column_begin(pivot) + pivot, mat->column_end(pivot),
         [&abs](const T& lhs, const T& rhs) {
           return abs(lhs) < abs(rhs);
         });
-    size_type max_row = max_iter - mat->column_begin(sentry);
-    if ((*mat)[max_row][sentry] == 0) {
+    size_type max_row = max_iter - mat->column_begin(pivot);
+    if ((*mat)[max_row][pivot] == 0) {
       continue;
     }
 
-    // Concurrently eliminates all rows (except `max_row`) in column `sentry`.
+    // Concurrently eliminates all rows (except `max_row`) in column `pivot`.
     for (size_type row = 0; row < mat->row_size(); ++row) {
       futures[row] = std::async(
           std::launch::async,
-          [mat, sentry, max_row, row]() {
+          [mat, pivot, max_row, row]() {
             if (row != max_row) {
               mat->elementary_row_add(
-                  row, max_row, -(*mat)[row][sentry]/(*mat)[max_row][sentry]);
+                  row, max_row, -(*mat)[row][pivot]/(*mat)[max_row][pivot]);
             }
           });
     }
@@ -63,9 +63,9 @@ void GaussJordanEliminate(Matrix<T>* mat,
       futures[row].wait();
     }
 
-    // Normalizes `max_row` and switches to `sentry` row.
-    mat->elementary_row_multiply(max_row, 1 / (*mat)[max_row][sentry]);
-    mat->elementary_row_switch(sentry, max_row);
+    // Normalizes `max_row` and switches to `pivot` row.
+    mat->elementary_row_multiply(max_row, 1 / (*mat)[max_row][pivot]);
+    mat->elementary_row_switch(pivot, max_row);
   }
 }
 
