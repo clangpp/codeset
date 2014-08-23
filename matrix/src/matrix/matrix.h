@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cstddef>  // size_t, ptrdiff_t
+#include <functional>
 #include <future>
 #include <iterator>
 #include <numeric>
@@ -85,8 +86,11 @@ void CheckColumnRange(const Matrix<T>& mat,
 
 // T: ZeroComparable, StreamOutputable
 template <typename T>
-void CheckValueNotZero(const T& value) {
-  if (value == 0) {
+void CheckValueNotZero(
+    const T& value,
+    std::function<bool(const T&)> is_zero =
+        [](const T&) { return value == 0; }) {
+  if (is_zero(value)) {
     std::stringstream ss;
     ss << "Non-zero value expected, actual " << value;
     throw std::invalid_argument(ss.str());
@@ -498,10 +502,13 @@ class Matrix {
     return *this;
   }
 
-  Matrix& elementary_row_multiply(size_type row, const value_type& factor) {
+  Matrix& elementary_row_multiply(
+      size_type row, const value_type& factor,
+      std::function<bool(const value_type& value)> is_zero =
+          [](const value_type& value) { return value == 0; }) {
     matrix::CheckRowRange(*this, row);
     // elementary multiplication requires factor != 0
-    matrix::CheckValueNotZero(factor);
+    matrix::CheckValueNotZero(factor, is_zero);
     for (size_type column = 0; column < column_size(); ++column) {
       data_[row][column] *= factor;
     }
@@ -529,11 +536,13 @@ class Matrix {
     return *this;
   }
 
-  Matrix& elementary_column_multiply(size_type column,
-                                     const value_type& factor) {
+  Matrix& elementary_column_multiply(
+      size_type column, const value_type& factor,
+      std::function<bool(const value_type& value)> is_zero =
+          [](const value_type& value) { return value == 0; }) {
     matrix::CheckColumnRange(*this, column);
     // elementary multiplication requires factor != 0
-    matrix::CheckValueNotZero(factor);
+    matrix::CheckValueNotZero(factor, is_zero);
     for (size_type row = 0; row < row_size(); ++row) {
       data_[row][column] *= factor;
     }
