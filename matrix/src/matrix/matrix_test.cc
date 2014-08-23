@@ -423,14 +423,14 @@ void TestElementaryOperations() {
     assert(a[1][j] == 1);
     assert(a[2][j] == 3);
   }
-  // a.elementary_row_multiply(1, 0);  // exception throwed
+  // a.elementary_row_multiply(1, 0);  // exception thrown
   a.elementary_row_multiply(1, 4);
   for (int j = 0; j < 4; ++j) {
     assert(a[0][j] == 2);
     assert(a[1][j] == 4);
     assert(a[2][j] == 3);
   }
-  // a.elementary_row_add(1, 1, 3);  // expection throwed
+  // a.elementary_row_add(1, 1, 3);  // expection thrown
   a.elementary_row_add(0, 2, 4);
   for (int j = 0; j < 4; ++j) {
     assert(a[0][j] == 14);
@@ -449,7 +449,7 @@ void TestElementaryOperations() {
     assert(b[i][2] == 2);
     assert(b[i][3] == 4);
   }
-  // b.elementary_column_multiply(0, 0);  // exception throwed
+  // b.elementary_column_multiply(0, 0);  // exception thrown
   b.elementary_column_multiply(0, 5);
   for (int i = 0; i < 3; ++i) {
     assert(b[i][0] == 5);
@@ -457,7 +457,7 @@ void TestElementaryOperations() {
     assert(b[i][2] == 2);
     assert(b[i][3] == 4);
   }
-  // b.elementary_column_add(1, 1, 6);  // exception throwed
+  // b.elementary_column_add(1, 1, 6);  // exception thrown
   b.elementary_column_add(1, 2, 6);
   for (int i = 0; i < 3; ++i) {
     assert(b[i][0] == 5);
