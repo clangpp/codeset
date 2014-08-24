@@ -59,17 +59,16 @@ bool TrivialIsZero(const T& value) {
 template <typename T>
 void GaussJordanEliminate(
     Matrix<T>* coefficient_matrix,
-    Matrix<T>* constant_matrix = nullptr,
+    Matrix<T>* extra_matrix = nullptr,
     std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
     std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
-  if (constant_matrix) {
-    CheckSizeEqual(coefficient_matrix->row_size(),
-                   constant_matrix->row_size());
+  if (extra_matrix) {
+    CheckSizeEqual(coefficient_matrix->row_size(), extra_matrix->row_size());
   }
 
   // Helpers
   auto a_mat = coefficient_matrix;  // shorter name
-  auto b_mat = constant_matrix;  // shorter name
+  auto b_mat = extra_matrix;  // shorter name
   typedef typename Matrix<T>::size_type size_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
 
@@ -123,8 +122,7 @@ void GaussEliminate(
     std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
   if (extra_matrix) {
     // TODO(clangpp): Change this to CheckAugmentable();
-    CheckSizeEqual(coefficient_matrix->row_size(),
-                   extra_matrix->row_size());
+    CheckSizeEqual(coefficient_matrix->row_size(), extra_matrix->row_size());
   }
 
   // Helpers
