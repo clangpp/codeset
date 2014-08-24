@@ -315,8 +315,10 @@ class Matrix {
 
   Matrix& operator=(const Matrix& other) {
     std::clog << "Matrix::operator=(const Matrix&)" << std::endl;
-    data_ = other.data_;
-    column_size_ = other.column_size_;
+    if (this != &other) {
+      data_ = other.data_;
+      column_size_ = other.column_size_;
+    }
     return *this;
   }
 

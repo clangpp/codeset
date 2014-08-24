@@ -92,7 +92,23 @@ void TestAssignments() {
       assert(a[i][j] == b[i][j]);
     }
   }
+  b = b;
+  assert(a.row_size() == b.row_size());
+  assert(a.column_size() == b.column_size());
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      assert(a[i][j] == b[i][j]);
+    }
+  }
   c = std::move(b);
+  assert(a.row_size() == c.row_size());
+  assert(a.column_size() == c.column_size());
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      assert(a[i][j] == c[i][j]);
+    }
+  }
+  c = std::move(c);
   assert(a.row_size() == c.row_size());
   assert(a.column_size() == c.column_size());
   for (int i = 0; i < 2; ++i) {
