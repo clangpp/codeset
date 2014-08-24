@@ -85,12 +85,16 @@ void CheckColumnRange(const Matrix<T>& mat,
   }
 }
 
-// T: ZeroComparable, StreamOutputable
 template <typename T>
-void CheckValueNotZero(
-    const T& value,
-    std::function<bool(const T&)> is_zero =
-        [](const T&) { return value == 0; }) {
+struct TrivialIsZero {
+  bool operator()(const T& value) {
+    return value == 0;
+  }
+};
+
+// T: StreamOutputable
+template <typename T, typename IsZero = TrivialIsZero<T>>
+void CheckValueNotZero(const T& value, IsZero is_zero = IsZero()) {
   if (is_zero(value)) {
     std::stringstream ss;
     ss << "Non-zero value expected, actual " << value;
@@ -602,7 +606,7 @@ class Matrix {
   // ==== Comparasion operators ====
 
   bool equal_to(
-      const Matrix<T>& other,
+      const Matrix& other,
       std::function<bool(const value_type&, const value_type&)> value_equal_to =
           std::equal_to<value_type>()) const {
     if (row_size() != other.row_size() ||

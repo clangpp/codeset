@@ -48,23 +48,29 @@ inline void ConcurrentProcess(std::size_t first, std::size_t last,
 }
 
 template <typename T>
-bool TrivialAbsLess(const T& lhs, const T& rhs) {
-  return std::abs(lhs) < std::abs(rhs);
-}
+struct TrivialAbsLess {
+  bool operator()(const T& lhs, const T& rhs) {
+    return std::abs(lhs) < std::abs(rhs);
+  }
+};
 
 template <typename T>
-bool TrivialIsZero(const T& value) {
-  return value == 0;
-}
+struct TrivialIsZero {
+  bool operator()(const T& value) {
+    return value == 0;
+  }
+};
 
-// NOTE(clangpp): absolute_less and is_zero are provided for user to pass
-// special rules for value type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
-template <typename T>
+// absolute_less: Callable, `bool ret = absolute_less(v1, v2);` should be
+// is_zero: Callable, `bool ret = is_zero(v);` should be satified.
+//  e.g. is_zero(double v) -> std::abs(v) < 1e-6;
+template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
+          typename IsZero = TrivialIsZero<T>>
 void GaussJordanEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
-    std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
-    std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
+    AbsoluteLess absolute_less = AbsoluteLess(),
+    IsZero is_zero = IsZero()) {
   if (extra_matrix) {
     CheckAugmentable(*coefficient_matrix, *extra_matrix);
   }
@@ -115,15 +121,17 @@ void GaussJordanEliminate(
   }
 }
 
-// absolute_less and is_zero: provided for user to pass special rules for value
-//  type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
-// return: rank of coefficient_matrix.
-template <typename T>
+// absolute_less: Callable, `bool ret = absolute_less(v1, v2);` should be
+// is_zero: Callable, `bool ret = is_zero(v);` should be satified.
+//  e.g. is_zero(double v) -> std::abs(v) < 1e-6;
+// returns: rank of coefficient_matrix.
+template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
+          typename IsZero = TrivialIsZero<T>>
 std::size_t GaussEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
-    std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
-    std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
+    AbsoluteLess absolute_less = AbsoluteLess(),
+    IsZero is_zero = IsZero()) {
   if (extra_matrix) {
     CheckAugmentable(*coefficient_matrix, *extra_matrix);
   }

@@ -179,7 +179,14 @@ void TestGaussJordanEliminate() {
       }, EQ));
 
   Matrix<double> e(3, 0);
-  math::GaussJordanEliminate(&e);  // exception thrown
+  math::GaussJordanEliminate(&e);
+
+  math::GaussJordanEliminate(
+      &e, static_cast<Matrix<double>*>(nullptr),
+      [](const double& a, const double& b) {
+        return abs(a) < abs(b);
+      },
+      [](const double& v) { return abs(v) < 1e-6; });
 }
 
 int main(int argc, char* argv[]) {
