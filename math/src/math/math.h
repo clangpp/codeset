@@ -85,22 +85,17 @@ void GaussJordanEliminate(
     }
 
     // Concurrently eliminates all rows (except `max_row`) in column `pivot`.
-    for (size_type row = 0; row < a_mat->row_size(); ++row) {
-      futures[row] = std::async(
-          std::launch::async,
-          [a_mat, b_mat, pivot, max_row, row]() {
-            if (row != max_row) {
-              T factor = -(*a_mat)[row][pivot] / (*a_mat)[max_row][pivot];
-              a_mat->elementary_row_add(row, max_row, factor);
-              if (b_mat) {
-                b_mat->elementary_row_add(row, max_row, factor);
-              }
+    ConcurrentProcess(
+        0, a_mat->row_size(),
+        [a_mat, b_mat, pivot, max_row](size_type row) {
+          if (row != max_row) {
+            T factor = -(*a_mat)[row][pivot] / (*a_mat)[max_row][pivot];
+            a_mat->elementary_row_add(row, max_row, factor);
+            if (b_mat) {
+              b_mat->elementary_row_add(row, max_row, factor);
             }
-          });
-    }
-    for (size_type row = 0; row < a_mat->row_size(); ++row) {
-      futures[row].wait();
-    }
+          }
+        });
 
     // Normalizes `max_row` and switches to `pivot` row.
     T factor = 1 / (*a_mat)[max_row][pivot];
