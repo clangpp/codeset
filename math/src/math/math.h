@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>  // size_t
 #include <functional>
 #include <future>
 #include <sstream>
@@ -13,12 +14,34 @@
 
 namespace math {
 
-void CheckSizeEqual(size_t size1, size_t size2) {
+void CheckSizeEqual(std::size_t size1, std::size_t size2) {
   if (!(size1 == size2)) {
     std::stringstream ss;
     ss << "`size1 == size2` expected, actual " << size1 << " and " << size2;
     throw std::runtime_error(ss.str());
   }
+}
+
+void ConcurrentProcess(std::size_t first, std::size_t last,
+                       std::function<void(std::size_t)> process,
+                       std::vector<std::future<void>>* helper_futures) {
+  if (first >= last) {
+    return;
+  }
+  helper_futures->resize(last - first);
+  for (std::size_t index = first; index < last; ++index) {
+    (*helper_futures)[index-first] =
+        std::async(std::launch::async, process, index);
+  }
+  for (std::size_t index = first; index < last; ++index) {
+    (*helper_futures)[index-first].wait();
+  }
+}
+
+inline void ConcurrentProcess(std::size_t first, std::size_t last,
+                              std::function<void(std::size_t)> process) {
+  std::vector<std::future<void>> futures;
+  ConcurrentProcess(first, last, process, &futures);
 }
 
 // NOTE(clangpp): absolute_less and is_zero are provided for user to pass
