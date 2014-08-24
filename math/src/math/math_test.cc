@@ -48,6 +48,18 @@ void TestGaussEliminate() {
         {17.0/3},
         {-13.0/8},
       }, EQ));
+
+  Matrix<double> c = {
+    {1, 3, 4},
+    {3, 2, 6},
+    {2, 4, 8},
+  };
+  math::GaussEliminate(&c);
+  assert(c.equal_to({
+        {3, 2, 6},
+        {0, 8.0/3, 4},
+        {0, 0, -1.5},
+      }, EQ));
 }
 
 void TestGaussJordanEliminate() {
