@@ -107,6 +107,70 @@ void GaussJordanEliminate(
   }
 }
 
+// NOTE(clangpp): absolute_less and is_zero are provided for user to pass
+// special rules for value type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
+template <typename T>
+void GaussEliminate(
+    Matrix<T>* coefficient_matrix,
+    Matrix<T>* extra_matrix = nullptr,
+    std::function<bool(const T&, const T&)> absolute_less =
+        [](const T& lhs, const T& rhs) {
+          return std::abs(lhs) < std::abs(rhs);
+        },
+    std::function<bool(const T&)> is_zero =
+        [](const T& value) { return value == 0; }) {
+  if (extra_matrix) {
+    // TODO(clangpp): Change this to CheckAugmentable();
+    CheckSizeEqual(coefficient_matrix->row_size(),
+                   extra_matrix->row_size());
+  }
+
+  // Helpers
+  Matrix<T>* a_mat = coefficient_matrix;  // shorter name
+  Matrix<T>* b_mat = extra_matrix;  // shorter name
+  typedef typename Matrix<T>::size_type size_type;
+  size_type augmented_column_size =
+      a_mat->column_size() + (b_mat ? b_mat->column_size() : size_type(0));
+  std::vector<std::future<void>> futures(augmented_column_size);
+
+  size_type dimension = std::min(a_mat->row_size(), a_mat->column_size());
+  for (size_type pivot = 0; pivot < dimension; ++pivot) {
+    // Finds max (absolute) value of current column.
+    auto max_iter = std::max_element(
+        a_mat->column_begin(pivot) + pivot, a_mat->column_end(pivot),
+        absolute_less);
+    size_type max_row = max_iter - a_mat->column_begin(pivot);
+    if (is_zero((*a_mat)[max_row][pivot])) {
+      continue;
+    }
+
+    // Switches `max_row` to `pivot` row.
+    a_mat->elementary_row_switch(pivot, max_row);
+    if (b_mat) {
+      b_mat->elementary_row_switch(pivot, max_row);
+    }
+
+    // Concurrently eliminates column `pivot`'s coefficients (in all rows
+    // except `max_row`).
+    ConcurrentProcess(
+        pivot + 1, a_mat->row_size(),
+        [&a_mat, &b_mat, pivot](size_type row) {
+          typename Matrix<T>::value_type factor =
+              (*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
+          for (size_type column = pivot;
+              column < a_mat->column_size(); ++column) {
+            (*a_mat)[row][column] -= factor * (*a_mat)[pivot][column];
+          }
+          if (b_mat) {  // Does the same row operation to b_mat.
+            for (size_type column = 0;
+                column < b_mat->column_size(); ++column) {
+              (*b_mat)[row][column] -= factor * (*b_mat)[pivot][column];
+            }
+          }
+        }, &futures);
+  }
+}
+
 }  // namespace math
 
 #endif  // MATH_H_
