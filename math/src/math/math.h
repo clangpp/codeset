@@ -84,7 +84,8 @@ void GaussJordanEliminate(
       continue;
     }
 
-    // Concurrently eliminates all rows (except `max_row`) in column `pivot`.
+    // Concurrently eliminates column `pivot`'s coefficients (in all rows
+    // except `max_row`).
     ConcurrentProcess(
         0, a_mat->row_size(),
         [a_mat, b_mat, pivot, max_row](size_type row) {
@@ -97,12 +98,16 @@ void GaussJordanEliminate(
           }
         });
 
-    // Normalizes `max_row` and switches to `pivot` row.
+    // Normalizes `max_row`.
     T factor = 1 / (*a_mat)[max_row][pivot];
     a_mat->elementary_row_multiply(max_row, factor, is_zero);
-    a_mat->elementary_row_switch(pivot, max_row);
     if (b_mat) {
       b_mat->elementary_row_multiply(max_row, factor, is_zero);
+    }
+
+    // Switches `max_row` to `pivot` row.
+    a_mat->elementary_row_switch(pivot, max_row);
+    if (b_mat) {
       b_mat->elementary_row_switch(pivot, max_row);
     }
   }
@@ -126,9 +131,7 @@ void GaussEliminate(
   Matrix<T>* a_mat = coefficient_matrix;  // shorter name
   Matrix<T>* b_mat = extra_matrix;  // shorter name
   typedef typename Matrix<T>::size_type size_type;
-  size_type augmented_column_size =
-      a_mat->column_size() + (b_mat ? b_mat->column_size() : size_type(0));
-  std::vector<std::future<void>> futures(augmented_column_size);
+  std::vector<std::future<void>> futures(a_mat->row_size());
 
   size_type dimension = std::min(a_mat->row_size(), a_mat->column_size());
   for (size_type pivot = 0; pivot < dimension; ++pivot) {
@@ -159,10 +162,7 @@ void GaussEliminate(
             (*a_mat)[row][column] -= factor * (*a_mat)[pivot][column];
           }
           if (b_mat) {  // Does the same row operation to b_mat.
-            for (size_type column = 0;
-                column < b_mat->column_size(); ++column) {
-              (*b_mat)[row][column] -= factor * (*b_mat)[pivot][column];
-            }
+            b_mat->elementary_row_add(row, pivot, -factor);
           }
         }, &futures);
   }
