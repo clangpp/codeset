@@ -526,6 +526,7 @@ class Matrix {
 
   // ==== Elementary operations ====
 
+  // NOTE(clangpp): time complexity O(1), space complexity O(1)
   Matrix& elementary_row_switch(size_type row1, size_type row2) {
     matrix::CheckRowRange(*this, row1);
     matrix::CheckRowRange(*this, row2);
@@ -533,6 +534,7 @@ class Matrix {
     return *this;
   }
 
+  // NOTE(clangpp): time complexity O(column_size()), space complexity O(1)
   Matrix& elementary_row_multiply(
       size_type row, const value_type& factor,
       std::function<bool(const value_type& value)> is_zero =
@@ -546,6 +548,7 @@ class Matrix {
     return *this;
   }
 
+  // NOTE(clangpp): time complexity O(column_size()), space complexity O(1)
   Matrix& elementary_row_add(size_type row_target, size_type row_adding,
                              const value_type& factor) {
     matrix::CheckRowRange(*this, row_target);
@@ -558,6 +561,7 @@ class Matrix {
     return *this;
   }
 
+  // NOTE(clangpp): time complexity O(row_size()), space complexity O(1)
   Matrix& elementary_column_switch(size_type column1, size_type column2) {
     matrix::CheckColumnRange(*this, column1);
     matrix::CheckColumnRange(*this, column1);
@@ -567,6 +571,7 @@ class Matrix {
     return *this;
   }
 
+  // NOTE(clangpp): time complexity O(row_size()), space complexity O(1)
   Matrix& elementary_column_multiply(
       size_type column, const value_type& factor,
       std::function<bool(const value_type& value)> is_zero =
@@ -580,6 +585,7 @@ class Matrix {
     return *this;
   }
 
+  // NOTE(clangpp): time complexity O(row_size()), space complexity O(1)
   Matrix& elementary_column_add(
       size_type column_target, size_type column_adding,
       const value_type& factor) {
