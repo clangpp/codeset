@@ -14,10 +14,13 @@
 
 namespace math {
 
-void CheckSizeEqual(std::size_t size1, std::size_t size2) {
-  if (!(size1 == size2)) {
+template <typename T>
+void CheckAugmentable(const Matrix<T>& mat, const Matrix<T>& extra) {
+  if (mat.row_size() != extra.row_size()) {
     std::stringstream ss;
-    ss << "`size1 == size2` expected, actual " << size1 << " and " << size2;
+    ss << "Equal row size expected, actual "
+        << "(" << mat.row_size() << ", " << mat.column_size() << ") vs "
+        << "(" << extra.row_size() << ", " << extra.column_size() << ")";
     throw std::runtime_error(ss.str());
   }
 }
@@ -63,7 +66,7 @@ void GaussJordanEliminate(
     std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
     std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
   if (extra_matrix) {
-    CheckSizeEqual(coefficient_matrix->row_size(), extra_matrix->row_size());
+    CheckAugmentable(*coefficient_matrix, *extra_matrix);
   }
 
   // Helpers
@@ -121,8 +124,7 @@ void GaussEliminate(
     std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
     std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
   if (extra_matrix) {
-    // TODO(clangpp): Change this to CheckAugmentable();
-    CheckSizeEqual(coefficient_matrix->row_size(), extra_matrix->row_size());
+    CheckAugmentable(*coefficient_matrix, *extra_matrix);
   }
 
   // Helpers
