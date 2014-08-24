@@ -115,10 +115,11 @@ void GaussJordanEliminate(
   }
 }
 
-// NOTE(clangpp): absolute_less and is_zero are provided for user to pass
-// special rules for value type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
+// absolute_less and is_zero: provided for user to pass special rules for value
+//  type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
+// return: rank of coefficient_matrix.
 template <typename T>
-void GaussEliminate(
+std::size_t GaussEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
     std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
@@ -134,6 +135,7 @@ void GaussEliminate(
   typedef typename Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
 
+  std::size_t rank = 0;
   size_type dimension = std::min(a_mat->row_size(), a_mat->column_size());
   for (size_type pivot = 0; pivot < dimension; ++pivot) {
     // Finds max (absolute) value of current column.
@@ -167,7 +169,11 @@ void GaussEliminate(
             b_mat->elementary_row_add(row, pivot, factor);
           }
         }, &futures);
+
+    // Updates matrix meta-information.
+    ++rank;
   }
+  return rank;
 }
 
 }  // namespace math

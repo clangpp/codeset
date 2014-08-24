@@ -18,7 +18,8 @@ void TestGaussEliminate() {
     {4},
     {5},
   };
-  math::GaussEliminate(&a, &aa);
+  size_t rank = math::GaussEliminate(&a, &aa);
+  assert(rank == 2);
   assert(a.equal_to({
         {2, 3},
         {0, 0.5},
@@ -37,7 +38,8 @@ void TestGaussEliminate() {
     {2},
     {7},
   };
-  math::GaussEliminate(&b, &bb);
+  rank = math::GaussEliminate(&b, &bb);
+  assert(rank == 3);
   assert(b.equal_to({
         {3, 2, 6},
         {0, 8.0/3, 4},
@@ -54,12 +56,21 @@ void TestGaussEliminate() {
     {3, 2, 6},
     {2, 4, 8},
   };
-  math::GaussEliminate(&c);
+  rank = math::GaussEliminate(&c);
+  assert(rank == 3);
   assert(c.equal_to({
         {3, 2, 6},
         {0, 8.0/3, 4},
         {0, 0, -1.5},
       }, EQ));
+
+  Matrix<double> d = {
+    {1, 2, 3},
+    {4, 5, 6},
+    {2, 4, 6},
+  };
+  rank = math::GaussEliminate(&d);
+  assert(rank = 2);
 }
 
 void TestGaussJordanEliminate() {
