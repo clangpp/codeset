@@ -44,18 +44,24 @@ inline void ConcurrentProcess(std::size_t first, std::size_t last,
   ConcurrentProcess(first, last, process, &futures);
 }
 
+template <typename T>
+bool TrivialAbsLess(const T& lhs, const T& rhs) {
+  return std::abs(lhs) < std::abs(rhs);
+}
+
+template <typename T>
+bool TrivialIsZero(const T& value) {
+  return value == 0;
+}
+
 // NOTE(clangpp): absolute_less and is_zero are provided for user to pass
 // special rules for value type, e.g. is_zero(double v) -> std::abs(v) < 1e-6;
 template <typename T>
 void GaussJordanEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* constant_matrix = nullptr,
-    std::function<bool(const T&, const T&)> absolute_less =
-        [](const T& lhs, const T& rhs) {
-          return std::abs(lhs) < std::abs(rhs);
-        },
-    std::function<bool(const T&)> is_zero =
-        [](const T& value) { return value == 0; }) {
+    std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
+    std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
   if (constant_matrix) {
     CheckSizeEqual(coefficient_matrix->row_size(),
                    constant_matrix->row_size());
@@ -113,12 +119,8 @@ template <typename T>
 void GaussEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
-    std::function<bool(const T&, const T&)> absolute_less =
-        [](const T& lhs, const T& rhs) {
-          return std::abs(lhs) < std::abs(rhs);
-        },
-    std::function<bool(const T&)> is_zero =
-        [](const T& value) { return value == 0; }) {
+    std::function<bool(const T&, const T&)> absolute_less = TrivialAbsLess<T>,
+    std::function<bool(const T&)> is_zero = TrivialIsZero<T>) {
   if (extra_matrix) {
     // TODO(clangpp): Change this to CheckAugmentable();
     CheckSizeEqual(coefficient_matrix->row_size(),
