@@ -124,9 +124,8 @@ void CheckColumnSizesEqual(
   }
 }
 
-// process: `process(index) -> void` should be satisfied
-template <typename UnaryFunction>
-void ConcurrentProcess(std::size_t count, UnaryFunction process,
+void ConcurrentProcess(std::size_t count,
+                       std::function<void(std::size_t)> process,
                        std::vector<std::future<void>>* helper_futures) {
   helper_futures->resize(count);
   for (std::size_t index = 0; index < count; ++index) {
@@ -137,9 +136,8 @@ void ConcurrentProcess(std::size_t count, UnaryFunction process,
   }
 }
 
-// process: `process(index) -> void` should be satisfied
-template <typename UnaryFunction>
-void ConcurrentProcess(std::size_t count, UnaryFunction process) {
+inline void ConcurrentProcess(std::size_t count,
+                              std::function<void(std::size_t)> process) {
   std::vector<std::future<void>> futures(count);
   ConcurrentProcess(count, process, &futures);
 }
