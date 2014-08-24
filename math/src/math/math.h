@@ -131,6 +131,7 @@ void GaussEliminate(
   Matrix<T>* a_mat = coefficient_matrix;  // shorter name
   Matrix<T>* b_mat = extra_matrix;  // shorter name
   typedef typename Matrix<T>::size_type size_type;
+  typedef typename Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
 
   size_type dimension = std::min(a_mat->row_size(), a_mat->column_size());
@@ -155,14 +156,15 @@ void GaussEliminate(
     ConcurrentProcess(
         pivot + 1, a_mat->row_size(),
         [&a_mat, &b_mat, pivot](size_type row) {
-          typename Matrix<T>::value_type factor =
-              (*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
-          for (size_type column = pivot;
+          value_type factor = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
+          for (size_type column = pivot + 1;
               column < a_mat->column_size(); ++column) {
-            (*a_mat)[row][column] -= factor * (*a_mat)[pivot][column];
+            (*a_mat)[row][column] += factor * (*a_mat)[pivot][column];
           }
+          (*a_mat)[row][pivot] = value_type(0);
+
           if (b_mat) {  // Does the same row operation to b_mat.
-            b_mat->elementary_row_add(row, pivot, -factor);
+            b_mat->elementary_row_add(row, pivot, factor);
           }
         }, &futures);
   }
