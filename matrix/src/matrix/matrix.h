@@ -576,7 +576,9 @@ class Matrix {
   Matrix& elementary_row_switch(size_type row1, size_type row2) {
     matrix::CheckRowRange(*this, row1);
     matrix::CheckRowRange(*this, row2);
-    data_[row1].swap(data_[row2]);
+    if (row1 != row2) {
+      data_[row1].swap(data_[row2]);
+    }
     return *this;
   }
 
@@ -611,8 +613,10 @@ class Matrix {
   Matrix& elementary_column_switch(size_type column1, size_type column2) {
     matrix::CheckColumnRange(*this, column1);
     matrix::CheckColumnRange(*this, column1);
-    for (size_type row = 0; row < row_size(); ++row) {
-      std::swap(data_[row][column1], data_[row][column2]);
+    if (column1 != column2) {
+      for (size_type row = 0; row < row_size(); ++row) {
+        std::swap(data_[row][column1], data_[row][column2]);
+      }
     }
     return *this;
   }
