@@ -79,6 +79,7 @@ void GaussJordanEliminate(
   auto a_mat = coefficient_matrix;  // shorter name
   auto b_mat = extra_matrix;  // shorter name
   typedef typename Matrix<T>::size_type size_type;
+  typedef typename Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
 
   size_type dimension = std::min(a_mat->row_size(), a_mat->column_size());
@@ -92,31 +93,31 @@ void GaussJordanEliminate(
       continue;
     }
 
-    // Concurrently eliminates column `pivot`'s coefficients (in all rows
-    // except `max_row`).
-    ConcurrentProcess(
-        0, a_mat->row_size(),
-        [a_mat, b_mat, pivot, max_row](size_type row) {
-          if (row != max_row) {
-            T factor = -(*a_mat)[row][pivot] / (*a_mat)[max_row][pivot];
-            a_mat->elementary_row_add(row, max_row, factor);
-            if (b_mat) {
-              b_mat->elementary_row_add(row, max_row, factor);
-            }
-          }
-        });
-
-    // Normalizes `max_row`.
-    T factor = 1 / (*a_mat)[max_row][pivot];
-    a_mat->elementary_row_multiply(max_row, factor, is_zero);
-    if (b_mat) {
-      b_mat->elementary_row_multiply(max_row, factor, is_zero);
-    }
-
     // Switches `max_row` to `pivot` row.
     a_mat->elementary_row_switch(pivot, max_row);
     if (b_mat) {
       b_mat->elementary_row_switch(pivot, max_row);
+    }
+
+    // Concurrently eliminates column `pivot`'s coefficients (in all rows
+    // except row `pivot`).
+    ConcurrentProcess(
+        0, a_mat->row_size(),
+        [a_mat, b_mat, pivot](size_type row) {
+          if (row != pivot) {
+            value_type factor = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
+            a_mat->elementary_row_add(row, pivot, factor);
+            if (b_mat) {
+              b_mat->elementary_row_add(row, pivot, factor);
+            }
+          }
+        });
+
+    // Normalizes row `pivot`.
+    value_type factor = 1 / (*a_mat)[pivot][pivot];
+    a_mat->elementary_row_multiply(pivot, factor, is_zero);
+    if (b_mat) {
+      b_mat->elementary_row_multiply(pivot, factor, is_zero);
     }
   }
 }
@@ -162,7 +163,7 @@ std::size_t GaussEliminate(
     }
 
     // Concurrently eliminates column `pivot`'s coefficients (in all rows
-    // except `max_row`).
+    // except row `pivot`).
     ConcurrentProcess(
         pivot + 1, a_mat->row_size(),
         [&a_mat, &b_mat, pivot](size_type row) {
