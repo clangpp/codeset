@@ -90,9 +90,12 @@ void TestGaussEliminate() {
     {0, 0, 0, 5},
     {0, 0, 3, 0},
   };
-  Matrix<double>* no_mat = nullptr;
-  rank = math::GaussEliminate(&f, no_mat, math::kReducedRowEchelonForm);
+  typedef Matrix<double>::size_type size_type;
+  vector<size_type> pivot_columns;
+  rank = math::GaussEliminate<double>(
+      &f, nullptr, &pivot_columns, math::kReducedRowEchelonForm);
   assert(3 == rank);
+  assert(vector<size_type>({0, 2, 3}) == pivot_columns);
   assert(f.equal_to({
         {1, 2, 0, 0},
         {0, 0, 1, 0},
@@ -208,8 +211,8 @@ void TestGaussJordanEliminate() {
   Matrix<double> e(3, 0);
   math::GaussJordanEliminate(&e);
 
-  math::GaussJordanEliminate(
-      &e, static_cast<Matrix<double>*>(nullptr),
+  math::GaussJordanEliminate<double>(
+      &e, nullptr, nullptr,
       [](const double& a, const double& b) {
         return abs(a) < abs(b);
       },

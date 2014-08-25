@@ -64,6 +64,7 @@ template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
 typename Matrix<T>::size_type GaussEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
+    std::vector<typename Matrix<T>::size_type>* pivot_columns = nullptr,
     MatrixForm target_form = kRowEchelonForm,
     AbsoluteLess absolute_less = AbsoluteLess(),
     IsZero is_zero = IsZero()) {
@@ -78,7 +79,11 @@ typename Matrix<T>::size_type GaussEliminate(
   typedef typename Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
   std::vector<value_type> normal_scalers(a_mat->row_size(), value_type(1));
-  std::vector<size_type> pivot_columns;
+  std::vector<size_type> local_pivot_columns;
+  if (nullptr == pivot_columns) {
+    pivot_columns = &local_pivot_columns;
+  }
+  pivot_columns->clear();
 
   size_type pivot_row = 0, pivot_column = 0;
   for (; pivot_row < a_mat->row_size() &&
@@ -130,7 +135,7 @@ typename Matrix<T>::size_type GaussEliminate(
 
     // Updates helpers.
     normal_scalers[pivot_row] /= (*a_mat)[pivot_row][pivot_column];
-    pivot_columns.push_back(pivot_column);
+    pivot_columns->push_back(pivot_column);
     ++pivot_row;
   }
 
@@ -138,14 +143,14 @@ typename Matrix<T>::size_type GaussEliminate(
   if (kReducedRowEchelonForm == target_form) {
     ConcurrentProcess(
         0, pivot_row,
-        [a_mat, b_mat, &normal_scalers, &pivot_columns, &is_zero](
+        [a_mat, b_mat, &normal_scalers, pivot_columns, &is_zero](
             size_type row) {
 
           // a_mat->elementary_row_multiply(row, normal_scalers[row], is_zero);
           for (size_type column = 0, pivot_index = 0;
               column < a_mat->column_size(); ++column) {
-            if (pivot_index < pivot_columns.size() &&
-                column == pivot_columns[pivot_index]) {
+            if (pivot_index < pivot_columns->size() &&
+                column == (*pivot_columns)[pivot_index]) {
               if (pivot_index == row) {  // Normalizes row'th pivot column
                 (*a_mat)[row][column] *= normal_scalers[row];
               }  // Skips other pivot columns
@@ -173,11 +178,13 @@ template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
 void GaussJordanEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
+    std::vector<typename Matrix<T>::size_type>* pivot_columns = nullptr,
     AbsoluteLess absolute_less = AbsoluteLess(),
     IsZero is_zero = IsZero()) {
   GaussEliminate(
       coefficient_matrix,
       extra_matrix,
+      pivot_columns,
       kReducedRowEchelonForm,
       absolute_less,
       is_zero);
