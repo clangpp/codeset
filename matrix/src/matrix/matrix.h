@@ -18,6 +18,7 @@
 #include <initializer_list>
 #include <iterator>
 #include <numeric>
+#include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <utility>  // move(), make_pair(), swap()
@@ -128,6 +129,17 @@ void CheckColumnSizesEqual(
   }
 }
 
+template <typename T>
+void CheckAugmentable(const Matrix<T>& coef, const Matrix<T>& extra) {
+  if (coef.row_size() != extra.row_size()) {
+    std::stringstream ss;
+    ss << "Equal row size expected, actual "
+        << "(" << coef.row_size() << ", " << coef.column_size() << ") vs "
+        << "(" << extra.row_size() << ", " << extra.column_size() << ")";
+    throw std::runtime_error(ss.str());
+  }
+}
+
 void ConcurrentProcess(std::size_t count,
                        std::function<void(std::size_t)> process,
                        std::vector<std::future<void>>* helper_futures) {
@@ -144,6 +156,34 @@ inline void ConcurrentProcess(std::size_t count,
                               std::function<void(std::size_t)> process) {
   std::vector<std::future<void>> futures(count);
   ConcurrentProcess(count, process, &futures);
+}
+
+template <typename T>
+void Print(const Matrix<T>& mat, std::ostream* os) {
+  typedef typename Matrix<T>::size_type size_type;
+  for (size_type row = 0; row < mat.row_size(); ++row) {
+    for (size_type column = 0; column < mat.row_size(); ++column) {
+      (*os) << mat[row][column] << " ";
+    }
+    (*os) << "\n";
+  }
+}
+
+template <typename T>
+void PrintAugmented(const Matrix<T>& coef, const Matrix<T>& extra,
+                    std::ostream* os) {
+  CheckAugmentable(coef, extra);
+  typedef typename Matrix<T>::size_type size_type;
+  for (size_type row = 0; row < coef.row_size(); ++row) {
+    for (size_type column = 0; column < coef.row_size(); ++column) {
+      (*os) << coef[row][column] << " ";
+    }
+    (*os) << "| ";
+    for (size_type column = 0; column < extra.row_size(); ++column) {
+      (*os) << extra[row][column] << " ";
+    }
+    (*os) << "\n";
+  }
 }
 
 }  // namespace matrix
