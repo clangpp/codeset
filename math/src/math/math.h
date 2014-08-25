@@ -94,19 +94,19 @@ void GaussJordanEliminate(
         0, a_mat->row_size(),
         [a_mat, b_mat, pivot](size_type row) {
           if (row != pivot) {
-            value_type factor = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
-            a_mat->elementary_row_add(row, pivot, factor);
+            value_type scaler = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
+            a_mat->elementary_row_add(row, pivot, scaler);
             if (b_mat) {
-              b_mat->elementary_row_add(row, pivot, factor);
+              b_mat->elementary_row_add(row, pivot, scaler);
             }
           }
         });
 
     // Normalizes row `pivot`.
-    value_type factor = 1 / (*a_mat)[pivot][pivot];
-    a_mat->elementary_row_multiply(pivot, factor, is_zero);
+    value_type scaler = 1 / (*a_mat)[pivot][pivot];
+    a_mat->elementary_row_multiply(pivot, scaler, is_zero);
     if (b_mat) {
-      b_mat->elementary_row_multiply(pivot, factor, is_zero);
+      b_mat->elementary_row_multiply(pivot, scaler, is_zero);
     }
   }
 }
@@ -156,15 +156,15 @@ std::size_t GaussEliminate(
     ConcurrentProcess(
         pivot + 1, a_mat->row_size(),
         [&a_mat, &b_mat, pivot](size_type row) {
-          value_type factor = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
+          value_type scaler = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
           for (size_type column = pivot + 1;
               column < a_mat->column_size(); ++column) {
-            (*a_mat)[row][column] += factor * (*a_mat)[pivot][column];
+            (*a_mat)[row][column] += scaler * (*a_mat)[pivot][column];
           }
           (*a_mat)[row][pivot] = value_type(0);
 
           if (b_mat) {  // Does the same row operation to b_mat.
-            b_mat->elementary_row_add(row, pivot, factor);
+            b_mat->elementary_row_add(row, pivot, scaler);
           }
         }, &futures);
 

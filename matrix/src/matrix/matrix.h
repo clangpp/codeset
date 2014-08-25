@@ -490,31 +490,31 @@ class Matrix {
     return *this;
   }
 
-  Matrix& operator*=(const value_type& factor) {
+  Matrix& operator*=(const value_type& scaler) {
     matrix::ConcurrentProcess(
-        row_size(), [this, &factor](size_type row) mutable {
+        row_size(), [this, &scaler](size_type row) mutable {
           for (size_type column = 0; column < this->column_size(); ++column) {
-            data_[row][column] *= factor;
+            data_[row][column] *= scaler;
           }
         });
     return *this;
   }
 
-  Matrix& operator/=(const value_type& factor) {
+  Matrix& operator/=(const value_type& scaler) {
     matrix::ConcurrentProcess(
-        row_size(), [this, &factor](size_type row) mutable {
+        row_size(), [this, &scaler](size_type row) mutable {
           for (size_type column = 0; column < this->column_size(); ++column) {
-            data_[row][column] /= factor;
+            data_[row][column] /= scaler;
           }
         });
     return *this;
   }
 
-  Matrix& operator%=(const value_type& factor) {
+  Matrix& operator%=(const value_type& scaler) {
     matrix::ConcurrentProcess(
-        row_size(), [this, &factor](size_type row) mutable {
+        row_size(), [this, &scaler](size_type row) mutable {
           for (size_type column = 0; column < this->column_size(); ++column) {
-            data_[row][column] %= factor;
+            data_[row][column] %= scaler;
           }
         });
     return *this;
@@ -584,27 +584,27 @@ class Matrix {
 
   // NOTE(clangpp): time complexity O(column_size()), space complexity O(1)
   Matrix& elementary_row_multiply(
-      size_type row, const value_type& factor,
+      size_type row, const value_type& scaler,
       std::function<bool(const value_type& value)> is_zero =
           [](const value_type& value) { return value == 0; }) {
     matrix::CheckRowRange(*this, row);
-    // elementary multiplication requires factor != 0
-    matrix::CheckValueNotZero(factor, is_zero);
+    // elementary multiplication requires scaler != 0
+    matrix::CheckValueNotZero(scaler, is_zero);
     for (size_type column = 0; column < column_size(); ++column) {
-      data_[row][column] *= factor;
+      data_[row][column] *= scaler;
     }
     return *this;
   }
 
   // NOTE(clangpp): time complexity O(column_size()), space complexity O(1)
   Matrix& elementary_row_add(size_type row_target, size_type row_adding,
-                             const value_type& factor) {
+                             const value_type& scaler) {
     matrix::CheckRowRange(*this, row_target);
     matrix::CheckRowRange(*this, row_adding);
     // elementary addition requires row_target != row_adding
     matrix::CheckIndicesNotEqual(row_target, row_adding);
     for (size_type column = 0; column < column_size(); ++column) {
-      data_[row_target][column] += data_[row_adding][column] * factor;
+      data_[row_target][column] += data_[row_adding][column] * scaler;
     }
     return *this;
   }
@@ -623,14 +623,14 @@ class Matrix {
 
   // NOTE(clangpp): time complexity O(row_size()), space complexity O(1)
   Matrix& elementary_column_multiply(
-      size_type column, const value_type& factor,
+      size_type column, const value_type& scaler,
       std::function<bool(const value_type& value)> is_zero =
           [](const value_type& value) { return value == 0; }) {
     matrix::CheckColumnRange(*this, column);
-    // elementary multiplication requires factor != 0
-    matrix::CheckValueNotZero(factor, is_zero);
+    // elementary multiplication requires scaler != 0
+    matrix::CheckValueNotZero(scaler, is_zero);
     for (size_type row = 0; row < row_size(); ++row) {
-      data_[row][column] *= factor;
+      data_[row][column] *= scaler;
     }
     return *this;
   }
@@ -638,13 +638,13 @@ class Matrix {
   // NOTE(clangpp): time complexity O(row_size()), space complexity O(1)
   Matrix& elementary_column_add(
       size_type column_target, size_type column_adding,
-      const value_type& factor) {
+      const value_type& scaler) {
     matrix::CheckColumnRange(*this, column_target);
     matrix::CheckColumnRange(*this, column_adding);
     // elementary addition requires column_target != column_adding
     matrix::CheckIndicesNotEqual(column_target, column_adding);
     for (size_type row = 0; row < row_size(); ++row) {
-      data_[row][column_target] += data_[row][column_adding] * factor;
+      data_[row][column_target] += data_[row][column_adding] * scaler;
     }
     return *this;
   }
@@ -742,51 +742,51 @@ Matrix<T> operator-(Matrix<T>&& lhs, const Matrix<T>& rhs) {
 }
 
 template <typename T>
-Matrix<T> operator*(const Matrix<T>& mat, const T& factor) {
+Matrix<T> operator*(const Matrix<T>& mat, const T& scaler) {
   Matrix<T> result(mat);
-  return result *= factor;
+  return result *= scaler;
 }
 
 template <typename T>
-Matrix<T> operator*(const T& factor, const Matrix<T>& mat) {
-  return mat * factor;
+Matrix<T> operator*(const T& scaler, const Matrix<T>& mat) {
+  return mat * scaler;
 }
 
 template <typename T>
-Matrix<T> operator*(Matrix<T>&& mat, const T& factor) {
+Matrix<T> operator*(Matrix<T>&& mat, const T& scaler) {
   Matrix<T> result(std::move(mat));
-  result *= factor;
+  result *= scaler;
   return result;
 }
 
 template <typename T>
-Matrix<T> operator*(const T& factor, Matrix<T>&& mat) {
-  return std::move(mat) * factor;
+Matrix<T> operator*(const T& scaler, Matrix<T>&& mat) {
+  return std::move(mat) * scaler;
 }
 
 template <typename T>
-Matrix<T> operator/(const Matrix<T>& mat, const T& factor) {
+Matrix<T> operator/(const Matrix<T>& mat, const T& scaler) {
   Matrix<T> result(mat);
-  return result /= factor;
+  return result /= scaler;
 }
 
 template <typename T>
-Matrix<T> operator/(Matrix<T>&& mat, const T& factor) {
+Matrix<T> operator/(Matrix<T>&& mat, const T& scaler) {
   Matrix<T> result(std::move(mat));
-  result /= factor;
+  result /= scaler;
   return result;
 }
 
 template <typename T>
-Matrix<T> operator%(const Matrix<T>& mat, const T& factor) {
+Matrix<T> operator%(const Matrix<T>& mat, const T& scaler) {
   Matrix<T> result(mat);
-  return result %= factor;
+  return result %= scaler;
 }
 
 template <typename T>
-Matrix<T> operator%(Matrix<T>&& mat, const T& factor) {
+Matrix<T> operator%(Matrix<T>&& mat, const T& scaler) {
   Matrix<T> result(std::move(mat));
-  result %= factor;
+  result %= scaler;
   return result;
 }
 
