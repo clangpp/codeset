@@ -46,7 +46,7 @@ struct TrivialAbsLess {
 template <typename T>
 struct TrivialIsZero {
   bool operator()(const T& value) {
-    return value == 0;
+    return 0 == value;
   }
 };
 
@@ -116,6 +116,11 @@ void GaussJordanEliminate(
   }
 }
 
+enum MatrixForm {
+  kRowEchelonForm,
+  kReducedRowEchelonForm,
+};
+
 // absolute_less: Callable, `bool ret = absolute_less(v1, v2);` should be
 // is_zero: Callable, `bool ret = is_zero(v);` should be satified.
 //  e.g. is_zero(double v) -> std::abs(v) < 1e-6;
@@ -125,6 +130,7 @@ template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
 typename Matrix<T>::size_type GaussEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
+    MatrixForm target_form = kRowEchelonForm,
     AbsoluteLess absolute_less = AbsoluteLess(),
     IsZero is_zero = IsZero()) {
   if (extra_matrix) {
@@ -137,6 +143,8 @@ typename Matrix<T>::size_type GaussEliminate(
   typedef typename Matrix<T>::size_type size_type;
   typedef typename Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
+  std::vector<value_type> normal_scalers(a_mat->row_size(), value_type(1));
+  std::vector<size_type> pivot_columns;
 
   size_type pivot_row = 0, pivot_column = 0;
   for (; pivot_row < a_mat->row_size() &&
@@ -157,26 +165,69 @@ typename Matrix<T>::size_type GaussEliminate(
       b_mat->elementary_row_switch(pivot_row, max_row);
     }
 
-    // Concurrently eliminates `pivot_column`'s coefficients (in all rows
-    // except `pivot_row`).
+    // Concurrently eliminates `pivot_column`'s coefficients in:
+    //  1. all rows below `pivot_row` if kRowEchelonForm;
+    //  2. all rows except `pivot_row` if kReducedRowEchelonForm.
+    size_type eliminate_first_row = 0;
+    switch (target_form) {
+      case kRowEchelonForm: { eliminate_first_row = pivot_row + 1; break; }
+      case kReducedRowEchelonForm: { eliminate_first_row = 0; break; }
+      default: { break; }
+    }
     ConcurrentProcess(
-        pivot_row + 1, a_mat->row_size(),
+        eliminate_first_row, a_mat->row_size(),
         [a_mat, b_mat, pivot_row, pivot_column](size_type row) {
-          value_type scaler = -(*a_mat)[row][pivot_column] /
-              (*a_mat)[pivot_row][pivot_column];
-          for (size_type column = pivot_column + 1;
-              column < a_mat->column_size(); ++column) {
-            (*a_mat)[row][column] += scaler * (*a_mat)[pivot_row][column];
-          }
-          (*a_mat)[row][pivot_column] = value_type(0);
+          if (row != pivot_row) {
+            value_type scaler = -(*a_mat)[row][pivot_column] /
+                (*a_mat)[pivot_row][pivot_column];
 
-          if (b_mat) {  // Does the same row operation to b_mat.
-            b_mat->elementary_row_add(row, pivot_row, scaler);
+            // a_mat->elementary_row_add(row, pivot_row, scaler);
+            for (size_type column = pivot_column + 1;
+                column < a_mat->column_size(); ++column) {
+              (*a_mat)[row][column] += scaler * (*a_mat)[pivot_row][column];
+            }
+            (*a_mat)[row][pivot_column] = value_type(0);
+
+            if (b_mat) {  // Does the same row operation to b_mat.
+              b_mat->elementary_row_add(row, pivot_row, scaler);
+            }
           }
         }, &futures);
 
+    // Updates helpers.
+    normal_scalers[pivot_row] /= (*a_mat)[pivot_row][pivot_column];
+    pivot_columns.push_back(pivot_column);
     ++pivot_row;
   }
+
+  // Normalizes non-zero rows (if needed).
+  if (kReducedRowEchelonForm == target_form) {
+    ConcurrentProcess(
+        0, pivot_row,
+        [a_mat, b_mat, &normal_scalers, &pivot_columns, &is_zero](
+            size_type row) {
+
+          // a_mat->elementary_row_multiply(row, normal_scalers[row], is_zero);
+          for (size_type column = 0, pivot_index = 0;
+              column < a_mat->column_size(); ++column) {
+            if (pivot_index < pivot_columns.size() &&
+                column == pivot_columns[pivot_index]) {
+              if (pivot_index == row) {  // Normalizes row'th pivot column
+                (*a_mat)[row][column] *= normal_scalers[row];
+              }  // Skips other pivot columns
+              ++pivot_index;
+            } else {  // Normalizes non-pivot columns
+              (*a_mat)[row][column] *= normal_scalers[row];
+            }
+          }
+
+          if (b_mat) {  // Normalizes one row in b_mat.
+            b_mat->elementary_row_multiply(row, normal_scalers[row], is_zero);
+          }
+        }, &futures);
+  }
+
+  // Returns rank of coefficient_matrix.
   return pivot_row;
 }
 

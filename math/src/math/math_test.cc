@@ -84,6 +84,20 @@ void TestGaussEliminate() {
         {0, 0, 1, 0},
         {0, 0, 0, 1},
       }, EQ));
+
+  Matrix<double> f = {
+    {2, 4, 0, 0},
+    {0, 0, 0, 5},
+    {0, 0, 3, 0},
+  };
+  Matrix<double>* no_mat = nullptr;
+  rank = math::GaussEliminate(&f, no_mat, math::kReducedRowEchelonForm);
+  assert(3 == rank);
+  assert(f.equal_to({
+        {1, 2, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1},
+      }, EQ));
 }
 
 void TestGaussJordanEliminate() {
