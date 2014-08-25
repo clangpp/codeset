@@ -19,7 +19,7 @@ void TestGaussEliminate() {
     {5},
   };
   size_t rank = math::GaussEliminate(&a, &aa);
-  assert(rank == 2);
+  assert(2 == rank);
   assert(a.equal_to({
         {2, 3},
         {0, 0.5},
@@ -39,7 +39,7 @@ void TestGaussEliminate() {
     {7},
   };
   rank = math::GaussEliminate(&b, &bb);
-  assert(rank == 3);
+  assert(3 == rank);
   assert(b.equal_to({
         {3, 2, 6},
         {0, 8.0/3, 4},
@@ -57,7 +57,7 @@ void TestGaussEliminate() {
     {2, 4, 8},
   };
   rank = math::GaussEliminate(&c);
-  assert(rank == 3);
+  assert(3 == rank);
   assert(c.equal_to({
         {3, 2, 6},
         {0, 8.0/3, 4},
@@ -70,7 +70,20 @@ void TestGaussEliminate() {
     {2, 4, 6},
   };
   rank = math::GaussEliminate(&d);
-  assert(rank = 2);
+  assert(2 == rank);
+
+  Matrix<double> e = {
+    {1, 0, 0, 0},
+    {0, 0, 0, 1},
+    {0, 0, 1, 0},
+  };
+  rank = math::GaussEliminate(&e);
+  assert(3 == rank);
+  assert(e.equal_to({
+        {1, 0, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1},
+      }, EQ));
 }
 
 void TestGaussJordanEliminate() {
@@ -187,6 +200,18 @@ void TestGaussJordanEliminate() {
         return abs(a) < abs(b);
       },
       [](const double& v) { return abs(v) < 1e-6; });
+
+  Matrix<double> f = {
+    {1, 0, 0, 0},
+    {0, 0, 0, 1},
+    {0, 0, 1, 0},
+  };
+  math::GaussJordanEliminate(&f);
+  assert(f.equal_to({
+        {1, 0, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1},
+      }, EQ));
 }
 
 int main(int argc, char* argv[]) {

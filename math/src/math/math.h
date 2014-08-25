@@ -71,43 +71,48 @@ void GaussJordanEliminate(
   typedef typename Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
 
-  size_type dimension = std::min(a_mat->row_size(), a_mat->column_size());
-  for (size_type pivot = 0; pivot < dimension; ++pivot) {
+  size_type pivot_row = 0, pivot_column = 0;
+  for (; pivot_row < a_mat->row_size() &&
+      pivot_column < a_mat->column_size(); ++pivot_column) {
     // Finds max (absolute) value of current column.
     auto max_iter = std::max_element(
-        a_mat->column_begin(pivot) + pivot, a_mat->column_end(pivot),
+        a_mat->column_begin(pivot_column) + pivot_row,
+        a_mat->column_end(pivot_column),
         absolute_less);
-    size_type max_row = max_iter - a_mat->column_begin(pivot);
-    if (is_zero((*a_mat)[max_row][pivot])) {
+    size_type max_row = max_iter - a_mat->column_begin(pivot_column);
+    if (is_zero((*a_mat)[max_row][pivot_column])) {
       continue;
     }
 
-    // Switches `max_row` to `pivot` row.
-    a_mat->elementary_row_switch(pivot, max_row);
+    // Switches `max_row` to `pivot_row`.
+    a_mat->elementary_row_switch(pivot_row, max_row);
     if (b_mat) {
-      b_mat->elementary_row_switch(pivot, max_row);
+      b_mat->elementary_row_switch(pivot_row, max_row);
     }
 
-    // Concurrently eliminates column `pivot`'s coefficients (in all rows
-    // except row `pivot`).
+    // Concurrently eliminates `pivot_column`'s coefficients (in all rows
+    // except `pivot_row`).
     ConcurrentProcess(
         0, a_mat->row_size(),
-        [a_mat, b_mat, pivot](size_type row) {
-          if (row != pivot) {
-            value_type scaler = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
-            a_mat->elementary_row_add(row, pivot, scaler);
+        [a_mat, b_mat, pivot_row, pivot_column](size_type row) {
+          if (row != pivot_row) {
+            value_type scaler = -(*a_mat)[row][pivot_column] /
+                (*a_mat)[pivot_row][pivot_column];
+            a_mat->elementary_row_add(row, pivot_row, scaler);
             if (b_mat) {
-              b_mat->elementary_row_add(row, pivot, scaler);
+              b_mat->elementary_row_add(row, pivot_row, scaler);
             }
           }
-        });
+        }, &futures);
 
     // Normalizes row `pivot`.
-    value_type scaler = 1 / (*a_mat)[pivot][pivot];
-    a_mat->elementary_row_multiply(pivot, scaler, is_zero);
+    value_type scaler = 1 / (*a_mat)[pivot_row][pivot_column];
+    a_mat->elementary_row_multiply(pivot_row, scaler, is_zero);
     if (b_mat) {
-      b_mat->elementary_row_multiply(pivot, scaler, is_zero);
+      b_mat->elementary_row_multiply(pivot_row, scaler, is_zero);
     }
+
+    ++pivot_row;
   }
 }
 
@@ -117,7 +122,7 @@ void GaussJordanEliminate(
 // returns: rank of coefficient_matrix.
 template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
           typename IsZero = TrivialIsZero<T>>
-std::size_t GaussEliminate(
+typename Matrix<T>::size_type GaussEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
     AbsoluteLess absolute_less = AbsoluteLess(),
@@ -133,45 +138,46 @@ std::size_t GaussEliminate(
   typedef typename Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
 
-  std::size_t rank = 0;
-  size_type dimension = std::min(a_mat->row_size(), a_mat->column_size());
-  for (size_type pivot = 0; pivot < dimension; ++pivot) {
+  size_type pivot_row = 0, pivot_column = 0;
+  for (; pivot_row < a_mat->row_size() &&
+      pivot_column < a_mat->column_size(); ++pivot_column) {
     // Finds max (absolute) value of current column.
     auto max_iter = std::max_element(
-        a_mat->column_begin(pivot) + pivot, a_mat->column_end(pivot),
+        a_mat->column_begin(pivot_column) + pivot_row,
+        a_mat->column_end(pivot_column),
         absolute_less);
-    size_type max_row = max_iter - a_mat->column_begin(pivot);
-    if (is_zero((*a_mat)[max_row][pivot])) {
+    size_type max_row = max_iter - a_mat->column_begin(pivot_column);
+    if (is_zero((*a_mat)[max_row][pivot_column])) {
       continue;
     }
 
-    // Switches `max_row` to `pivot` row.
-    a_mat->elementary_row_switch(pivot, max_row);
+    // Switches `max_row` to `pivot_row`.
+    a_mat->elementary_row_switch(pivot_row, max_row);
     if (b_mat) {
-      b_mat->elementary_row_switch(pivot, max_row);
+      b_mat->elementary_row_switch(pivot_row, max_row);
     }
 
-    // Concurrently eliminates column `pivot`'s coefficients (in all rows
-    // except row `pivot`).
+    // Concurrently eliminates `pivot_column`'s coefficients (in all rows
+    // except `pivot_row`).
     ConcurrentProcess(
-        pivot + 1, a_mat->row_size(),
-        [&a_mat, &b_mat, pivot](size_type row) {
-          value_type scaler = -(*a_mat)[row][pivot] / (*a_mat)[pivot][pivot];
-          for (size_type column = pivot + 1;
+        pivot_row + 1, a_mat->row_size(),
+        [a_mat, b_mat, pivot_row, pivot_column](size_type row) {
+          value_type scaler = -(*a_mat)[row][pivot_column] /
+              (*a_mat)[pivot_row][pivot_column];
+          for (size_type column = pivot_column + 1;
               column < a_mat->column_size(); ++column) {
-            (*a_mat)[row][column] += scaler * (*a_mat)[pivot][column];
+            (*a_mat)[row][column] += scaler * (*a_mat)[pivot_row][column];
           }
-          (*a_mat)[row][pivot] = value_type(0);
+          (*a_mat)[row][pivot_column] = value_type(0);
 
           if (b_mat) {  // Does the same row operation to b_mat.
-            b_mat->elementary_row_add(row, pivot, scaler);
+            b_mat->elementary_row_add(row, pivot_row, scaler);
           }
         }, &futures);
 
-    // Updates matrix meta-information.
-    ++rank;
+    ++pivot_row;
   }
-  return rank;
+  return pivot_row;
 }
 
 }  // namespace math
