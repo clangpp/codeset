@@ -14,17 +14,6 @@
 
 namespace math {
 
-template <typename T>
-void CheckAugmentable(const Matrix<T>& mat, const Matrix<T>& extra) {
-  if (mat.row_size() != extra.row_size()) {
-    std::stringstream ss;
-    ss << "Equal row size expected, actual "
-        << "(" << mat.row_size() << ", " << mat.column_size() << ") vs "
-        << "(" << extra.row_size() << ", " << extra.column_size() << ")";
-    throw std::runtime_error(ss.str());
-  }
-}
-
 void ConcurrentProcess(std::size_t first, std::size_t last,
                        std::function<void(std::size_t)> process,
                        std::vector<std::future<void>>* helper_futures) {
@@ -72,7 +61,7 @@ void GaussJordanEliminate(
     AbsoluteLess absolute_less = AbsoluteLess(),
     IsZero is_zero = IsZero()) {
   if (extra_matrix) {
-    CheckAugmentable(*coefficient_matrix, *extra_matrix);
+    matrix::CheckAugmentable(*coefficient_matrix, *extra_matrix);
   }
 
   // Helpers
@@ -134,7 +123,7 @@ std::size_t GaussEliminate(
     AbsoluteLess absolute_less = AbsoluteLess(),
     IsZero is_zero = IsZero()) {
   if (extra_matrix) {
-    CheckAugmentable(*coefficient_matrix, *extra_matrix);
+    matrix::CheckAugmentable(*coefficient_matrix, *extra_matrix);
   }
 
   // Helpers
