@@ -1,5 +1,5 @@
-#ifndef MATH_H_
-#define MATH_H_
+#ifndef LINEAR_ALGEBRA_H_
+#define LINEAR_ALGEBRA_H_
 
 #include <algorithm>
 #include <cmath>
@@ -12,7 +12,7 @@
 
 #include "../../../matrix/src/matrix/matrix.h"
 
-namespace math {
+namespace linear_algebra {
 
 void ConcurrentProcess(std::size_t first, std::size_t last,
                        std::function<void(std::size_t)> process,
@@ -190,6 +190,6 @@ void GaussJordanEliminate(
       is_zero);
 }
 
-}  // namespace math
+}  // namespace linear_algebra
 
-#endif  // MATH_H_
+#endif  // LINEAR_ALGEBRA_H_

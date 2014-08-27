@@ -1,4 +1,4 @@
-#include "math.h"
+#include "linear_algebra.h"
 
 #include <cassert>
 #include <cmath>
@@ -18,7 +18,7 @@ void TestGaussEliminate() {
     {4},
     {5},
   };
-  size_t rank = math::GaussEliminate(&a, &aa);
+  size_t rank = linear_algebra::GaussEliminate(&a, &aa);
   assert(2 == rank);
   assert(a.equal_to({
         {2, 3},
@@ -38,7 +38,7 @@ void TestGaussEliminate() {
     {2},
     {7},
   };
-  rank = math::GaussEliminate(&b, &bb);
+  rank = linear_algebra::GaussEliminate(&b, &bb);
   assert(3 == rank);
   assert(b.equal_to({
         {3, 2, 6},
@@ -56,7 +56,7 @@ void TestGaussEliminate() {
     {3, 2, 6},
     {2, 4, 8},
   };
-  rank = math::GaussEliminate(&c);
+  rank = linear_algebra::GaussEliminate(&c);
   assert(3 == rank);
   assert(c.equal_to({
         {3, 2, 6},
@@ -69,7 +69,7 @@ void TestGaussEliminate() {
     {4, 5, 6},
     {2, 4, 6},
   };
-  rank = math::GaussEliminate(&d);
+  rank = linear_algebra::GaussEliminate(&d);
   assert(2 == rank);
 
   Matrix<double> e = {
@@ -77,7 +77,7 @@ void TestGaussEliminate() {
     {0, 0, 0, 1},
     {0, 0, 1, 0},
   };
-  rank = math::GaussEliminate(&e);
+  rank = linear_algebra::GaussEliminate(&e);
   assert(3 == rank);
   assert(e.equal_to({
         {1, 0, 0, 0},
@@ -92,8 +92,8 @@ void TestGaussEliminate() {
   };
   typedef Matrix<double>::size_type size_type;
   vector<size_type> pivot_columns;
-  rank = math::GaussEliminate<double>(
-      &f, nullptr, &pivot_columns, math::kReducedRowEchelonForm);
+  rank = linear_algebra::GaussEliminate<double>(
+      &f, nullptr, &pivot_columns, linear_algebra::kReducedRowEchelonForm);
   assert(3 == rank);
   assert(vector<size_type>({0, 2, 3}) == pivot_columns);
   assert(f.equal_to({
@@ -113,7 +113,7 @@ void TestGaussJordanEliminate() {
     {8},
   };
 
-  math::GaussJordanEliminate(&a, &aa);
+  linear_algebra::GaussJordanEliminate(&a, &aa);
 
   assert(a.equal_to({
         {1, 0},
@@ -139,7 +139,7 @@ void TestGaussJordanEliminate() {
     {20},
   };
 
-  math::GaussJordanEliminate(&b, &bb);
+  linear_algebra::GaussJordanEliminate(&b, &bb);
 
   assert(b.equal_to({
         {1, 0, 0},
@@ -171,7 +171,7 @@ void TestGaussJordanEliminate() {
     {14},
   };
 
-  math::GaussJordanEliminate(&c, &cc);
+  linear_algebra::GaussJordanEliminate(&c, &cc);
 
   assert(c.equal_to({
         {1, 0, 0},
@@ -197,7 +197,7 @@ void TestGaussJordanEliminate() {
     {25},
   };
 
-  math::GaussJordanEliminate(&d, &dd);
+  linear_algebra::GaussJordanEliminate(&d, &dd);
 
   assert(d.equal_to({
         {1, 0, -1},
@@ -209,9 +209,9 @@ void TestGaussJordanEliminate() {
       }, EQ));
 
   Matrix<double> e(3, 0);
-  math::GaussJordanEliminate(&e);
+  linear_algebra::GaussJordanEliminate(&e);
 
-  math::GaussJordanEliminate<double>(
+  linear_algebra::GaussJordanEliminate<double>(
       &e, nullptr, nullptr,
       [](const double& a, const double& b) {
         return abs(a) < abs(b);
@@ -223,7 +223,7 @@ void TestGaussJordanEliminate() {
     {0, 0, 0, 1},
     {0, 0, 1, 0},
   };
-  math::GaussJordanEliminate(&f);
+  linear_algebra::GaussJordanEliminate(&f);
   assert(f.equal_to({
         {1, 0, 0, 0},
         {0, 0, 1, 0},
