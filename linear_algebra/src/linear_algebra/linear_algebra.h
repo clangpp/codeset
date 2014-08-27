@@ -175,13 +175,13 @@ typename Matrix<T>::size_type GaussEliminate(
 //  e.g. is_zero(double v) -> std::abs(v) < 1e-6;
 template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
           typename IsZero = TrivialIsZero<T>>
-void GaussJordanEliminate(
+typename Matrix<T>::size_type GaussJordanEliminate(
     Matrix<T>* coefficient_matrix,
     Matrix<T>* extra_matrix = nullptr,
     std::vector<typename Matrix<T>::size_type>* pivot_columns = nullptr,
     AbsoluteLess absolute_less = AbsoluteLess(),
     IsZero is_zero = IsZero()) {
-  GaussEliminate(
+  return GaussEliminate(
       coefficient_matrix,
       extra_matrix,
       pivot_columns,

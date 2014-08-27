@@ -104,6 +104,8 @@ void TestGaussEliminate() {
 }
 
 void TestGaussJordanEliminate() {
+  std::size_t rank = 0;
+
   // 8, -2
   Matrix<double> a = {
     {3, 9},
@@ -112,9 +114,8 @@ void TestGaussJordanEliminate() {
     {6},
     {8},
   };
-
-  linear_algebra::GaussJordanEliminate(&a, &aa);
-
+  rank = linear_algebra::GaussJordanEliminate(&a, &aa);
+  assert(2 == rank);
   assert(a.equal_to({
         {1, 0},
         {0, 1}
@@ -138,9 +139,8 @@ void TestGaussJordanEliminate() {
     {37},
     {20},
   };
-
-  linear_algebra::GaussJordanEliminate(&b, &bb);
-
+  rank = linear_algebra::GaussJordanEliminate(&b, &bb);
+  assert(3 == rank);
   assert(b.equal_to({
         {1, 0, 0},
         {0, 1, 0},
@@ -170,9 +170,8 @@ void TestGaussJordanEliminate() {
     {22},
     {14},
   };
-
-  linear_algebra::GaussJordanEliminate(&c, &cc);
-
+  rank = linear_algebra::GaussJordanEliminate(&c, &cc);
+  assert(3 == rank);
   assert(c.equal_to({
         {1, 0, 0},
         {0, 1, 0},
@@ -196,9 +195,8 @@ void TestGaussJordanEliminate() {
     {29},
     {25},
   };
-
-  linear_algebra::GaussJordanEliminate(&d, &dd);
-
+  rank = linear_algebra::GaussJordanEliminate(&d, &dd);
+  assert(2 == rank);
   assert(d.equal_to({
         {1, 0, -1},
         {0, 1, 2},
@@ -209,21 +207,24 @@ void TestGaussJordanEliminate() {
       }, EQ));
 
   Matrix<double> e(3, 0);
-  linear_algebra::GaussJordanEliminate(&e);
+  rank = linear_algebra::GaussJordanEliminate(&e);
+  assert(0 == rank);
 
-  linear_algebra::GaussJordanEliminate<double>(
+  rank = linear_algebra::GaussJordanEliminate<double>(
       &e, nullptr, nullptr,
       [](const double& a, const double& b) {
         return abs(a) < abs(b);
       },
       [](const double& v) { return abs(v) < 1e-6; });
+  assert(0 == rank);
 
   Matrix<double> f = {
     {1, 0, 0, 0},
     {0, 0, 0, 1},
     {0, 0, 1, 0},
   };
-  linear_algebra::GaussJordanEliminate(&f);
+  rank = linear_algebra::GaussJordanEliminate(&f);
+  assert(3 == rank);
   assert(f.equal_to({
         {1, 0, 0, 0},
         {0, 0, 1, 0},
