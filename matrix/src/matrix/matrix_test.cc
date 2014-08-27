@@ -511,6 +511,28 @@ void TestComparasions() {
       }));
 }
 
+void TestArithmetrics_Temporaries() {
+  cout << "prepare a, b, c, scaler, expected" << endl;
+  Matrix<int> a = {
+    {1, 2},
+    {3, 4},
+  }, b = {
+    {2, 3},
+    {4, 5},
+  }, c = {
+    {1, 1},
+    {1, 1},
+  }, expected = {
+    {2, 2},
+    {2, 2},
+  };
+  int scaler = 3;
+  cout << "Matrix<int> d = std::move(c) * scaler + a - b;" << endl;
+  Matrix<int> d = std::move(c) * scaler + a - b;
+  assert(d.equal_to(expected));
+  cout << "done." << endl;
+}
+
 int main(int argc, char* argv[]) {
   TestConstructors();
   TestObservers();
@@ -526,5 +548,6 @@ int main(int argc, char* argv[]) {
   TestConcurrentSpeed();
   TestElementaryOperations();
   TestComparasions();
+  TestArithmetrics_Temporaries();
   return 0;
 }
