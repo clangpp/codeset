@@ -533,6 +533,20 @@ void TestArithmetrics_Temporaries() {
   cout << "done." << endl;
 }
 
+void TestPrint() {
+  Matrix<int> a = {
+    {1, 2},
+    {3, 4},
+    {5, 6},
+  }, b = {
+    {7, 8, 9},
+    {10, 11, 12},
+    {13, 14, 15},
+  };
+  matrix::Print(a, &cout);
+  matrix::PrintAugmented(a, b, &cout);
+}
+
 int main(int argc, char* argv[]) {
   TestConstructors();
   TestObservers();
@@ -549,5 +563,6 @@ int main(int argc, char* argv[]) {
   TestElementaryOperations();
   TestComparasions();
   TestArithmetrics_Temporaries();
+  TestPrint();
   return 0;
 }

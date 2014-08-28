@@ -162,7 +162,7 @@ template <typename T>
 void Print(const Matrix<T>& mat, std::ostream* os) {
   typedef typename Matrix<T>::size_type size_type;
   for (size_type row = 0; row < mat.row_size(); ++row) {
-    for (size_type column = 0; column < mat.row_size(); ++column) {
+    for (size_type column = 0; column < mat.column_size(); ++column) {
       (*os) << mat[row][column] << " ";
     }
     (*os) << "\n";
@@ -175,11 +175,11 @@ void PrintAugmented(const Matrix<T>& coef, const Matrix<T>& extra,
   CheckAugmentable(coef, extra);
   typedef typename Matrix<T>::size_type size_type;
   for (size_type row = 0; row < coef.row_size(); ++row) {
-    for (size_type column = 0; column < coef.row_size(); ++column) {
+    for (size_type column = 0; column < coef.column_size(); ++column) {
       (*os) << coef[row][column] << " ";
     }
     (*os) << "| ";
-    for (size_type column = 0; column < extra.row_size(); ++column) {
+    for (size_type column = 0; column < extra.column_size(); ++column) {
       (*os) << extra[row][column] << " ";
     }
     (*os) << "\n";
