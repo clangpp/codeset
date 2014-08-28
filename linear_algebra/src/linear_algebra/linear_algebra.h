@@ -190,6 +190,68 @@ typename Matrix<T>::size_type GaussJordanEliminate(
       is_zero);
 }
 
+// NOTE: none of input matrices should be nullptr.
+template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
+          typename IsZero = TrivialIsZero<T>>
+bool SolveLinearSystem(
+    Matrix<T>* coefficient_matrix,
+    Matrix<T>* constant_column_vector,
+    Matrix<T>* null_space,
+    Matrix<T>* particular_solution,
+    AbsoluteLess absolute_less = AbsoluteLess(),
+    IsZero is_zero = IsZero()) {
+  typedef typename Matrix<T>::size_type size_type;
+  typedef typename Matrix<T>::value_type value_type;
+
+  // Gauss elimination to reduced row echelon form.
+  std::vector<size_type> pivot_columns;
+  size_type rank = GaussEliminate(
+      coefficient_matrix,
+      constant_column_vector,
+      &pivot_columns,
+      kReducedRowEchelonForm,
+      absolute_less,
+      is_zero);
+
+  // Checks if system has 0 solutions.
+  for (size_type row = rank; row < constant_column_vector->row_size(); ++row) {
+    if (!is_zero((*constant_column_vector)[row][0])) {
+      return false;  // non-zero constant after `rank` row, no solution.
+    }
+  }
+
+  // Makes null space of coefficient matrix.
+  // A -> R=[I F], N(A)=N(R)=[-F I]^T
+  null_space->column_resize(0);
+  null_space->row_resize(coefficient_matrix->column_size());
+  null_space->column_resize(coefficient_matrix->column_size() - rank);
+  for (size_type var_pos = 0, pivot_index = 0, free_index = 0;
+      var_pos < coefficient_matrix->column_size(); ++var_pos) {
+    if (pivot_index < pivot_columns.size() &&
+        var_pos == pivot_columns[pivot_index]) {  // pivot variable
+      ++pivot_index;
+    } else {  // free variable
+      for (size_type row = 0; row < rank; ++row) {  // -F
+        (*null_space)[pivot_columns[row]][free_index] =
+            -(*coefficient_matrix)[row][var_pos];
+      }
+      (*null_space)[var_pos][free_index] = value_type(1);  // I
+      ++free_index;
+    }
+  }
+
+  // Makes particular solution.
+  particular_solution->column_resize(0);
+  particular_solution->row_resize(coefficient_matrix->column_size());
+  particular_solution->column_resize(1);
+  for (std::size_t pivot = 0; pivot < pivot_columns.size(); ++pivot) {
+    (*particular_solution)[pivot_columns[pivot]][0] =
+        (*constant_column_vector)[pivot][0];
+  }
+
+  return true;  // System has at least one solution.
+}
+
 }  // namespace linear_algebra
 
 #endif  // LINEAR_ALGEBRA_H_

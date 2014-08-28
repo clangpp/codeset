@@ -232,8 +232,38 @@ void TestGaussJordanEliminate() {
       }, EQ));
 }
 
+void TestSolveLinearSystem() {
+  Matrix<double> a = {
+    {1, 2, 2, 2},
+    {2, 4, 6, 8},
+    {3, 6, 8, 10},
+  }, b = {
+    {1},
+    {5},
+    {6},
+  }, null_space, particular_solution;
+  bool solvable = linear_algebra::SolveLinearSystem(
+      &a, &b, &null_space, &particular_solution,
+      linear_algebra::TrivialAbsLess<double>(),
+      [](double value) { return std::abs(value) < 1e-6; });
+  assert(solvable);
+  assert(null_space.equal_to({
+        {-2, 2},
+        {1, 0},
+        {0, -2},
+        {0, 1},
+      }, EQ));
+  assert(particular_solution.equal_to({
+        {-2},
+        {0},
+        {3.0/2},
+        {0},
+      }, EQ));
+}
+
 int main(int argc, char* argv[]) {
   TestGaussEliminate();
   TestGaussJordanEliminate();
+  TestSolveLinearSystem();
   return 0;
 }
