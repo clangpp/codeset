@@ -401,7 +401,7 @@ void TestArithmetrics_MultiplyByMatrix() {
 }
 
 void TestConcurrentSpeed() {
-  typedef chrono::system_clock clock;
+  using clock = chrono::system_clock;
   clock::time_point start, stop;
   chrono::microseconds microsecs;
   size_t num_row = 1000, num_column = 100000;

@@ -160,7 +160,7 @@ inline void ConcurrentProcess(std::size_t count,
 
 template <typename T>
 void Print(const Matrix<T>& mat, std::ostream* os) {
-  typedef typename Matrix<T>::size_type size_type;
+  using size_type = typename Matrix<T>::size_type;
   for (size_type row = 0; row < mat.row_size(); ++row) {
     for (size_type column = 0; column < mat.column_size(); ++column) {
       (*os) << mat[row][column] << " ";
@@ -173,7 +173,7 @@ template <typename T>
 void PrintAugmented(const Matrix<T>& coef, const Matrix<T>& extra,
                     std::ostream* os) {
   CheckAugmentable(coef, extra);
-  typedef typename Matrix<T>::size_type size_type;
+  using size_type = typename Matrix<T>::size_type;
   for (size_type row = 0; row < coef.row_size(); ++row) {
     for (size_type column = 0; column < coef.column_size(); ++column) {
       (*os) << coef[row][column] << " ";
@@ -191,27 +191,27 @@ void PrintAugmented(const Matrix<T>& coef, const Matrix<T>& extra,
 template <typename T>
 class Matrix {
  public:
-  typedef T value_type;
-  typedef T& reference;
-  typedef const T& const_reference;
-  typedef T* pointer;
-  typedef std::size_t size_type;
-  typedef std::ptrdiff_t difference_type;
+  using value_type = T;
+  using reference = T&;
+  using const_reference = const T&;
+  using pointer = T*;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
 
   // ==== Iterators ====
 
-  typedef typename std::vector<value_type>::iterator row_iterator;
-  typedef typename std::vector<value_type>::const_iterator const_row_iterator;
+  using row_iterator = typename std::vector<value_type>::iterator;
+  using const_row_iterator = typename std::vector<value_type>::const_iterator;
 
   template <typename Container, typename ValueType>
   class basic_column_iterator:
       public std::iterator<std::random_access_iterator_tag, ValueType> {
    public:
-    typedef basic_column_iterator self;
-    typedef std::iterator<std::random_access_iterator_tag, ValueType> base;
-    typedef typename base::difference_type difference_type;
-    typedef typename base::pointer pointer;
-    typedef typename base::reference reference;
+    using self = basic_column_iterator;
+    using base = std::iterator<std::random_access_iterator_tag, ValueType>;
+    using difference_type = typename base::difference_type;
+    using pointer = typename base::pointer;
+    using reference = typename base::reference;
 
     // ==== InputIterator requirements ====
 
@@ -660,7 +660,7 @@ class Matrix {
       return false;
     }
     std::vector<std::future<bool>> futures(row_size());
-    typedef typename Matrix<T>::size_type size_type;
+    using size_type = typename Matrix<T>::size_type;
     for (size_type row = 0; row < row_size(); ++row) {
       futures[row] = std::async(
           std::launch::async,
@@ -722,7 +722,7 @@ template <typename T>
 Matrix<T> operator-(const Matrix<T>& lhs, Matrix<T>&& rhs) {
   matrix::CheckDimensionMatches(lhs, rhs);
   Matrix<T> result(std::move(rhs));
-  typedef typename Matrix<T>::size_type size_type;
+  using size_type = typename Matrix<T>::size_type;
   matrix::ConcurrentProcess(
       result.row_size(),
       [&lhs, &result](size_type row) mutable {
