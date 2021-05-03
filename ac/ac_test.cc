@@ -1,4 +1,3 @@
-// test.cpp
 #include "ac.h"
 
 #include <cstdlib>
