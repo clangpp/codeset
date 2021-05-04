@@ -48,7 +48,7 @@ struct TrieNode {
     }
   }
 
-  bool has_value() const { return pvalue_ != NULL; }
+  bool has_value() const { return pvalue_ != nullptr; }
   value_type& value() {
     if (!has_value()) {
       throw std::runtime_error("TrieNode::value(): no value error");
@@ -68,7 +68,7 @@ struct TrieNode {
       return;
     }
     delete pvalue_;
-    pvalue_ = NULL;
+    pvalue_ = nullptr;
   }
 
   bool eos() const { return has_value(); }
@@ -167,7 +167,7 @@ class Automation {
     eos_node = &root_;
     for (; first != last; ++first) {
       node_pointer& s = eos_node->children[*first];
-      if (NULL == s) s = new node();
+      if (nullptr == s) s = new node();
       s->parent = eos_node;
       s->route = *first;
       s->height = eos_node->height + 1;
@@ -429,7 +429,7 @@ class TrieMap : public Automation<Character, T> {
    public:
     basic_iterator(node_pointer p, child_iterator pos)
         : parent_(p), position_(pos) {}
-    basic_iterator() : parent_(NULL), position_() {}
+    basic_iterator() = default;
     basic_iterator(const iterator& other)
         : parent_(other.parent_),
           position_(other.position_),
@@ -440,9 +440,9 @@ class TrieMap : public Automation<Character, T> {
       if (path_.empty()) {  // calculate once
         node_pointer p = parent_;
         child_iterator pos = position_;
-        path_.push_back(pos->first);  // nearest route
-        while (p->parent != NULL) {   // back search
-          path_.push_back(p->route);  // record route
+        path_.push_back(pos->first);    // nearest route
+        while (p->parent != nullptr) {  // back search
+          path_.push_back(p->route);    // record route
           pos = p->parent->children.find(p->route);
           p = p->parent;
         }
@@ -464,8 +464,8 @@ class TrieMap : public Automation<Character, T> {
     bool next();      // move to next node  // TBD.
     bool next_eos();  // move to next eos node  // TBD.
    private:
-    node_pointer parent_;
-    child_iterator position_;
+    node_pointer parent_ = nullptr;
+    child_iterator position_ = {};
     mutable key_type path_;  // it is const_iterator who push me to
                              // use 'mutable'!
   };
@@ -565,7 +565,7 @@ class TrieMap : public Automation<Character, T> {
   template <typename InputIterator>
   mapped_type& operator[](
       const std::pair<InputIterator, InputIterator>& range) {
-    node_pointer p = NULL;
+    node_pointer p = nullptr;
     base::insert(range.first, range.second, mapped_type(), p);
     return p->value();
   }
@@ -612,13 +612,13 @@ class SubsequenceSet : public TrieMap<Character, Mapped> {
    public:
     typedef std::pair<BidirectionalIterator, BidirectionalIterator> base;
     match_result(BidirectionalIterator first, BidirectionalIterator last,
-                 node_pointer pnode = NULL)
+                 node_pointer pnode = nullptr)
         : base(first, last), pnode_(pnode) {}
-    match_result() : base(), pnode_(NULL) {}
+    match_result() = default;
     mapped_type& mapped() { return pnode_->value(); }
 
    private:
-    node_pointer pnode_;
+    node_pointer pnode_ = nullptr;
   };
 
   template <typename BidirectionalIterator, typename Character1,
@@ -736,7 +736,7 @@ class SubsequenceIterator {
   }
 
   // check whether this is end-of-sequence iterator
-  bool end_of_sequence() const { return NULL == psubset_ || !found_; }
+  bool end_of_sequence() const { return nullptr == psubset_ || !found_; }
 
  private:
   sequence_iterator begin_;
