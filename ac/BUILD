@@ -1,6 +1,7 @@
 cc_library(
     name = "ac",
     hdrs = ["ac.h"],
+    visibility = ["//visibility:public"],
 )
 
 cc_test(

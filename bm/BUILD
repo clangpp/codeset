@@ -1,6 +1,7 @@
 cc_library(
     name = "bm",
     hdrs = ["bm.h"],
+    visibility = ["//visibility:public"],
 )
 
 cc_test(

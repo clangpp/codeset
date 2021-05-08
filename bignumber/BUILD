@@ -1,6 +1,7 @@
 cc_library(
     name = "bignumber",
     hdrs = ["bignumber.h"],
+    visibility = ["//visibility:public"],
 )
 
 cc_test(
