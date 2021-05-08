@@ -1,6 +1,7 @@
 cc_library(
     name = "crosslist",
     hdrs = ["crosslist.h"],
+    visibility = ["//visibility:public"],
 )
 
 cc_test(
