@@ -1,34 +1,24 @@
 #ifndef MATRIX_H_
 #define MATRIX_H_
 
-// Author: clangpp@gmail.com
-//
-// Intention:
-// 1. C++11 r-value reference is already released and well supported, it's time
-// to write a matrix class to take advantage of that, to perform space-cheaper
-// matrix arithmetics.
-// 2. C++11 std::async() is a powerful tool to perform concurrent operations,
-// it can be used to make full use of multi-core CPU's power, to perform
-// time-faster matrix arithmetrics.
-
 #include <algorithm>
-#include <cstddef>  // size_t, ptrdiff_t
+#include <cstddef>
 #include <functional>
 #include <future>
 #include <initializer_list>
+#include <iostream>
 #include <iterator>
 #include <numeric>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
-#include <utility>  // move(), make_pair(), swap()
+#include <utility>
 #include <vector>
 
-#include <iostream>  // debug
-
-template <typename T> class Matrix;
-
 namespace matrix {
+
+template <typename T>
+class Matrix;
 
 template <typename T>
 void CheckDimensionMatches(const Matrix<T>& lhs, const Matrix<T>& rhs) {
@@ -36,8 +26,8 @@ void CheckDimensionMatches(const Matrix<T>& lhs, const Matrix<T>& rhs) {
       lhs.column_size() != rhs.column_size()) {
     std::stringstream ss;
     ss << "Matrices dimensions don't match: "
-      << "(" << lhs.row_size() << ", " << lhs.column_size() << ") vs "
-      << "(" << rhs.row_size() << ", " << rhs.column_size() << ")";
+       << "(" << lhs.row_size() << ", " << lhs.column_size() << ") vs "
+       << "(" << rhs.row_size() << ", " << rhs.column_size() << ")";
     throw std::runtime_error(ss.str());
   }
 }
@@ -47,15 +37,14 @@ void CheckDimensionMultipliable(const Matrix<T>& lhs, const Matrix<T>& rhs) {
   if (lhs.column_size() != rhs.row_size()) {
     std::stringstream ss;
     ss << "Matrices dimensions not multipliable: "
-      << "(" << lhs.row_size() << ", " << lhs.column_size() << ") vs "
-      << "(" << rhs.row_size() << ", " << rhs.column_size() << ")";
+       << "(" << lhs.row_size() << ", " << lhs.column_size() << ") vs "
+       << "(" << rhs.row_size() << ", " << rhs.column_size() << ")";
     throw std::runtime_error(ss.str());
   }
 }
 
 template <typename T>
-void CheckIndicesRange(const Matrix<T>& mat,
-                       typename Matrix<T>::size_type row,
+void CheckIndicesRange(const Matrix<T>& mat, typename Matrix<T>::size_type row,
                        typename Matrix<T>::size_type column) {
   if (row >= mat.row_size() || column >= mat.column_size()) {
     std::stringstream ss;
@@ -88,9 +77,7 @@ void CheckColumnRange(const Matrix<T>& mat,
 
 template <typename T>
 struct TrivialIsZero {
-  bool operator()(const T& value) {
-    return value == 0;
-  }
+  bool operator()(const T& value) { return value == 0; }
 };
 
 // T: StreamOutputable
@@ -112,8 +99,7 @@ void CheckIndicesNotEqual(size_t index1, size_t index2) {
 }
 
 template <typename T>
-void CheckColumnSizesEqual(
-    std::initializer_list<std::initializer_list<T>> il) {
+void CheckColumnSizesEqual(std::initializer_list<std::initializer_list<T>> il) {
   auto iter = std::adjacent_find(
       il.begin(), il.end(),
       [](std::initializer_list<T> lhs, std::initializer_list<T> rhs) {
@@ -123,8 +109,8 @@ void CheckColumnSizesEqual(
     auto diff = iter + 1;  // std::adjacent_find() tells us *iter != *(iter+1)
     std::stringstream ss;
     ss << "Each row should have the same column size: "
-        << "row " << (diff - il.begin()) << "'s column size " << diff->size()
-        << " vs previous rows' column size " << iter->size();
+       << "row " << (diff - il.begin()) << "'s column size " << diff->size()
+       << " vs previous rows' column size " << iter->size();
     throw std::invalid_argument(ss.str());
   }
 }
@@ -134,8 +120,8 @@ void CheckAugmentable(const Matrix<T>& coef, const Matrix<T>& extra) {
   if (coef.row_size() != extra.row_size()) {
     std::stringstream ss;
     ss << "Equal row size expected, actual "
-        << "(" << coef.row_size() << ", " << coef.column_size() << ") vs "
-        << "(" << extra.row_size() << ", " << extra.column_size() << ")";
+       << "(" << coef.row_size() << ", " << coef.column_size() << ") vs "
+       << "(" << extra.row_size() << ", " << extra.column_size() << ")";
     throw std::runtime_error(ss.str());
   }
 }
@@ -186,8 +172,6 @@ void PrintAugmented(const Matrix<T>& coef, const Matrix<T>& extra,
   }
 }
 
-}  // namespace matrix
-
 template <typename T>
 class Matrix {
  public:
@@ -204,8 +188,8 @@ class Matrix {
   typedef typename std::vector<value_type>::const_iterator const_row_iterator;
 
   template <typename Container, typename ValueType>
-  class basic_column_iterator:
-      public std::iterator<std::random_access_iterator_tag, ValueType> {
+  class basic_column_iterator
+      : public std::iterator<std::random_access_iterator_tag, ValueType> {
    public:
     typedef basic_column_iterator self;
     typedef std::iterator<std::random_access_iterator_tag, ValueType> base;
@@ -216,8 +200,8 @@ class Matrix {
     // ==== InputIterator requirements ====
 
     bool operator==(const self& other) const {
-      return (data_ == other.data_ && row_ == other.row_ &&
-              column_ == other.column_);
+      return data_ == other.data_ && row_ == other.row_ &&
+             column_ == other.column_;
     }
     bool operator!=(const self& other) const { return !(*this == other); }
     reference operator*() const { return (*data_)[row_][column_]; }
@@ -241,7 +225,7 @@ class Matrix {
       --row_;
       return *this;
     }
-    self operator--(int){
+    self operator--(int) {
       self result(*this);
       --*this;
       return result;
@@ -273,41 +257,40 @@ class Matrix {
     bool operator>(const self& other) const { return other < *this; }
     bool operator>=(const self& other) const { return !(*this < other); }
     bool operator<=(const self& other) const { return !(*this > other); }
+
    private:
     friend class Matrix;
     basic_column_iterator(Container* data, size_type row, size_type column)
-      : data_(data), row_(row), column_(column) {
-    }
+        : data_(data), row_(row), column_(column) {}
     Container* data_;
     size_type row_;
     size_type column_;
   };
-  typedef basic_column_iterator<
-      std::vector<std::vector<value_type>>, value_type> column_iterator;
-  typedef basic_column_iterator<
-      const std::vector<std::vector<value_type>>, const value_type>
+  typedef basic_column_iterator<std::vector<std::vector<value_type>>,
+                                value_type>
+      column_iterator;
+  typedef basic_column_iterator<const std::vector<std::vector<value_type>>,
+                                const value_type>
       const_column_iterator;
 
  private:
   // inner class, used for implementing `mat[i][j]` access pattern.
   class BracketBridge {
    public:
-    reference operator[](size_type index) {
-      return (*vec_)[index];
-    }
+    reference operator[](size_type index) { return (*vec_)[index]; }
+
    private:
     friend class Matrix;
-    BracketBridge(std::vector<value_type>* vec): vec_(vec) {}
+    BracketBridge(std::vector<value_type>* vec) : vec_(vec) {}
     std::vector<value_type>* vec_;
   };
   class ConstBracketBridge {
    public:
-    const_reference operator[](size_type index) const {
-      return (*vec_)[index];
-    }
+    const_reference operator[](size_type index) const { return (*vec_)[index]; }
+
    private:
     friend class Matrix;
-    ConstBracketBridge(const std::vector<value_type>* vec): vec_(vec) {}
+    ConstBracketBridge(const std::vector<value_type>* vec) : vec_(vec) {}
     const std::vector<value_type>* vec_;
   };
 
@@ -315,18 +298,12 @@ class Matrix {
   // ==== Constructors and (default) Destructor ====
 
   Matrix(size_type row_size, size_type column_size,
-                  const value_type& filled = value_type())
-    : data_(row_size, std::vector<value_type>(column_size, filled)),
-      column_size_(column_size) {
-    std::clog << "Matrix::Matrix(size_type, size_type, const value_type&)"
-        << std::endl;
-  }
+         const value_type& filled = value_type())
+      : data_(row_size, std::vector<value_type>(column_size, filled)),
+        column_size_(column_size) {}
 
   Matrix(std::initializer_list<std::initializer_list<value_type>> il)
-    : column_size_(0) {
-    std::clog << "Matrix::Matrix("
-        << "std::initializer_list<std::initializer_list<value_type>>)"
-        << std::endl;
+      : column_size_(0) {
     matrix::CheckColumnSizesEqual(il);
     for (auto row_il : il) {
       data_.emplace_back(row_il);
@@ -336,25 +313,19 @@ class Matrix {
     }
   }
 
-  Matrix(): column_size_(0) {
-    std::clog << "Matrix::Matrix()" << std::endl;
-  }
+  Matrix() : column_size_(0) {}
 
   Matrix(const Matrix& other)
-    : data_(other.data_), column_size_(other.column_size_) {
-    std::clog << "Matrix::Matrix(const Matrix&)" << std::endl;
-  }
+      : data_(other.data_), column_size_(other.column_size_) {}
 
   Matrix(Matrix&& other)
-    : data_(std::move(other.data_)), column_size_(other.column_size_) {
+      : data_(std::move(other.data_)), column_size_(other.column_size_) {
     other.column_size_ = 0;
-    std::clog << "Matrix::Matrix(Matrix&&)" << std::endl;
   }
 
   // ==== Assignment operator ====
 
   Matrix& operator=(const Matrix& other) {
-    std::clog << "Matrix::operator=(const Matrix&)" << std::endl;
     if (this != &other) {
       data_ = other.data_;
       column_size_ = other.column_size_;
@@ -363,7 +334,6 @@ class Matrix {
   }
 
   Matrix& operator=(Matrix&& other) {
-    std::clog << "Matrix::operator=(Matrix&&)" << std::endl;
     if (this != &other) {
       data_ = std::move(other.data_);
       column_size_ = other.column_size_;
@@ -377,9 +347,7 @@ class Matrix {
 
   size_type column_size() const { return column_size_; }
 
-  size_type size() const {
-    return row_size() * column_size();
-  }
+  size_type size() const { return row_size() * column_size(); }
 
   std::pair<size_type, size_type> dimension() const {
     return std::make_pair(row_size(), column_size());
@@ -399,9 +367,7 @@ class Matrix {
 
   // Supports access pattern `mat[row][column]`.
   // NOTE(clangpp): No index check is performed in this way.
-  BracketBridge operator[](size_type row) {
-    return BracketBridge(&data_[row]);
-  }
+  BracketBridge operator[](size_type row) { return BracketBridge(&data_[row]); }
 
   // Supports access pattern `const_mat[row][column]`.
   // NOTE(clangpp): No index check is performed in this way.
@@ -531,9 +497,9 @@ class Matrix {
       matrix::ConcurrentProcess(
           other.column_size(),
           [this, &other, row, &row_result](size_type column) mutable {
-            row_result[column] = std::inner_product(
-                this->row_begin(row), this->row_end(row),
-                other.column_begin(column), value_type());
+            row_result[column] =
+                std::inner_product(this->row_begin(row), this->row_end(row),
+                                   other.column_begin(column), value_type());
           },
           &futures);
 
@@ -556,9 +522,9 @@ class Matrix {
       matrix::ConcurrentProcess(
           lhs.row_size(),
           [&lhs, &result, column, &column_result](size_type row) mutable {
-            column_result[row] = std::inner_product(
-                lhs.row_begin(row), lhs.row_end(row),
-                result.column_begin(column), value_type());
+            column_result[row] =
+                std::inner_product(lhs.row_begin(row), lhs.row_end(row),
+                                   result.column_begin(column), value_type());
           },
           &futures);
 
@@ -636,9 +602,9 @@ class Matrix {
   }
 
   // NOTE(clangpp): time complexity O(row_size()), space complexity O(1)
-  Matrix& elementary_column_add(
-      size_type column_target, size_type column_adding,
-      const value_type& scaler) {
+  Matrix& elementary_column_add(size_type column_target,
+                                size_type column_adding,
+                                const value_type& scaler) {
     matrix::CheckColumnRange(*this, column_target);
     matrix::CheckColumnRange(*this, column_adding);
     // elementary addition requires column_target != column_adding
@@ -651,10 +617,9 @@ class Matrix {
 
   // ==== Comparasion operators ====
 
-  bool equal_to(
-      const Matrix& other,
-      std::function<bool(const value_type&, const value_type&)> value_equal_to =
-          std::equal_to<value_type>()) const {
+  bool equal_to(const Matrix& other,
+                std::function<bool(const value_type&, const value_type&)>
+                    value_equal_to = std::equal_to<value_type>()) const {
     if (row_size() != other.row_size() ||
         column_size() != other.column_size()) {
       return false;
@@ -663,8 +628,7 @@ class Matrix {
     typedef typename Matrix<T>::size_type size_type;
     for (size_type row = 0; row < row_size(); ++row) {
       futures[row] = std::async(
-          std::launch::async,
-          [this, &other, row, &value_equal_to]() {
+          std::launch::async, [this, &other, row, &value_equal_to]() {
             for (size_type column = 0; column < this->column_size(); ++column) {
               if (!value_equal_to((*this)[row][column], other[row][column])) {
                 return false;
@@ -724,8 +688,7 @@ Matrix<T> operator-(const Matrix<T>& lhs, Matrix<T>&& rhs) {
   Matrix<T> result(std::move(rhs));
   typedef typename Matrix<T>::size_type size_type;
   matrix::ConcurrentProcess(
-      result.row_size(),
-      [&lhs, &result](size_type row) mutable {
+      result.row_size(), [&lhs, &result](size_type row) mutable {
         for (size_type column = 0; column < result.column_size(); ++column) {
           result[row][column] = lhs[row][column] - result[row][column];
         }
@@ -814,5 +777,7 @@ template <typename T>
 bool operator!=(const Matrix<T>& lhs, const Matrix<T>& rhs) {
   return !(lhs == rhs);
 }
+
+}  // namespace matrix
 
 #endif  // MATRIX_H_
