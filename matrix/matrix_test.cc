@@ -7,10 +7,7 @@
 #include <future>
 #include <iostream>
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
-
-using ::testing::ElementsAreArray;
 
 TEST(ConstructorTest, InitialValue) {
   matrix::Matrix<int> a(2, 4, 3);
@@ -455,8 +452,8 @@ TEST(ConcurrentSpeedTest, ItWorks) {
   }
   stop = clock::now();
   microsecs = stop - start;
-  TRACE() << microsecs.count() << " microseconds"
-          << " (multi-threaded double-for-loop)";
+  SUCCEED() << microsecs.count() << " microseconds"
+            << " (multi-threaded double-for-loop)";
 }
 
 TEST(ElementaryOperationsTest, ItWorks) {

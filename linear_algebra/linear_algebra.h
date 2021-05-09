@@ -3,14 +3,14 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstddef>  // size_t
+#include <cstddef>
 #include <functional>
 #include <future>
 #include <sstream>
 #include <utility>
 #include <vector>
 
-#include "../../../matrix/src/matrix/matrix.h"
+#include "matrix/matrix.h"
 
 namespace linear_algebra {
 
@@ -22,11 +22,11 @@ void ConcurrentProcess(std::size_t first, std::size_t last,
   }
   helper_futures->resize(last - first);
   for (std::size_t index = first; index < last; ++index) {
-    (*helper_futures)[index-first] =
+    (*helper_futures)[index - first] =
         std::async(std::launch::async, process, index);
   }
   for (std::size_t index = first; index < last; ++index) {
-    (*helper_futures)[index-first].wait();
+    (*helper_futures)[index - first].wait();
   }
 }
 
@@ -45,9 +45,7 @@ struct TrivialAbsLess {
 
 template <typename T>
 struct TrivialIsZero {
-  bool operator()(const T& value) {
-    return 0 == value;
-  }
+  bool operator()(const T& value) { return 0 == value; }
 };
 
 enum MatrixForm {
@@ -61,22 +59,21 @@ enum MatrixForm {
 // returns: rank of coefficient_matrix.
 template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
           typename IsZero = TrivialIsZero<T>>
-typename Matrix<T>::size_type GaussEliminate(
-    Matrix<T>* coefficient_matrix,
-    Matrix<T>* extra_matrix = nullptr,
-    std::vector<typename Matrix<T>::size_type>* pivot_columns = nullptr,
+typename matrix::Matrix<T>::size_type GaussEliminate(
+    matrix::Matrix<T>* coefficient_matrix,
+    matrix::Matrix<T>* extra_matrix = nullptr,
+    std::vector<typename matrix::Matrix<T>::size_type>* pivot_columns = nullptr,
     MatrixForm target_form = kRowEchelonForm,
-    AbsoluteLess absolute_less = AbsoluteLess(),
-    IsZero is_zero = IsZero()) {
+    AbsoluteLess absolute_less = AbsoluteLess(), IsZero is_zero = IsZero()) {
   if (extra_matrix) {
     matrix::CheckAugmentable(*coefficient_matrix, *extra_matrix);
   }
 
   // Helpers
-  Matrix<T>* a_mat = coefficient_matrix;  // shorter name
-  Matrix<T>* b_mat = extra_matrix;  // shorter name
-  typedef typename Matrix<T>::size_type size_type;
-  typedef typename Matrix<T>::value_type value_type;
+  matrix::Matrix<T>* a_mat = coefficient_matrix;  // shorter name
+  matrix::Matrix<T>* b_mat = extra_matrix;        // shorter name
+  typedef typename matrix::Matrix<T>::size_type size_type;
+  typedef typename matrix::Matrix<T>::value_type value_type;
   std::vector<std::future<void>> futures(a_mat->row_size());
   std::vector<value_type> normal_scalers(a_mat->row_size(), value_type(1));
   std::vector<size_type> local_pivot_columns;
@@ -86,13 +83,12 @@ typename Matrix<T>::size_type GaussEliminate(
   pivot_columns->clear();
 
   size_type pivot_row = 0, pivot_column = 0;
-  for (; pivot_row < a_mat->row_size() &&
-      pivot_column < a_mat->column_size(); ++pivot_column) {
+  for (; pivot_row < a_mat->row_size() && pivot_column < a_mat->column_size();
+       ++pivot_column) {
     // Finds max (absolute) value of current column.
-    auto max_iter = std::max_element(
-        a_mat->column_begin(pivot_column) + pivot_row,
-        a_mat->column_end(pivot_column),
-        absolute_less);
+    auto max_iter =
+        std::max_element(a_mat->column_begin(pivot_column) + pivot_row,
+                         a_mat->column_end(pivot_column), absolute_less);
     size_type max_row = max_iter - a_mat->column_begin(pivot_column);
     if (is_zero((*a_mat)[max_row][pivot_column])) {
       continue;
@@ -109,20 +105,28 @@ typename Matrix<T>::size_type GaussEliminate(
     //  2. all rows except `pivot_row` if kReducedRowEchelonForm.
     size_type eliminate_first_row = 0;
     switch (target_form) {
-      case kRowEchelonForm: { eliminate_first_row = pivot_row + 1; break; }
-      case kReducedRowEchelonForm: { eliminate_first_row = 0; break; }
-      default: { break; }
+      case kRowEchelonForm: {
+        eliminate_first_row = pivot_row + 1;
+        break;
+      }
+      case kReducedRowEchelonForm: {
+        eliminate_first_row = 0;
+        break;
+      }
+      default: {
+        break;
+      }
     }
     ConcurrentProcess(
         eliminate_first_row, a_mat->row_size(),
         [a_mat, b_mat, pivot_row, pivot_column](size_type row) {
           if (row != pivot_row) {
             value_type scaler = -(*a_mat)[row][pivot_column] /
-                (*a_mat)[pivot_row][pivot_column];
+                                (*a_mat)[pivot_row][pivot_column];
 
             // a_mat->elementary_row_add(row, pivot_row, scaler);
             for (size_type column = pivot_column + 1;
-                column < a_mat->column_size(); ++column) {
+                 column < a_mat->column_size(); ++column) {
               (*a_mat)[row][column] += scaler * (*a_mat)[pivot_row][column];
             }
             (*a_mat)[row][pivot_column] = value_type(0);
@@ -131,7 +135,8 @@ typename Matrix<T>::size_type GaussEliminate(
               b_mat->elementary_row_add(row, pivot_row, scaler);
             }
           }
-        }, &futures);
+        },
+        &futures);
 
     // Updates helpers.
     normal_scalers[pivot_row] /= (*a_mat)[pivot_row][pivot_column];
@@ -143,12 +148,11 @@ typename Matrix<T>::size_type GaussEliminate(
   if (kReducedRowEchelonForm == target_form) {
     ConcurrentProcess(
         0, pivot_row,
-        [a_mat, b_mat, &normal_scalers, pivot_columns, &is_zero](
-            size_type row) {
-
+        [a_mat, b_mat, &normal_scalers, pivot_columns,
+         &is_zero](size_type row) {
           // a_mat->elementary_row_multiply(row, normal_scalers[row], is_zero);
           for (size_type column = 0, pivot_index = 0;
-              column < a_mat->column_size(); ++column) {
+               column < a_mat->column_size(); ++column) {
             if (pivot_index < pivot_columns->size() &&
                 column == (*pivot_columns)[pivot_index]) {
               if (pivot_index == row) {  // Normalizes row'th pivot column
@@ -163,7 +167,8 @@ typename Matrix<T>::size_type GaussEliminate(
           if (b_mat) {  // Normalizes one row in b_mat.
             b_mat->elementary_row_multiply(row, normal_scalers[row], is_zero);
           }
-        }, &futures);
+        },
+        &futures);
   }
 
   // Returns rank of coefficient_matrix.
@@ -175,43 +180,32 @@ typename Matrix<T>::size_type GaussEliminate(
 //  e.g. is_zero(double v) -> std::abs(v) < 1e-6;
 template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
           typename IsZero = TrivialIsZero<T>>
-typename Matrix<T>::size_type GaussJordanEliminate(
-    Matrix<T>* coefficient_matrix,
-    Matrix<T>* extra_matrix = nullptr,
-    std::vector<typename Matrix<T>::size_type>* pivot_columns = nullptr,
-    AbsoluteLess absolute_less = AbsoluteLess(),
-    IsZero is_zero = IsZero()) {
-  return GaussEliminate(
-      coefficient_matrix,
-      extra_matrix,
-      pivot_columns,
-      kReducedRowEchelonForm,
-      absolute_less,
-      is_zero);
+typename matrix::Matrix<T>::size_type GaussJordanEliminate(
+    matrix::Matrix<T>* coefficient_matrix,
+    matrix::Matrix<T>* extra_matrix = nullptr,
+    std::vector<typename matrix::Matrix<T>::size_type>* pivot_columns = nullptr,
+    AbsoluteLess absolute_less = AbsoluteLess(), IsZero is_zero = IsZero()) {
+  return GaussEliminate(coefficient_matrix, extra_matrix, pivot_columns,
+                        kReducedRowEchelonForm, absolute_less, is_zero);
 }
 
 // NOTE: none of input matrices should be nullptr.
 template <typename T, typename AbsoluteLess = TrivialAbsLess<T>,
           typename IsZero = TrivialIsZero<T>>
-bool SolveLinearSystem(
-    Matrix<T>* coefficient_matrix,
-    Matrix<T>* constant_column_vector,
-    Matrix<T>* null_space,
-    Matrix<T>* particular_solution,
-    AbsoluteLess absolute_less = AbsoluteLess(),
-    IsZero is_zero = IsZero()) {
-  typedef typename Matrix<T>::size_type size_type;
-  typedef typename Matrix<T>::value_type value_type;
+bool SolveLinearSystem(matrix::Matrix<T>* coefficient_matrix,
+                       matrix::Matrix<T>* constant_column_vector,
+                       matrix::Matrix<T>* null_space,
+                       matrix::Matrix<T>* particular_solution,
+                       AbsoluteLess absolute_less = AbsoluteLess(),
+                       IsZero is_zero = IsZero()) {
+  typedef typename matrix::Matrix<T>::size_type size_type;
+  typedef typename matrix::Matrix<T>::value_type value_type;
 
   // Gauss elimination to reduced row echelon form.
   std::vector<size_type> pivot_columns;
-  size_type rank = GaussEliminate(
-      coefficient_matrix,
-      constant_column_vector,
-      &pivot_columns,
-      kReducedRowEchelonForm,
-      absolute_less,
-      is_zero);
+  size_type rank =
+      GaussEliminate(coefficient_matrix, constant_column_vector, &pivot_columns,
+                     kReducedRowEchelonForm, absolute_less, is_zero);
 
   // Checks if system has 0 solutions.
   for (size_type row = rank; row < constant_column_vector->row_size(); ++row) {
@@ -226,11 +220,11 @@ bool SolveLinearSystem(
   null_space->row_resize(coefficient_matrix->column_size());
   null_space->column_resize(coefficient_matrix->column_size() - rank);
   for (size_type var_pos = 0, pivot_index = 0, free_index = 0;
-      var_pos < coefficient_matrix->column_size(); ++var_pos) {
+       var_pos < coefficient_matrix->column_size(); ++var_pos) {
     if (pivot_index < pivot_columns.size() &&
         var_pos == pivot_columns[pivot_index]) {  // pivot variable
       ++pivot_index;
-    } else {  // free variable
+    } else {                                        // free variable
       for (size_type row = 0; row < rank; ++row) {  // -F
         (*null_space)[pivot_columns[row]][free_index] =
             -(*coefficient_matrix)[row][var_pos];
