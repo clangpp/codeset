@@ -1,9 +1,5 @@
-// waf_facility.h
 #ifndef WAF_FACILITY_H_
 #define WAF_FACILITY_H_
-
-// include for types, not for algorithm
-#include "../waf_core/waf_core.h"
 
 #include <cstddef>
 #include <istream>
@@ -12,8 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "../../../ac/src/ac/ac.h"
-#include "../../../serialization/src/serialization/serialization.h"
+#include "ac/ac.h"
+#include "serialization/serialization.h"
+#include "waf_core.h"
 
 namespace waf {
 
@@ -171,7 +168,15 @@ class FreqVector {
 // =============================================================================
 template <typename T>
 bool cell_value_greater(const serialization::sparsematrix::Cell<T>& lhs,
-                        const serialization::sparsematrix::Cell<T>& rhs);
+                        const serialization::sparsematrix::Cell<T>& rhs) {
+  if (lhs.value > rhs.value || rhs.value > lhs.value) {  // value (greater)
+    return lhs.value > rhs.value;
+  } else if (lhs.row != rhs.row) {  // row (less)
+    return lhs.row < rhs.row;
+  } else {  // column (less)
+    return lhs.column < rhs.column;
+  }
+}
 
 // predicate facility
 // =============================================================================
@@ -210,7 +215,5 @@ inline FreqVecObserver freq_dict(const FreqVector& freqvec) {
 }
 
 }  // namespace waf
-
-#include "waf_facility-inl.h"
 
 #endif  // WAF_FACILITY_H_
