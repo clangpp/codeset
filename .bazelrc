@@ -1,1 +1,2 @@
 build --copt='-std=c++17'
+test --test_output=errors
