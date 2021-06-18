@@ -1,16 +1,12 @@
-// bm.h
-// implement Boyer-Moore subsequence searching algorithm
-// Author: Yongtian Zhang (yongtianzhang@gmail.com)
-// Last modified at: 2011.10.25
+// Implements Boyer-Moore subsequence searching algorithm
 #ifndef BM_H_
 #define BM_H_
 
 #include <cstddef>
 #include <iterator>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include "boost/unordered_map.hpp"
 
 namespace bm {
 
@@ -24,7 +20,7 @@ class Subsequence {
   typedef std::ptrdiff_t difference_type;
   typedef typename std::vector<value_type>::const_iterator iterator;
   typedef typename std::vector<value_type>::const_reference reference;
-  typedef boost::unordered_map<value_type, size_type> BadCharacterDictionary;
+  typedef std::unordered_map<value_type, size_type> BadCharacterDictionary;
   typedef std::vector<size_type> GoodSuffixTable;
 
  public:
@@ -60,10 +56,13 @@ class Subsequence {
                                  RandomAccessIterator last,
                                  BadCharacterDictionary& badc_dict) {
     badc_dict.clear();
-    if (first >= last) return;
+    if (first >= last) {
+      return;
+    }
     size_type seqlen = last - first;
-    for (size_type i = 0; i < seqlen; ++i, ++first)
+    for (size_type i = 0; i < seqlen; ++i, ++first) {
       badc_dict[*first] = seqlen - 1 - i;
+    }
   }
 
   // make good suffix table of subsequence [first, last)
@@ -87,7 +86,9 @@ class Subsequence {
     GoodSuffixTable& pre_table = goods_table;
     for (size_type i = seqlen - 1; i > 0; --i) {
       for (size_type j = 0; j < i; ++j) {
-        if (!std::equal(first + i, last, first + j)) continue;
+        if (!std::equal(first + i, last, first + j)) {
+          continue;
+        }
         if (0 == j) {
           max_sub_len = seqlen - i;
         } else if (first[i - 1] != first[j - 1]) {
@@ -102,8 +103,9 @@ class Subsequence {
         goods_table[i] = seqlen - 1 - pre_table[i];
       } else {
         goods_table[i] = seqlen - 1 - i + pre_table[i];
-        if (max_sub_len != 0 && seqlen - 1 - i >= max_sub_len)
+        if (max_sub_len != 0 && seqlen - 1 - i >= max_sub_len) {
           goods_table[i] -= max_sub_len;
+        }
       }
     }
   }
@@ -121,11 +123,16 @@ class Subsequence {
 template <typename RandomAccessIterator, typename T>
 RandomAccessIterator find(RandomAccessIterator first, RandomAccessIterator last,
                           const Subsequence<T>& subseq) {
-  if (first >= last) return last;
+  if (first >= last) {
+    return last;
+  }
   std::size_t seqlen = subseq.size(), txtlen = last - first;
   for (std::size_t i = seqlen - 1, j = seqlen - 1; j < txtlen; i = seqlen - 1) {
-    while (i != 0 && subseq[i] == first[j]) --i, --j;       // first mismatch
-    if (0 == i && subseq[i] == first[j]) return first + j;  // one match found
+    for (; i != 0 && subseq[i] == first[j]; --i, --j) {  // first mismatch
+    }
+    if (0 == i && subseq[i] == first[j]) {
+      return first + j;  // one match found
+    }
     j += std::max(subseq.good_suffix(i), subseq.bad_character(first[j]));
   }
   return last;  // no match
@@ -143,10 +150,9 @@ template <typename RandomAccessIterator, typename T>
 std::size_t count(RandomAccessIterator first, RandomAccessIterator last,
                   const Subsequence<T>& subseq) {
   std::size_t counter = 0;
-  first = find(first, last, subseq);
-  while (first != last) {
+  for (first = find(first, last, subseq); first != last;
+       first = find(next(first, subseq), last, subseq)) {
     ++counter;
-    first = find(next(first, subseq), last, subseq);
   }
   return counter;
 }
