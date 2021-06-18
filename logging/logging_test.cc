@@ -1,5 +1,3 @@
-// TODO(clangpp): Make this compile.
-
 #include "logging.h"
 
 #include <algorithm>
@@ -10,12 +8,43 @@
 
 #include "gtest/gtest.h"
 
+namespace logging {
+namespace {
+
+void test_logger_inserter(Logger& logger) {
+  Trace trace(INFO_, "test_logger_inserter()");
+  log(INFO_) << "log all level messages by stream inserter" << std::endl;
+
+  std::string message_suffix(" message through stream inserter");
+  logger(DEBUG_) << "debug" << message_suffix << std::endl;
+  logger(INFO_) << "info" << message_suffix << std::endl;
+  logger(WARNING_) << "warning" << message_suffix << std::endl;
+  logger(ERROR_) << "error" << message_suffix << std::endl;
+  logger(CRITICAL_) << "critical" << message_suffix << std::endl;
+}
+
+void test_logger_functions(Logger& logger) {
+  Trace trace(INFO_, "test_logger_functions()");
+  log(INFO_) << "log all level messages by logger's functions" << std::endl;
+
+  std::string message_suffix(" message through member function");
+  logger.debug("debug" + message_suffix);
+  logger.info("info" + message_suffix);
+  logger.warning("warning" + message_suffix);
+  logger.error("error" + message_suffix);
+  logger.critical("critical" + message_suffix);
+
+  logger.log(DEBUG_,
+             "debug message through logging::Logger::log(level, message)");
+  logger.log(CRITICAL_,
+             "critical message through logging::Logger::log(level, message)");
+}
+
 TEST(StandardLoggerTest, ItWorks) {
   logging::Trace trace(logging::INFO_, "test_standard_logger()");
 
   // perform logging on standard logger through stream inserter
   {
-    using namespace logging;
     Trace trace(INFO_, "test stream inserter");
 
     std::string message_suffix(" message through stream inserter");
@@ -54,7 +83,6 @@ TEST(StandardLoggerTest, ItWorks) {
 }
 
 TEST(LoggerTest, ItWorks) {
-  using namespace logging;
   Trace trace(INFO_, "test_logger()");
 
   log(INFO_) << "initialize Logger object with file 'logger.log'" << std::endl;
@@ -79,31 +107,30 @@ TEST(LoggerTest, ItWorks) {
   standard_logger().detach_sink(flog);
 
   // test sink observers
-  log(INFO_) << "clog in logger's sink set? " << std::boolalpha
-             << logger.verify_sink(clog) << std::endl;
-  log(INFO_) << "adding clog into logger's sink set..." << std::endl;
-  logger.attach_sink(clog);
-  log(INFO_) << "clog in logger's sink set now? " << std::boolalpha
-             << logger.verify_sink(clog) << std::endl;
+  log(INFO_) << "std::clog in logger's sink set? " << std::boolalpha
+             << logger.verify_sink(std::clog) << std::endl;
+  log(INFO_) << "adding std::clog into logger's sink set..." << std::endl;
+  logger.attach_sink(std::clog);
+  log(INFO_) << "std::clog in logger's sink set now? " << std::boolalpha
+             << logger.verify_sink(std::clog) << std::endl;
 
-  log(INFO_) << "clog's severity level is " << logger.level_of_sink(clog)
-             << std::endl;
+  log(INFO_) << "std::clog's severity level is "
+             << logger.level_of_sink(std::clog) << std::endl;
   level = CRITICAL_;
-  log(INFO_) << "changing clog's severity level to " << level << std::endl;
-  logger.level_of_sink(clog) = level;
-  log(INFO_) << "clog's severity level is " << logger.level_of_sink(clog)
-             << " now" << std::endl;
+  log(INFO_) << "changing std::clog's severity level to " << level << std::endl;
+  logger.level_of_sink(std::clog) = level;
+  log(INFO_) << "std::clog's severity level is "
+             << logger.level_of_sink(std::clog) << " now" << std::endl;
 
-  log(INFO_) << "clog in logger's sink set? " << std::boolalpha
-             << logger.verify_sink(clog) << std::endl;
-  log(INFO_) << "removing clog from logger's sink set..." << std::endl;
-  logger.detach_sink(clog);
-  log(INFO_) << "clog in logger's sink set now? " << std::boolalpha
-             << logger.verify_sink(clog) << std::endl;
+  log(INFO_) << "std::clog in logger's sink set? " << std::boolalpha
+             << logger.verify_sink(std::clog) << std::endl;
+  log(INFO_) << "removing std::clog from logger's sink set..." << std::endl;
+  logger.detach_sink(std::clog);
+  log(INFO_) << "std::clog in logger's sink set now? " << std::boolalpha
+             << logger.verify_sink(std::clog) << std::endl;
 }
 
 TEST(SeverityLevelsTest, ItWorks) {
-  using namespace logging;
   Trace trace(INFO_, "test_severity_levels()");
   log(INFO_) << "logging data goes to '<level>.log'" << std::endl;
 
@@ -125,39 +152,7 @@ TEST(SeverityLevelsTest, ItWorks) {
   test_logger_functions(logger);
 }
 
-TEST(LoggerInserterTest, ItWorks) {
-  using namespace logging;
-  Trace trace(INFO_, "test_logger_inserter()");
-  log(INFO_) << "log all level messages by stream inserter" << std::endl;
-
-  std::string message_suffix(" message through stream inserter");
-  logger(DEBUG_) << "debug" << message_suffix << std::endl;
-  logger(INFO_) << "info" << message_suffix << std::endl;
-  logger(WARNING_) << "warning" << message_suffix << std::endl;
-  logger(ERROR_) << "error" << message_suffix << std::endl;
-  logger(CRITICAL_) << "critical" << message_suffix << std::endl;
-}
-
-TEST(LoggerFunctionsTest, ItWorks) {
-  using namespace logging;
-  Trace trace(INFO_, "test_logger_functions()");
-  log(INFO_) << "log all level messages by logger's functions" << std::endl;
-
-  std::string message_suffix(" message through member function");
-  logger.debug("debug" + message_suffix);
-  logger.info("info" + message_suffix);
-  logger.warning("warning" + message_suffix);
-  logger.error("error" + message_suffix);
-  logger.critical("critical" + message_suffix);
-
-  logger.log(DEBUG_,
-             "debug message through logging::Logger::log(level, message)");
-  logger.log(CRITICAL_,
-             "critical message through logging::Logger::log(level, message)");
-}
-
-TEST(IndentFunc3Test, ItWorks) {
-  using namespace logging;
+void test_indent_func3() {
   Trace trace(INFO_, "test_indent_func3()");
   {
     Indent indent("^^^^");
@@ -173,8 +168,7 @@ TEST(IndentFunc3Test, ItWorks) {
   }
 }
 
-TEST(IndentFunc2Test, ItWorks) {
-  using namespace logging;
+void test_indent_func2() {
   Trace trace(INFO_, "test_indent_func2()");
   Indent indent("____");
   log(INFO_) << "about to call test_indent_func3()" << std::endl;
@@ -182,8 +176,7 @@ TEST(IndentFunc2Test, ItWorks) {
   log(INFO_) << "finish called test_indent_func3()" << std::endl;
 }
 
-TEST(IndentFunc1Test, ItWorks) {
-  using namespace logging;
+void test_indent_func1() {
   Trace trace(INFO_, "test_indent_func1()");
   Indent indent;
   log(INFO_) << "about to call test_indent_func2()" << std::endl;
@@ -192,18 +185,16 @@ TEST(IndentFunc1Test, ItWorks) {
 }
 
 TEST(IndentTest, ItWorks) {
-  using namespace logging;
   Trace trace(INFO_, "test_indent()");
   Indent indent;
   test_indent_func1();
 }
 
 TEST(AttachTest, ItWorks) {
-  using namespace logging;
   Trace trace(INFO_, "test_attach()");
   std::string log_file("test_attach.log");
   std::ofstream flog;
-  flog.open(log_file.c_str(), ios::app);
+  flog.open(log_file.c_str(), std::ios::app);
   {
     Attach attach(INFO_, flog);
     log(INFO_) << "You'll see this line in '" << log_file << "'" << std::endl;
@@ -219,7 +210,6 @@ TEST(AttachTest, ItWorks) {
 }
 
 TEST(LogIteratorTest, ItWorks) {
-  using namespace logging;
   Trace trace(INFO_, "test_log_iterator()");
   int values[] = {1, 2, 3, 4, 5};
   log(INFO_) << "values are ";
@@ -234,7 +224,6 @@ TEST(LogIteratorTest, ItWorks) {
 }
 
 TEST(NamedLoggerTest, ItWorks) {
-  using namespace logging;
   Trace trace(INFO_, "test_named_logger()");
   NamedLogger nlog("module1");
   nlog(INFO_) << "message line" << std::endl;
@@ -251,3 +240,6 @@ TEST(NamedLoggerTest, ItWorks) {
   copy(values, values + sizeof(values) / sizeof(int), nlog(ERROR_)(" "));
   nlog << std::endl;
 }
+
+}  // namespace
+}  // namespace logging
